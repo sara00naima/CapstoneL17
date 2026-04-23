@@ -8,17 +8,17 @@ def encode_mono_to_foa(signal: np.ndarray, azimuth_rad: float, elevation_rad: fl
         signal: shape (samples,)
         convention: either "basic" or "n3d_like"
     Output:
-        foa: shape (samples, 4) ordered as [W, X, Y, Z]
+        foa: shape (samples, 4) ordered as [W, Y, Z, X] (which is the ACN standard)
     """
     signal = np.asarray(signal, dtype=np.float32).reshape(-1)
     x, y, z = sph2cart(azimuth_rad, elevation_rad)
 
-    if convention == "basic":
+    if convention == "basic": # SN3D Normalization
         w_gain = 1.0
         x_gain = x
         y_gain = y
         z_gain = z
-    elif convention == "n3d_like":
+    elif convention == "n3d_like": # N3D Normalization
         w_gain = 1.0
         g = np.sqrt(3.0)
         x_gain = g * x
@@ -29,9 +29,9 @@ def encode_mono_to_foa(signal: np.ndarray, azimuth_rad: float, elevation_rad: fl
 
     foa = np.stack([
         signal * w_gain,
-        signal * x_gain,
         signal * y_gain,
         signal * z_gain,
+        signal * x_gain,
     ], axis=-1)
 
     return foa
