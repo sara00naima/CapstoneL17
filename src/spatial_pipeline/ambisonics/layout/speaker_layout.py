@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass
 from pathlib import Path
-import csv
 
 import numpy as np
 
-from .conventions import deg2rad, sph2cart
+from ..core.conventions import deg2rad, sph2cart
 
 
 def _parse_float(value: str) -> float:
@@ -78,9 +78,7 @@ def load_speaker_layout(csv_path: str | Path) -> list[Speaker]:
             raise ValueError("CSV is empty")
 
         for fields in reader:
-            if not fields:
-                continue
-            if len(fields) < 5:
+            if not fields or len(fields) < 5:
                 continue
 
             label = fields[0].strip()
@@ -93,7 +91,9 @@ def load_speaker_layout(csv_path: str | Path) -> list[Speaker]:
     return speakers
 
 
-def layout_to_numpy(speakers: list[Speaker]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def layout_to_numpy(
+    speakers: list[Speaker],
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     azimuth_rad = np.array([s.azimuth_rad for s in speakers], dtype=np.float64)
     elevation_rad = np.array([s.elevation_rad for s in speakers], dtype=np.float64)
     cartesian = np.stack([s.cartesian for s in speakers], axis=0)
