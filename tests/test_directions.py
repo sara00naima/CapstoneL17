@@ -2,12 +2,11 @@ import numpy as np
 
 from spatial_pipeline.foa import encode_mono_to_foa
 
-
 ATOL = 1e-6
 
 
 def _mean_channels(foa):
-    W, X, Y, Z = foa.T
+    W, Y, Z, X = foa.T
     return W.mean(), X.mean(), Y.mean(), Z.mean()
 
 
