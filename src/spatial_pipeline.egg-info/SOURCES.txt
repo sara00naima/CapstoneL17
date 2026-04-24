@@ -18,10 +18,14 @@ src/spatial_pipeline.egg-info/top_level.txt
 src/spatial_pipeline/ambisonics/__init__.py
 src/spatial_pipeline/ambisonics/core/__init__.py
 src/spatial_pipeline/ambisonics/core/conventions.py
+src/spatial_pipeline/ambisonics/core/spherical_harmonics.py
 src/spatial_pipeline/ambisonics/decoding/__init__.py
 src/spatial_pipeline/ambisonics/encoding/__init__.py
 src/spatial_pipeline/ambisonics/encoding/foa.py
+src/spatial_pipeline/ambisonics/encoding/hoa.py
 src/spatial_pipeline/ambisonics/layout/__init__.py
 src/spatial_pipeline/ambisonics/layout/speaker_layout.py
 tests/test_directions.py
+tests/test_foa_compatibility.py
+tests/test_hoa_order1_equivalence.py
 tests/test_speaker_layout.py
