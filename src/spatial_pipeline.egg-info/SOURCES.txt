@@ -11,6 +11,7 @@ src/spatial_pipeline/conventions.py
 src/spatial_pipeline/demix.py
 src/spatial_pipeline/foa.py
 src/spatial_pipeline/pipeline.py
+src/spatial_pipeline/speaker_layout.py
 src/spatial_pipeline/utils.py
 src/spatial_pipeline.egg-info/PKG-INFO
 src/spatial_pipeline.egg-info/SOURCES.txt
@@ -19,3 +20,4 @@ src/spatial_pipeline.egg-info/requires.txt
 src/spatial_pipeline.egg-info/top_level.txt
 tests/test_conventions.py
 tests/test_directions.py
+tests/test_speaker_layout.py
