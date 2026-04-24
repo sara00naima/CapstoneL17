@@ -2,11 +2,11 @@ from pathlib import Path
 
 import numpy as np
 
-from spatial_pipeline.speaker_layout import (
+from spatial_pipeline.ambisonics.layout.speaker_layout import (
     Speaker,
-    load_speaker_layout,
     layout_labels,
     layout_to_numpy,
+    load_speaker_layout,
     wrap_azimuth_deg,
 )
 
@@ -14,7 +14,7 @@ ATOL = 1e-6
 
 
 def _csv_path() -> Path:
-    return Path("measurements_transcription.csv")
+    return Path(__file__).resolve().parents[1] / "measurements_transcription.csv"
 
 
 def test_wrap_azimuth_deg():

@@ -1,9 +1,14 @@
 from .audio_io import load_mono, save_audio
-from .foa import encode_mono_to_foa, sum_foa_sources
-from .conventions import deg2rad
+from .ambisonics.core.conventions import deg2rad
+from .ambisonics.encoding.foa import encode_mono_to_foa, sum_foa_sources
 
-def encode_stems_to_foa(stem_paths: dict, positions_deg: dict, out_path: str,
-                        convention: str = "basic"):
+
+def encode_stems_to_foa(
+    stem_paths: dict[str, str],
+    positions_deg: dict[str, tuple[float, float]],
+    out_path: str,
+    convention: str = "basic",
+):
     foa_sources = []
     sr_ref = None
     n_ref = None
@@ -20,12 +25,15 @@ def encode_stems_to_foa(stem_paths: dict, positions_deg: dict, out_path: str,
             if len(signal) != n_ref:
                 raise ValueError(f"Length mismatch on stem {name}")
 
+        if name not in positions_deg:
+            raise KeyError(f"Missing position for stem '{name}'")
+
         azi_deg, ele_deg = positions_deg[name]
         foa = encode_mono_to_foa(
             signal,
             azimuth_rad=deg2rad(azi_deg),
             elevation_rad=deg2rad(ele_deg),
-            convention=convention
+            convention=convention,
         )
         foa_sources.append(foa)
 

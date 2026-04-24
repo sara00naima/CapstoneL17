@@ -1,6 +1,6 @@
 import numpy as np
 
-from spatial_pipeline.foa import encode_mono_to_foa
+from spatial_pipeline.ambisonics.encoding.foa import encode_mono_to_foa
 
 ATOL = 1e-6
 
