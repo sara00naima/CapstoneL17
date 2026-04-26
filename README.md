@@ -1,7 +1,12 @@
 # CapstoneL17
 
-For running a Demixing model specify the following parameters: 
+For running a Demixing model: 
+1. Check that bs-roformer-infer package is installed or install it if it's not:
 
-python inference.py --config_path path/to/config.yaml --model_path path/to/model.pth --input_folder path/to/input
+$$ !pip install -q git+https://github.com/openmirlab/bs-roformer-infer.git$$
 
-https://github.com/openmirlab/bs-roformer-infer
+2. run the command:
+
+bs-roformer-infer --config_path models/roformer-model-bs-roformer-sw-by-jarredou/BS-Rofo-SW-Fixed.yaml --model_path models/roformer-model-bs-roformer-sw-by-jarredou/BS-Rofo-SW-Fixed.ckpt --input_folder ./input_songs --store_dir ./outputs
+
+Source: https://github.com/openmirlab/bs-roformer-infer
