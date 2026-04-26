@@ -42,4 +42,5 @@ torchaudio==2.8.0
 tqdm==4.67.3
 typing_extensions==4.15.0
 urllib3==2.6.3
+pytest==9.0.3
 git+https://github.com/openmirlab/bs-roformer-infer.git
