@@ -2,6 +2,11 @@ import numpy as np
 
 from spatial_pipeline.ambisonics.encoding.foa import encode_mono_to_foa
 
+from spatial_pipeline.ambisonics.core.conventions import (
+    sph2cart,
+    SphericalPosition,
+)
+
 ATOL = 1e-6
 
 
@@ -20,8 +25,10 @@ def _assert_direction(
 
     foa = encode_mono_to_foa(
         s,
-        azimuth_rad=np.deg2rad(azimuth_deg),
-        elevation_rad=np.deg2rad(elevation_deg),
+        position=SphericalPosition(
+            azimuth=np.deg2rad(azimuth_deg),
+            elevation=np.deg2rad(elevation_deg),
+        ),
         convention="basic",
     )
 

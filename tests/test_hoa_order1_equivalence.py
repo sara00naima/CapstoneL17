@@ -1,5 +1,10 @@
 import numpy as np
 
+from spatial_pipeline.ambisonics.core.conventions import (
+    sph2cart,
+    SphericalPosition,
+)
+
 from spatial_pipeline.ambisonics.encoding.foa import encode_mono_to_foa
 from spatial_pipeline.ambisonics.encoding.hoa import encode_mono_to_hoa
 
@@ -11,17 +16,20 @@ def test_foa_basic_equals_hoa_order1_sn3d():
     azi = np.deg2rad(25.0)
     ele = np.deg2rad(-10.0)
 
+    position = SphericalPosition(
+        azimuth=azi,
+        elevation=ele,
+    )
+
     foa = encode_mono_to_foa(
         s,
-        azimuth_rad=azi,
-        elevation_rad=ele,
+        position=position,
         convention="basic",
     )
 
     hoa = encode_mono_to_hoa(
         s,
-        azimuth_rad=azi,
-        elevation_rad=ele,
+        position=position,
         order=1,
         normalization="sn3d",
     )
@@ -38,15 +46,13 @@ def test_foa_n3d_like_equals_hoa_order1_n3d():
 
     foa = encode_mono_to_foa(
         s,
-        azimuth_rad=azi,
-        elevation_rad=ele,
+        position=SphericalPosition(azimuth=azi, elevation=ele),
         convention="n3d_like",
     )
 
     hoa = encode_mono_to_hoa(
         s,
-        azimuth_rad=azi,
-        elevation_rad=ele,
+        position=SphericalPosition(azimuth=azi, elevation=ele),
         order=1,
         normalization="n3d",
     )
@@ -61,8 +67,7 @@ def test_hoa_order1_has_four_channels():
 
     hoa = encode_mono_to_hoa(
         s,
-        azimuth_rad=0.0,
-        elevation_rad=0.0,
+        position=SphericalPosition(azimuth=0.0, elevation=0.0),
         order=1,
         normalization="sn3d",
     )

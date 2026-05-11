@@ -1,7 +1,9 @@
 README.md
 pyproject.toml
+src/scripts/run_decode.py
 src/scripts/run_demix.py
 src/scripts/run_encode_foa.py
+src/scripts/run_encode_hoa.py
 src/scripts/run_pipeline.py
 src/spatial_pipeline/__init__.py
 src/spatial_pipeline/audio_io.py
@@ -20,6 +22,7 @@ src/spatial_pipeline/ambisonics/core/__init__.py
 src/spatial_pipeline/ambisonics/core/conventions.py
 src/spatial_pipeline/ambisonics/core/spherical_harmonics.py
 src/spatial_pipeline/ambisonics/decoding/__init__.py
+src/spatial_pipeline/ambisonics/decoding/decode_to_speakers.py
 src/spatial_pipeline/ambisonics/encoding/__init__.py
 src/spatial_pipeline/ambisonics/encoding/foa.py
 src/spatial_pipeline/ambisonics/encoding/hoa.py
