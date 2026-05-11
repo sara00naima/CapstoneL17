@@ -10,6 +10,7 @@ src/spatial_pipeline/audio_io.py
 src/spatial_pipeline/binaural.py
 src/spatial_pipeline/config.py
 src/spatial_pipeline/demix.py
+src/spatial_pipeline/frame-processing.py
 src/spatial_pipeline/pipeline.py
 src/spatial_pipeline/utils.py
 src/spatial_pipeline.egg-info/PKG-INFO
@@ -30,5 +31,6 @@ src/spatial_pipeline/ambisonics/layout/__init__.py
 src/spatial_pipeline/ambisonics/layout/speaker_layout.py
 tests/test_directions.py
 tests/test_foa_compatibility.py
+tests/test_frame_processing.py
 tests/test_hoa_order1_equivalence.py
 tests/test_speaker_layout.py
