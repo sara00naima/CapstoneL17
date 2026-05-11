@@ -1,6 +1,5 @@
 from .audio_io import load_mono, save_audio
 from spatial_pipeline.ambisonics.core.conventions import (
-    sph2cart,
     SphericalPosition,
     deg2rad
 )
