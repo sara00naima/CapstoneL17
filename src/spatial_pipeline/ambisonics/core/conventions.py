@@ -34,7 +34,7 @@ class Normalization(Enum):
 class CoordinateSystem(Enum):
     RIGHT_HANDED = "right_handed"
 
-@dataclass
+@dataclass (frozen=True)
 class SphericalPosition:
     azimuth: float
     elevation: float
