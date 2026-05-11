@@ -1,11 +1,11 @@
 import numpy as np
 
 from .hoa import encode_mono_to_hoa
+from ..core.conventions import SphericalPosition
 
 def encode_mono_to_foa(
     signal: np.ndarray,
-    azimuth_rad: float,
-    elevation_rad: float,
+    position: SphericalPosition,
     convention: str = "basic",
 ) -> np.ndarray:
     if convention == "basic":
@@ -17,8 +17,7 @@ def encode_mono_to_foa(
 
     return encode_mono_to_hoa(
         signal=signal,
-        azimuth_rad=azimuth_rad,
-        elevation_rad=elevation_rad,
+        position=position,
         order=1,
         normalization=normalization,
     )

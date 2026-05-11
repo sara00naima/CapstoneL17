@@ -6,7 +6,11 @@ from pathlib import Path
 
 import numpy as np
 
-from ..core.conventions import deg2rad, sph2cart
+from ..core.conventions import (
+    deg2rad,
+    sph2cart,
+    SphericalPosition,
+)
 
 
 def _parse_float(value: str) -> float:
@@ -32,6 +36,14 @@ class Speaker:
     cardinal: str = ""
 
     @property
+    def position(self) -> SphericalPosition:
+        return SphericalPosition(
+            azimuth=self.azimuth_rad,
+            elevation=self.elevation_rad,
+            distance=self.radius_m,
+        )
+
+    @property
     def azimuth_rad(self) -> float:
         return float(deg2rad(self.azimuth_deg))
 
@@ -41,11 +53,18 @@ class Speaker:
 
     @property
     def unit_vector(self) -> np.ndarray:
-        return sph2cart(self.azimuth_rad, self.elevation_rad)
+
+        unit_position = SphericalPosition(
+            azimuth=self.azimuth_rad,
+            elevation=self.elevation_rad,
+            distance=1.0,
+        )
+
+        return sph2cart(unit_position)
 
     @property
     def cartesian(self) -> np.ndarray:
-        return self.radius_m * self.unit_vector
+        return sph2cart(self.position)
 
 
 def speaker_from_fields(fields: list[str]) -> Speaker:
