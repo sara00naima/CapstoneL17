@@ -1,5 +1,9 @@
 from .audio_io import load_mono, save_audio
-from .ambisonics.core.conventions import deg2rad
+from spatial_pipeline.ambisonics.core.conventions import (
+    sph2cart,
+    SphericalPosition,
+    deg2rad
+)
 from .ambisonics.encoding.foa import encode_mono_to_foa, sum_foa_sources
 from .ambisonics.encoding.hoa import encode_mono_to_hoa
 import numpy as np
@@ -34,10 +38,14 @@ def encode_stems_to_foa(
             raise KeyError(f"Missing position for stem '{name}'")
 
         azi_deg, ele_deg = positions_deg[name]
+        position = SphericalPosition(
+            azimuth=deg2rad(azi_deg),
+            elevation=deg2rad(ele_deg),
+        )
+
         foa = encode_mono_to_foa(
             signal,
-            azimuth_rad=deg2rad(azi_deg),
-            elevation_rad=deg2rad(ele_deg),
+            position=position,
             convention=convention,
         )
         foa_sources.append(foa)
@@ -73,11 +81,14 @@ def encode_stems_to_hoa(
             raise KeyError(f"Missing position for stem '{name}'")
 
         azi_deg, ele_deg = positions_deg[name]
-        
+        position = SphericalPosition(
+            azimuth=deg2rad(azi_deg),
+            elevation=deg2rad(ele_deg),
+        )
+
         hoa = encode_mono_to_hoa(
             signal,
-            azimuth_rad=deg2rad(azi_deg),
-            elevation_rad=deg2rad(ele_deg),
+            position=position,
             order=order,
             normalization=normalization,
         )
