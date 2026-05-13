@@ -1,3 +1,4 @@
+# First Order Ambisonics 
 import numpy as np
 
 from .hoa import encode_mono_to_hoa
@@ -22,6 +23,8 @@ def encode_mono_to_foa(
         normalization=normalization,
     )
 
+# creation of ambisonic bus mixers 
+# (sum multiple encoded ambisonic signals together into a single combined soundfield)
 def sum_hoa_sources(hoa_list: list[np.ndarray]) -> np.ndarray:
     if not hoa_list:
         raise ValueError("Empty source list")

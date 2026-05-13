@@ -64,7 +64,7 @@ HORIZON_ELEVATION = 0.0
 UP_ELEVATION = np.pi / 2
 DOWN_ELEVATION = -np.pi / 2
 
-#ACN map
+#ACN mappng
 FOA_CHANNELS_ACN = {
     0: "W",
     1: "Y",
@@ -81,15 +81,19 @@ FOA_CHANNEL_INDEX = {
     "X": 3,
 }
 
+# returns channel's name (letter)
 def channel_name(index: int) -> str:
     return FOA_CHANNELS_ACN[index]
 
+# returns channel's index 
 def channel_index(name: str) -> int:
     return FOA_CHANNEL_INDEX[name]
 
+# azimuth normalization
 def normalize_azimuth(angle: float) -> float:
     return (angle + np.pi) % (2 * np.pi) - np.pi
 
+# validate values of azimuth and elevation angles
 def validate_angles(azimuth, elevation):
 
     if not -np.pi <= azimuth <= np.pi:
@@ -102,6 +106,7 @@ def validate_angles(azimuth, elevation):
             "Elevation must be between -π/2 and +π/2 radians"
         )
 
+# transition from spherical coordinates to cartesian coordinates
 def sph2cart(position: SphericalPosition) -> np.ndarray:
 
     az = position.azimuth
@@ -114,8 +119,10 @@ def sph2cart(position: SphericalPosition) -> np.ndarray:
 
     return np.array([x, y, z], dtype=np.float64)
 
+# converts degrees to radians
 def deg2rad(deg: float) -> float:
     return np.deg2rad(deg)
 
+# converts radians to degrees
 def rad2deg(radians) -> float:
     return np.rad2deg(radians)

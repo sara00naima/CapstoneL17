@@ -12,21 +12,22 @@ from ..core.conventions import (
     SphericalPosition,
 )
 
-
+# for CSV parsing 
 def _parse_float(value: str) -> float:
     value = value.strip()
     if not value:
         raise ValueError("Empty numeric field")
-    return float(value.replace(",", "."))
+    return float(value.replace(",", ".")) # handles decimal separators
 
-
+# maps any azimuth angle into the canonical range [−180°, +180°]
 def wrap_azimuth_deg(angle_deg: float) -> float:
     wrapped = ((angle_deg + 180.0) % 360.0) - 180.0
     if np.isclose(wrapped, -180.0):
         return 180.0
     return float(wrapped)
 
-
+# A Speaker data model (a single loudspeaker in a 3D array, 
+# storing its position and providing convenient coordinate conversions)
 @dataclass(frozen=True)
 class Speaker:
     label: str
@@ -66,7 +67,8 @@ class Speaker:
     def cartesian(self) -> np.ndarray:
         return sph2cart(self.position)
 
-
+# A CSV row parser 
+# it reads a list of string fields (one row from a config file) and constructs a Speaker
 def speaker_from_fields(fields: list[str]) -> Speaker:
     if len(fields) < 5:
         raise ValueError(f"Row has too few columns: {fields}")
@@ -85,7 +87,8 @@ def speaker_from_fields(fields: list[str]) -> Speaker:
         cardinal=cardinal,
     )
 
-
+# A CSV file loader
+# reads a speaker array configuration and returns an ordered list of Speaker objects
 def load_speaker_layout(csv_path: str | Path) -> list[Speaker]:
     csv_path = Path(csv_path)
     speakers: list[Speaker] = []
@@ -109,7 +112,7 @@ def load_speaker_layout(csv_path: str | Path) -> list[Speaker]:
     speakers.sort(key=lambda s: int(s.label[1:]))
     return speakers
 
-
+# unpacking the speaker list into vectorized form
 def layout_to_numpy(
     speakers: list[Speaker],
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -118,6 +121,6 @@ def layout_to_numpy(
     cartesian = np.stack([s.cartesian for s in speakers], axis=0)
     return azimuth_rad, elevation_rad, cartesian
 
-
+# extract the string labels 
 def layout_labels(speakers: list[Speaker]) -> list[str]:
     return [s.label for s in speakers]

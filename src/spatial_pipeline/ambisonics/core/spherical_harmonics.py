@@ -2,11 +2,11 @@ import math
 import numpy as np
 from scipy.special import lpmv
 
-
+# returns the ACN channel number, given order n and index m
 def acn_index(n: int, m: int) -> int:
     return n * n + n + m
 
-
+# computes the total number of ambisonic channels 
 def num_harmonics(order: int) -> int:
     return (order + 1) ** 2
 
@@ -17,6 +17,8 @@ def sh_basis_real(
     elevation_rad: float,
     normalization: str = "n3d",
 ) -> np.ndarray:
+    # convert from acoustics convention (azimuth, elevation) to math convention 
+    # (azimuth, colatitude), where colatitude = 90° − elevation
     phi = azimuth_rad
     theta = np.pi / 2.0 - elevation_rad
 
@@ -28,9 +30,10 @@ def sh_basis_real(
             idx = acn_index(n, m)
             abs_m = abs(m)
 
-            p_nm = lpmv(abs_m, n, cos_theta)
+            p_nm = lpmv(abs_m, n, cos_theta) # compute the associated Legendre polynomial
             p_nm *= (-1) ** abs_m  # remove Condon-Shortley phase from scipy
 
+            # normalization options
             if normalization == "n3d":
                 norm = math.sqrt(
                     (2 * n + 1)

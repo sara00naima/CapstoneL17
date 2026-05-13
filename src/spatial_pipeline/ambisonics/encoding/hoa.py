@@ -1,3 +1,4 @@
+# High order ambisonics
 import numpy as np
 
 from ..core.spherical_harmonics import sh_basis_real
