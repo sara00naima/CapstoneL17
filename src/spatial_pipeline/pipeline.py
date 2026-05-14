@@ -12,36 +12,42 @@ from .config import MEASUREMENTS_CSV
 import soundfile as sf
 
 def encode_stems_to_foa(
-    stem_paths: dict[str, str],
-    positions_deg: dict[str, tuple[float, float]],
-    out_path: str,
-    convention: str = "basic",
+    stem_paths: dict[str, str], # { instrument: path_to_wav }
+    positions_deg: dict[str, tuple[float, float]], # { instrument: (azimuth, elevation) }
+    out_path: str, # where to write the FOA bus
+    convention: str = "basic", # SH normalization convention
 ):
-    foa_sources = []
-    sr_ref = None
-    n_ref = None
+    foa_sources = [] # accumulates the encoded FOA signal for each stem
+    sr_ref = None # sample rate of the first stem, used to validate all others
+    n_ref = None # sample count of the first stem, used to validate all others
 
     for name, path in stem_paths.items():
         signal, sr = load_mono(path)
 
         if sr_ref is None:
+            # First stem sets the reference sample rate and length
             sr_ref = sr
             n_ref = len(signal)
         else:
+            # All subsequent stems must match
             if sr != sr_ref:
                 raise ValueError(f"Sample rate mismatch on stem {name}")
             if len(signal) != n_ref:
                 raise ValueError(f"Length mismatch on stem {name}")
 
+        # Each stem must have a declared position in space
         if name not in positions_deg:
             raise KeyError(f"Missing position for stem '{name}'")
 
+        # Convert degrees to radians and wrap into a SphericalPosition object
         azi_deg, ele_deg = positions_deg[name]
         position = SphericalPosition(
             azimuth=deg2rad(azi_deg),
             elevation=deg2rad(ele_deg),
         )
 
+        # Encode the mono signal into 4-channel FOA using the source direction
+        # This computes: encoding_vector (4,) x mono_signal (samples,) -> (4, samples)
         foa = encode_mono_to_foa(
             signal,
             position=position,
@@ -49,42 +55,48 @@ def encode_stems_to_foa(
         )
         foa_sources.append(foa)
 
+    # Sum all encoded FOA sources into a single 4-channel ambisonic bus
     bus = sum_foa_sources(foa_sources)
+
     save_audio(out_path, bus, sr_ref)
     return out_path, sr_ref
 
 def encode_stems_to_hoa(
-    stem_paths: dict[str, str],
-    positions_deg: dict[str, tuple[float, float]],
-    out_path: str,
-    order: int = 3,             # 3rd Order - 16 channels
-    normalization: str = "sn3d"
+    stem_paths: dict[str, str], # { instrument: path_to_wav }
+    positions_deg: dict[str, tuple[float, float]], # { instrument: (azimuth, elevation) }
+    out_path: str, # where to write the HOA bus
+    order: int = 3, # 3rd Order - 16 channels
+    normalization: str = "sn3d" # AmbiX standard normalization
 ):
-    hoa_sources = []
-    sr_ref = None
-    n_ref = None
+    hoa_sources = [] # accumulates the encoded HOA signal for each stem
+    sr_ref = None # reference sample rate, set from the first stem
+    n_ref = None # reference sample count, set from the first stem
 
     for name, path in stem_paths.items():
         signal, sr = load_mono(path)
 
         if sr_ref is None:
+            # First stem sets the reference sample rate and length
             sr_ref = sr
             n_ref = len(signal)
         else:
+            # All subsequent stems must match
             if sr != sr_ref:
                 raise ValueError(f"Sample rate mismatch on stem {name}")
             if len(signal) != n_ref:
                 raise ValueError(f"Length mismatch on stem {name}")
 
+        # Each stem must have a declared position in space
         if name not in positions_deg:
             raise KeyError(f"Missing position for stem '{name}'")
 
+        # Convert degrees to radians and wrap into a SphericalPosition object
         azi_deg, ele_deg = positions_deg[name]
         position = SphericalPosition(
             azimuth=deg2rad(azi_deg),
             elevation=deg2rad(ele_deg),
         )
-
+        # Encode the mono signal into HOA using spherical harmonics up to the target order
         hoa = encode_mono_to_hoa(
             signal,
             position=position,
@@ -99,8 +111,15 @@ def encode_stems_to_hoa(
     return out_path, sr_ref
 
 def decode_scene_for_ls17(scene_path: str, out_path: str, order: int = 3):
+    """
+    Decodes an ambisonic scene to the speaker layout defined in
+    MEASUREMENTS_CSV (Violin museum), writing one audio channel per loudspeaker.
+    Returns the number of speakers in the layout.
+    """
     # load the museum layout
     speakers = load_speaker_layout(MEASUREMENTS_CSV)
+    
+    # unpack speaker positions into numpy arrays for the decoder
     azimuth_rad, elevation_rad, _ = layout_to_numpy(speakers)
     
     # calculate the matrix
