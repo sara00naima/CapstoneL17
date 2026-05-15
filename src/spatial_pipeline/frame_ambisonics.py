@@ -22,7 +22,7 @@ def process_hoa_frames(
     order: int,
     frame_size: int,
     hop_size: int,
-    convention: str = "basic",
+    normalization: str = "n3d",
 ) -> np.ndarray:
     """
     Encode a mono signal into HOA using frame-based processing.[file:2][file:5]
@@ -51,7 +51,7 @@ def process_hoa_frames(
             frame,
             position,
             order=order,
-            convention=convention,
+            normalization=normalization,
         )
 
         encoded_frames.append(encoded)
