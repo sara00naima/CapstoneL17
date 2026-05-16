@@ -7,6 +7,7 @@ from ml_collections import ConfigDict
 from bs_roformer.inference import SafeLoaderWithTuple
 from bs_roformer.utils import demix_track, get_model_from_config
 from .config import BSROFORMER_CONFIG
+from .audio_io import save_audio
 
 
 def demix_folder(
@@ -73,7 +74,7 @@ def demix_folder(
         if original_mono:
             mix = np.stack([mix, mix], axis=-1)
 
-        # Transpose from (samples × channels) to (channels × samples)
+        # transpose from (samples x channels) to (channels x samples)
         # which is the convention expected by the model
         mixture = torch.tensor(mix.T, dtype=torch.float32)
 
@@ -87,7 +88,7 @@ def demix_folder(
         song_stems = {}
 
         for instrument, audio in result.items():
-            # Transpose back from (channels × samples) to (samples × channels)
+            # transpose back from (channels x samples) to (samples x channels)
             output = audio.T
 
             # If the original file was mono, discard the duplicated channel
@@ -97,7 +98,7 @@ def demix_folder(
 
             # Write each separated stem as a 32-bit float wav file
             out_file = out_folder / f"{stem_name}_{instrument}.wav"
-            sf.write(str(out_file), output, sr, subtype="FLOAT")
+            save_audio(str(out_file), output, sr)
 
             # Store the output path keyed by instrument name
             song_stems[instrument] = str(out_file)

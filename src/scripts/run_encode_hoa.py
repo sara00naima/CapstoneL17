@@ -86,7 +86,7 @@ def main():
             stem_paths=stem_paths,
             positions_deg=DEFAULT_POSITIONS_DEG,
             out_path=str(final_out_path),
-            order=3,             # 3rd Order
+            order=3,             # 3rd Order (17 loudspeakers, 16 channels)
             normalization="sn3d" # SN3D format
         )
 

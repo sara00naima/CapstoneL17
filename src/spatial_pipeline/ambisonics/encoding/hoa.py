@@ -8,7 +8,7 @@ def encode_mono_to_hoa(
     signal: np.ndarray,
     position: SphericalPosition,
     order: int,
-    normalization: str = "n3d",
+    normalization: str = "sn3d",
 ) -> np.ndarray:
     signal = np.asarray(signal, dtype=np.float32).reshape(-1)
     gains = sh_basis_real(
