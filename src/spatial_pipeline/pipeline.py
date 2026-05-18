@@ -1,6 +1,7 @@
 from .audio_io import load_mono, save_audio
 from .ambisonics.core.conventions import SphericalPosition, deg2rad
 from .ambisonics.encoding.foa import encode_mono_to_foa, sum_foa_sources
+from .binaural import render_binaural
 from .ambisonics.encoding.hoa import encode_mono_to_hoa
 import numpy as np
 from .ambisonics.decoding.decode_to_speakers import calculate_decoder_matrix, decode_hoa_to_speakers
@@ -111,6 +112,27 @@ def encode_stems_to_hoa(
         
     save_audio(out_path, bus, sr_ref)
     return out_path, sr_ref
+
+def render_binaural_scene(
+    scene_path: str, # path to the encoded HOA scene WAV
+    sofa_path: str, # path to the SOFA HRTF file
+    out_path: str, # where to write the binaural stereo WAV
+    order: int = 3,
+) -> str:
+    """
+    Renders a binaural stereo WAV from an ambisonic scene file.
+    Uses the virtual loudspeaker method with HRTFs from a SOFA file.
+    Returns the output path.
+    """
+    # Load the encoded ambisonic scene
+    ambisonic_audio, sr = sf.read(scene_path)
+
+    # Render to binaural stereo: (samples, 2)
+    binaural = render_binaural(ambisonic_audio, sofa_path, order=order)
+
+    # Save the stereo output
+    save_audio(out_path, binaural, sr)
+    return out_path
 
 def decode_scene_for_ls17(scene_path: str, out_path: str, order: int = 3):
     """

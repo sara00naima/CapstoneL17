@@ -13,4 +13,8 @@ BSROFORMER_CONFIG = BSROFORMER_ROOT / "configs" / "config_bs_roformer_sw.yaml"
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "outputs"
 DEFAULT_DEMIX_DIR = DEFAULT_OUTPUT_DIR / "demixed"
 DEFAULT_FOA_DIR = DEFAULT_OUTPUT_DIR / "foa"
+DEFAULT_BINAURAL_DIR = DEFAULT_OUTPUT_DIR / "binaural"
+
+# Path to the default SOFA HRTF file used for binaural rendering
+DEFAULT_HRTF_SOFA = PROJECT_ROOT / "hrtf" / "D1_44K_16bit_0.3s_FIR_SOFA.sofa"
 
