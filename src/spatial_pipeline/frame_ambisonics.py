@@ -79,6 +79,7 @@ def process_hoa_frames(
             channel_frames,
             frame_size,
             hop_size,
+            original_length=len(signal),
         )
 
         reconstructed_channels.append(reconstructed)

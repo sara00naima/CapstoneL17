@@ -1,8 +1,5 @@
 from .audio_io import load_mono, save_audio
-from spatial_pipeline.ambisonics.core.conventions import (
-    SphericalPosition,
-    deg2rad
-)
+from .ambisonics.core.conventions import SphericalPosition, deg2rad
 from .ambisonics.encoding.foa import encode_mono_to_foa, sum_foa_sources
 from .ambisonics.encoding.hoa import encode_mono_to_hoa
 import numpy as np
@@ -105,8 +102,13 @@ def encode_stems_to_hoa(
         )
         hoa_sources.append(hoa)
 
-    # sum all the layers together
-    bus = np.sum(np.stack(hoa_sources), axis=0)
+    # Sum all encoded HOA sources into a single ambisonic bus
+    if not hoa_sources:
+        raise ValueError("Empty source list")
+    bus = np.zeros_like(hoa_sources[0], dtype=np.float32)
+    for hoa in hoa_sources:
+        bus += hoa.astype(np.float32)
+        
     save_audio(out_path, bus, sr_ref)
     return out_path, sr_ref
 

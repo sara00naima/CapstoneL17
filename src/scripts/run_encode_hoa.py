@@ -2,9 +2,6 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from spatial_pipeline.pipeline import encode_stems_to_hoa
-from spatial_pipeline.scene_defaults import STEM_TYPES, DEFAULT_POSITIONS_DEG
-
 # Resolve directory structure relative to this script's location
 CURRENT_SCRIPT_DIR = Path(__file__).resolve().parent
 SRC_DIR = CURRENT_SCRIPT_DIR.parent
@@ -14,6 +11,9 @@ PROJECT_ROOT = SRC_DIR.parent
 # as a package without needing a formal install 
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
+
+from spatial_pipeline.pipeline import encode_stems_to_hoa
+from spatial_pipeline.scene_defaults import STEM_TYPES, DEFAULT_POSITIONS_DEG
 
 def collect_stems_by_song(output_folder: Path) -> dict[str, dict[str, str]]:
     """

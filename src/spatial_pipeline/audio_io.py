@@ -13,4 +13,4 @@ def load_mono(path: str):
     return mono.astype(np.float32), sr
 
 def save_audio(path: str, audio: np.ndarray, sr: int, subtype: str = "FLOAT"):
-    sf.write(path, audio, sr)
+    sf.write(path, audio, sr, subtype=subtype)
