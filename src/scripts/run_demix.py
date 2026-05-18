@@ -4,7 +4,7 @@ from pathlib import Path
 # Resolve directory structure relative to this script's location
 CURRENT_SCRIPT_DIR = Path(__file__).resolve().parent
 SRC_DIR = CURRENT_SCRIPT_DIR.parent
-PROJECT_ROOT = SRC_DIR.parent.parent
+PROJECT_ROOT = SRC_DIR.parent
 
 # Add src/ to the Python path so that spatial_pipeline can be imported
 # as a package without needing a formal install 
@@ -22,8 +22,7 @@ def main():
     output_folder = PROJECT_ROOT / "Demixing BS-RoF" / "outputs"
 
     # Path to the pre-trained BS-RoFormer checkpoint
-    # Update this if we store the model weights elsewhere
-    model_path = PROJECT_ROOT / "Demixing BS-RoF" / "bs_roformer" / "models" / "BS-Rofo-SW-Fixed.ckpt"
+    model_path = PROJECT_ROOT / "Demixing BS-RoF" / "bs_roformer" / "models" / "roformer-model-bs-roformer-sw-by-jarredou" / "BS-Rofo-SW-Fixed.ckpt"
 
     print("--- THE DEMIXING STAGE ---")
 
