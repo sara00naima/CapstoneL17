@@ -6,3 +6,4 @@ __pycache__/
 .DS_Store
 .vs
 .pytest_cache/
+Demixing BS-RoF/outputs/
