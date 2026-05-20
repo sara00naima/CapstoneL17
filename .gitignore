@@ -7,3 +7,4 @@ __pycache__/
 .vs
 .pytest_cache/
 Demixing BS-RoF/outputs/
+outputs/
