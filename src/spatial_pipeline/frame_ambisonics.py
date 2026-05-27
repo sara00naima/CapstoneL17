@@ -18,7 +18,7 @@ from .ambisonics.core.conventions import (
 
 def process_hoa_frames(
     signal: np.ndarray,
-    position: SphericalPosition,
+    positions: list[SphericalPosition],
     order: int,
     frame_size: int,
     hop_size: int,
@@ -44,12 +44,12 @@ def process_hoa_frames(
     # Store the encoded HOA frame sequence.
     encoded_frames = []
 
-    for frame in frames:
+    for i, frame in enumerate(frames):
 
         # Encode the current frame at the given source position.
         encoded = encode_mono_to_hoa(
             frame,
-            position,
+            positions[i],
             order=order,
             normalization=normalization,
         )
