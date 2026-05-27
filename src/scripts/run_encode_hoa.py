@@ -14,6 +14,14 @@ if str(SRC_DIR) not in sys.path:
 
 from spatial_pipeline.pipeline import encode_stems_to_hoa
 from spatial_pipeline.scene_defaults import STEM_TYPES, DEFAULT_POSITIONS_DEG
+from spatial_pipeline.audio_io import load_mono
+from spatial_pipeline.frame_processing import split_frames
+from spatial_pipeline.ambisonics.core.trajectories import (
+    generate_static, 
+    generate_orbit,
+    generate_arc_flyover,
+    generate_bounce
+)
 
 def collect_stems_by_song(output_folder: Path) -> dict[str, dict[str, str]]:
     """
@@ -63,15 +71,51 @@ def main():
         if missing_stems:
             print(f"Warning: '{song_name}' is missing stems {missing_stems}. Skipping.")
             continue
+
+        # How many frames the song has by checking the first stem
+        first_stem_path = list(stem_paths.values())[0]
+        signal, _ = load_mono(first_stem_path)
+        n_frames = len(split_frames(signal, frame_size=1024, hop_size=512))
+
+        # Build the Trajectories dictionary
+        trajectories = {}
+
+        # =====================================================================
+        # PLACEHOLDER FOR FUTURE GUI INTEGRATION
+        # =====================================================================
+        # TODO: Delete this if/else block when the GUI is built. 
+        # The GUI should pass a configuration dictionary dictating which 
+        # effect to apply to which stem. Until then, these are hardcoded 
+        # to test the mathematical movement functions.
+        for stem in STEM_TYPES:
+            azi_deg, ele_deg = DEFAULT_POSITIONS_DEG[stem]
+            
+            # Assign different movement patterns based on the instrument type to create a dynamic 3D scene:
+            if stem == "other":
+                # Cyclone Effect: Spin the synth 5 times around the room
+                trajectories[stem] = generate_orbit(n_frames, start_azi_deg=azi_deg, rotations=5.0)
+                
+            elif stem == "guitar":
+                # Trench Run Effect: Sweep the guitar from the floor up over the listener's head
+                trajectories[stem] = generate_arc_flyover(n_frames, azimuth_deg=azi_deg, start_ele_deg=-90.0, end_ele_deg=90.0)
+                
+            elif stem == "bass":
+                # Polymath Bounce: Oscillate the bass left and right around its anchor point
+                trajectories[stem] = generate_bounce(n_frames, center_azi_deg=azi_deg, width_deg=60.0, bounces=40.0)
+                
+            else:
+                # Vocals, Drums, Piano stay perfectly still
+                trajectories[stem] = generate_static(n_frames, azi_deg, ele_deg)
+        # =====================================================================
         
-        # Output path for the encoded FOA scene
+        # Output path for the encoded HOA scene
         final_out_path = output_folder / f"{song_name}_3d_scene_hoa3.wav"
         print(f"Building HOA scene for: {song_name}")
 
         # Encode all stems into a single High Order Ambisonics bus
         encode_stems_to_hoa(
             stem_paths=stem_paths,
-            positions_deg=DEFAULT_POSITIONS_DEG,
+            trajectories=trajectories,
             out_path=str(final_out_path),
             order=3,             # 3rd Order (17 loudspeakers, 16 channels)
             normalization="sn3d" # SN3D format
