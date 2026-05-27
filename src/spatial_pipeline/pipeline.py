@@ -6,6 +6,9 @@ from .ambisonics.encoding.hoa import encode_mono_to_hoa
 import numpy as np
 from .ambisonics.decoding.decode_to_speakers import calculate_decoder_matrix, decode_hoa_to_speakers
 from .ambisonics.layout.speaker_layout import load_speaker_layout, layout_to_numpy
+from .frame_processing import split_frames
+from .frame_ambisonics import process_hoa_frames
+from .ambisonics.core.trajectories import generate_static, generate_orbit
 from .config import MEASUREMENTS_CSV
 import soundfile as sf
 
@@ -61,7 +64,8 @@ def encode_stems_to_foa(
 
 def encode_stems_to_hoa(
     stem_paths: dict[str, str], # { instrument: path_to_wav }
-    positions_deg: dict[str, tuple[float, float]], # { instrument: (azimuth, elevation) }
+    # positions_deg: dict[str, tuple[float, float]], # { instrument: (azimuth, elevation) }
+    trajectories: dict[str, list[SphericalPosition]], # GUI should provide a list of positions for each stem, one per frame, to create movement
     out_path: str, # where to write the HOA bus
     order: int = 3, # 3rd Order - 16 channels
     normalization: str = "sn3d" # AmbiX standard normalization
@@ -69,6 +73,10 @@ def encode_stems_to_hoa(
     hoa_sources = [] # accumulates the encoded HOA signal for each stem
     sr_ref = None # reference sample rate, set from the first stem
     n_ref = None # reference sample count, set from the first stem
+
+    # Frame processing defaults for smooth movement interpolation
+    frame_size = 1024
+    hop_size = 512
 
     for name, path in stem_paths.items():
         signal, sr = load_mono(path)
@@ -83,23 +91,19 @@ def encode_stems_to_hoa(
                 raise ValueError(f"Sample rate mismatch on stem {name}")
             if len(signal) != n_ref:
                 raise ValueError(f"Length mismatch on stem {name}")
+        
+        # The runner script must provide a trajectory list for every stem
+        if name not in trajectories:
+            raise KeyError(f"Missing trajectory array for stem '{name}'")
 
-        # Each stem must have a declared position in space
-        if name not in positions_deg:
-            raise KeyError(f"Missing position for stem '{name}'")
-
-        # Convert degrees to radians and wrap into a SphericalPosition object
-        azi_deg, ele_deg = positions_deg[name]
-        position = SphericalPosition(
-            azimuth=deg2rad(azi_deg),
-            elevation=deg2rad(ele_deg),
-        )
         # Encode the mono signal into HOA using spherical harmonics up to the target order
-        hoa = encode_mono_to_hoa(
-            signal,
-            position=position,
+        hoa = process_hoa_frames(
+            signal=signal,
+            positions=trajectories[name],
             order=order,
-            normalization=normalization,
+            frame_size=frame_size,
+            hop_size=hop_size,
+            normalization=normalization
         )
         hoa_sources.append(hoa)
 
