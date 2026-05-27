@@ -126,3 +126,10 @@ def deg2rad(deg: float) -> float:
 # converts radians to degrees
 def rad2deg(radians) -> float:
     return np.rad2deg(radians)
+
+def wrap_azimuth_deg(azimuth_deg: float) -> float:
+    """
+    Wraps an azimuth angle in degrees to the strict [-180, 180] range.
+    Prevents the SphericalPosition validation from crashing during multiple rotations.
+    """
+    return (azimuth_deg + 180.0) % 360.0 - 180.0
