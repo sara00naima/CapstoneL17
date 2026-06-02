@@ -149,6 +149,7 @@ def main():
     print("  1. Open IEM AllRADecoder in the DAW")
     print("  2. Click 'Load' or 'Import' → select museum_17ch_iem.json")
     print("  3. Verify that the blue points in the 3D viewer correspond to the museum layout")
+    print("IMPORTANT, AllRADecoder expects a sound source also from underneath, add an imaginary speaker at (Azimuth=-90, Elevation=-90, Radius=.01) if needed.")
 
 
 if __name__ == "__main__":
