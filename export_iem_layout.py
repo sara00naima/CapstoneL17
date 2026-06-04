@@ -5,9 +5,9 @@ Reads the file measurements_transcription.csv e generates museum_17ch_iem.json
 ready to be imported in IEM AllRADecoder.
 
 ATTENTION - Angular convention:
-  The project uses:  azimuth +90° = LEFT  (right-hand rule, +Y = left)
-  IEM uses:          azimuth +90° = LEFT  (same convention)
-  → no conversion needed.
+  The CSV uses clockwise compass convention (0°=Front, 90°=Right, 270°=Left).
+  Both the project and IEM use counter-clockwise ambisonics convention (+90°=Left).
+  → CSV azimuth must be negated on load.
 
 Usage:
     python export_iem_layout.py
@@ -100,9 +100,21 @@ def build_iem_json(speakers: list[dict], layout_name: str = "Museum_17ch") -> di
             "Elevation":   round(spk["elevation_deg"], 4),
             "Radius":      round(spk["radius_m"],      4),
             "IsImaginary": False,
-            "Channel":     i + 1,   # 1-indexed
+            "Channel":     i + 1,
             "Gain":        1.0
         })
+
+    # All real speakers are above the horizon, so the origin falls outside the
+    # convex hull — AllRADecoder raises Error 4. An imaginary south-pole speaker
+    # closes the hull without driving any physical channel.
+    loudspeakers.append({
+        "Azimuth":     0.0,
+        "Elevation":   -90.0,
+        "Radius":      1.0,
+        "IsImaginary": True,
+        "Channel":     len(speakers) + 1,
+        "Gain":        1.0
+    })
 
     return {
         "LoudspeakerLayout": {
@@ -147,9 +159,9 @@ def main():
 
     print("\nNext step:")
     print("  1. Open IEM AllRADecoder in the DAW")
-    print("  2. Click 'Load' or 'Import' → select museum_17ch_iem.json")
+    print("  2. Click 'Load' or 'Import' -> select museum_17ch_iem.json")
     print("  3. Verify that the blue points in the 3D viewer correspond to the museum layout")
-    print("IMPORTANT, AllRADecoder expects a sound source also from underneath, add an imaginary speaker at (Azimuth=-90, Elevation=-90, Radius=.01) if needed.")
+    print("  NOTE: an imaginary south-pole speaker (Ch 18) is included automatically to satisfy the AllRADecoder convex-hull requirement.")
 
 
 if __name__ == "__main__":

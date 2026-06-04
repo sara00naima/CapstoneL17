@@ -137,6 +137,14 @@
         "IsImaginary": false,
         "Channel": 17,
         "Gain": 1.0
+      },
+      {
+        "Azimuth": 0.0,
+        "Elevation": -90.0,
+        "Radius": 1.0,
+        "IsImaginary": true,
+        "Channel": 18,
+        "Gain": 1.0
       }
     ]
   }
