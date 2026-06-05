@@ -110,10 +110,10 @@ def build_iem_json(speakers: list[dict], layout_name: str = "Museum_17ch") -> di
     loudspeakers.append({
         "Azimuth":     0.0,
         "Elevation":   -90.0,
-        "Radius":      1.0,
+        "Radius":      0.01,
         "IsImaginary": True,
         "Channel":     len(speakers) + 1,
-        "Gain":        1.0
+        "Gain":        1
     })
 
     return {

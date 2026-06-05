@@ -141,10 +141,10 @@
       {
         "Azimuth": 0.0,
         "Elevation": -90.0,
-        "Radius": 1.0,
+        "Radius": 0.01,
         "IsImaginary": true,
         "Channel": 18,
-        "Gain": 1.0
+        "Gain": 0.01
       }
     ]
   }
