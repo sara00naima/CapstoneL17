@@ -125,34 +125,13 @@ def main():
             )
             continue
 
-        first_stem_path = list(stem_paths.values())[0]
-
-        signal, _ = load_mono(first_stem_path)
-
-        n_frames = len(
-            split_frames(
-                signal,
-                frame_size=1024,
-                hop_size=512
-            )
-        )
-
+    
         for test_name, (azi_deg, ele_deg) in TEST_LAYOUTS.items():
 
             print(
                 f"Generating {test_name} "
                 f"for '{song_name}'..."
             )
-
-            trajectories = {}
-
-            for stem in STEM_TYPES:
-
-                trajectories[stem] = generate_static(
-                    n_frames,
-                    azi_deg,
-                    ele_deg
-                )
 
             out_path = (
                 output_folder
@@ -161,10 +140,11 @@ def main():
 
             encode_stems_to_hoa(
                 stem_paths=stem_paths,
-                trajectories=trajectories,
+                positions_deg={stem: (azi_deg, ele_deg) for stem in STEM_TYPES},
                 out_path=str(out_path),
                 order=3,
-                normalization="sn3d"
+                normalization="sn3d",
+                trajectory_fn=generate_static,
             )
 
             print(f"Saved: {out_path.name}")

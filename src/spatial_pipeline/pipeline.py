@@ -8,19 +8,20 @@ from .ambisonics.decoding.decode_to_speakers import calculate_decoder_matrix, de
 from .ambisonics.layout.speaker_layout import load_speaker_layout, layout_to_numpy
 from .frame_processing import split_frames
 from .frame_ambisonics import process_hoa_frames
-from .ambisonics.core.trajectories import generate_static, generate_orbit
+from .ambisonics.core.trajectories import generate_static
 from .config import MEASUREMENTS_CSV
 import soundfile as sf
 
+
 def encode_stems_to_foa(
-    stem_paths: dict[str, str], # { instrument: path_to_wav }
+    stem_paths: dict[str, str],         # { instrument: path_to_wav }
     positions_deg: dict[str, tuple[float, float]], # { instrument: (azimuth, elevation) }
-    out_path: str, # where to write the FOA bus
-    convention: str = "basic", # SH normalization convention
+    out_path: str,                       # where to write the FOA bus
+    convention: str = "basic",           # SH normalization convention
 ):
-    foa_sources = [] # accumulates the encoded FOA signal for each stem
-    sr_ref = None # sample rate of the first stem, used to validate all others
-    n_ref = None # sample count of the first stem, used to validate all others
+    foa_sources = []  # accumulates the encoded FOA signal for each stem
+    sr_ref = None     # sample rate of the first stem, used to validate all others
+    n_ref = None      # sample count of the first stem, used to validate all others
 
     for name, path in stem_paths.items():
         signal, sr = load_mono(path)
@@ -48,7 +49,6 @@ def encode_stems_to_foa(
         )
 
         # Encode the mono signal into 4-channel FOA using the source direction
-        # This computes: encoding_vector (4,) x mono_signal (samples,) -> (4, samples)
         foa = encode_mono_to_foa(
             signal,
             position=position,
@@ -62,19 +62,21 @@ def encode_stems_to_foa(
     save_audio(out_path, bus, sr_ref)
     return out_path, sr_ref
 
-def encode_stems_to_hoa(
-    stem_paths: dict[str, str], # { instrument: path_to_wav }
-    # positions_deg: dict[str, tuple[float, float]], # { instrument: (azimuth, elevation) }
-    trajectories: dict[str, list[SphericalPosition]], # GUI should provide a list of positions for each stem, one per frame, to create movement
-    out_path: str, # where to write the HOA bus
-    order: int = 3, # 3rd Order - 16 channels
-    normalization: str = "sn3d" # AmbiX standard normalization
-):
-    hoa_sources = [] # accumulates the encoded HOA signal for each stem
-    sr_ref = None # reference sample rate, set from the first stem
-    n_ref = None # reference sample count, set from the first stem
 
-    # Frame processing defaults for smooth movement interpolation
+def encode_stems_to_hoa(
+    stem_paths: dict[str, str],                    # { instrument: path_to_wav }
+    positions_deg: dict[str, tuple[float, float]], # { instrument: (azimuth, elevation) }
+    out_path: str,                                 # where to write the HOA bus
+    order: int = 3,                                # 3rd Order - 16 channels
+    normalization: str = "sn3d",                   # AmbiX standard normalization
+    trajectory_fn=generate_static,                 # defaults to no movement
+):
+    hoa_sources = []  # accumulates the encoded HOA signal for each stem
+    sr_ref = None     # reference sample rate, set from the first stem
+    n_ref = None      # reference sample count, set from the first stem
+
+    # Frame processing parameters — defined once here and passed through to
+    # process_hoa_frames, so n_frames is always computed with the same values.
     frame_size = 1024
     hop_size = 512
 
@@ -91,36 +93,50 @@ def encode_stems_to_hoa(
                 raise ValueError(f"Sample rate mismatch on stem {name}")
             if len(signal) != n_ref:
                 raise ValueError(f"Length mismatch on stem {name}")
-        
-        # The runner script must provide a trajectory list for every stem
-        if name not in trajectories:
-            raise KeyError(f"Missing trajectory array for stem '{name}'")
 
-        # Encode the mono signal into HOA using spherical harmonics up to the target order
+        # Each stem must have a declared position in space
+        if name not in positions_deg:
+            raise KeyError(f"Missing position for stem '{name}'")
+
+        # Compute n_frames using the same frame_size and hop_size that
+        # process_hoa_frames will use — guarantees they always match.
+        n_frames = len(split_frames(signal, frame_size, hop_size))
+
+        azi_deg, ele_deg = positions_deg[name]
+
+        # Generate the trajectory from the anchor position.
+        # By default this is static (no movement), but the caller can pass
+        # any trajectory function: generate_orbit, generate_bounce, etc.
+        trajectory = trajectory_fn(n_frames, azi_deg, ele_deg)
+
+        # Encode the mono signal into HOA frame by frame,
+        # applying the trajectory position at each frame.
         hoa = process_hoa_frames(
             signal=signal,
-            positions=trajectories[name],
+            positions=trajectory,
             order=order,
             frame_size=frame_size,
             hop_size=hop_size,
-            normalization=normalization
+            normalization=normalization,
         )
         hoa_sources.append(hoa)
 
-    # Sum all encoded HOA sources into a single ambisonic bus
     if not hoa_sources:
         raise ValueError("Empty source list")
+
+    # Sum all encoded HOA sources into a single ambisonic bus
     bus = np.zeros_like(hoa_sources[0], dtype=np.float32)
     for hoa in hoa_sources:
         bus += hoa.astype(np.float32)
-        
+
     save_audio(out_path, bus, sr_ref)
     return out_path, sr_ref
 
+
 def render_binaural_scene(
-    scene_path: str, # path to the encoded HOA scene WAV
-    sofa_path: str, # path to the SOFA HRTF file
-    out_path: str, # where to write the binaural stereo WAV
+    scene_path: str,  # path to the encoded HOA scene WAV
+    sofa_path: str,   # path to the SOFA HRTF file
+    out_path: str,    # where to write the binaural stereo WAV
     order: int = 3,
 ) -> str:
     """
@@ -138,26 +154,27 @@ def render_binaural_scene(
     save_audio(out_path, binaural, sr)
     return out_path
 
+
 def decode_scene_for_ls17(scene_path: str, out_path: str, order: int = 3):
     """
     Decodes an ambisonic scene to the speaker layout defined in
     MEASUREMENTS_CSV (Violin museum), writing one audio channel per loudspeaker.
     Returns the number of speakers in the layout.
     """
-    # load the museum layout
+    # Load the museum speaker layout from the measurements CSV
     speakers = load_speaker_layout(MEASUREMENTS_CSV)
-    
-    # unpack speaker positions into numpy arrays for the decoder
+
+    # Unpack speaker positions into numpy arrays for the decoder
     azimuth_rad, elevation_rad, _ = layout_to_numpy(speakers)
-    
-    # calculate the matrix
+
+    # Calculate the mode-matching decoder matrix for this layout
     decoder_matrix = calculate_decoder_matrix(azimuth_rad, elevation_rad, order=order)
 
-    # load the audio
+    # Load the encoded ambisonic scene
     ambisonic_audio, sr = sf.read(scene_path)
-    
-    # decode and save
+
+    # Decode to one audio channel per loudspeaker and save
     speaker_feeds = decode_hoa_to_speakers(ambisonic_audio, decoder_matrix)
     save_audio(out_path, speaker_feeds.astype(np.float32), sr)
-    
+
     return len(speakers)

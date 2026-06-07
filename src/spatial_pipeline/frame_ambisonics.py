@@ -34,6 +34,11 @@ def process_hoa_frames(
         dtype=np.float32,
     )
 
+    # Validate that the input signal is mono 
+    if signal.ndim != 1:
+        raise ValueError(f"signal must be 1D, got shape {signal.shape}")
+
+
     # Split the signal into overlapping frames.
     frames = split_frames(
         signal,
@@ -41,15 +46,26 @@ def process_hoa_frames(
         hop_size,
     )
 
+    # The trajectory must provide exactly one position per frame —
+    # if they don't match, the caller computed n_frames incorrectly,
+    # likely using a different frame_size or hop_size than we use here
+    if len(positions) != len(frames):
+        raise ValueError(
+            f"Trajectory length ({len(positions)}) does not match "
+            f"number of frames ({len(frames)}). "
+            "Recompute the trajectory using the same frame_size and hop_size."
+        )
+
+
     # Store the encoded HOA frame sequence.
     encoded_frames = []
 
-    for i, frame in enumerate(frames):
+    for frame, position in zip(frames, positions):
 
         # Encode the current frame at the given source position.
         encoded = encode_mono_to_hoa(
             frame,
-            positions[i],
+            position,
             order=order,
             normalization=normalization,
         )
@@ -88,4 +104,4 @@ def process_hoa_frames(
     return np.stack(
         reconstructed_channels,
         axis=1,
-    )
+    ).astype(np.float32)
