@@ -20,7 +20,7 @@ def main():
     output_folder = PROJECT_ROOT / "Demixing BS-RoF" / "outputs"
 
     # Extract all the HOA scene files produced by the encoding stage
-    scene_files = list(output_folder.glob("*_3d_scene_hoa3.wav"))
+    scene_files = list(output_folder.glob("*_hoa3.wav"))
     
     if not scene_files:
         print("No HOA3 scene files found. Please execute the encoding stage prior to decoding.")
@@ -28,7 +28,7 @@ def main():
 
     for scene_path in scene_files:
         # recover the original song name
-        song_name = scene_path.stem.replace("_3d_scene_hoa3", "")
+        song_name = scene_path.stem.replace("_hoa3", "")
         print(f"\nDecoding 3D Scene: {song_name}")
         
         # output path for the decoded multichannel file
