@@ -115,6 +115,7 @@ def main():
         # Encode all stems into a single High Order Ambisonics bus
         encode_stems_to_hoa(
             stem_paths=stem_paths,
+            positions_deg=DEFAULT_POSITIONS_DEG,
             trajectories=trajectories,
             out_path=str(final_out_path),
             order=3,             # 3rd Order (17 loudspeakers, 16 channels)

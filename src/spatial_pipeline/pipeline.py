@@ -70,6 +70,7 @@ def encode_stems_to_hoa(
     order: int = 3,                                # 3rd Order - 16 channels
     normalization: str = "sn3d",                   # AmbiX standard normalization
     trajectory_fn=generate_static,                 # defaults to no movement
+    trajectories: dict[str, list] | None = None,
 ):
     hoa_sources = []  # accumulates the encoded HOA signal for each stem
     sr_ref = None     # reference sample rate, set from the first stem
@@ -102,12 +103,13 @@ def encode_stems_to_hoa(
         # process_hoa_frames will use — guarantees they always match.
         n_frames = len(split_frames(signal, frame_size, hop_size))
 
-        azi_deg, ele_deg = positions_deg[name]
-
-        # Generate the trajectory from the anchor position.
-        # By default this is static (no movement), but the caller can pass
-        # any trajectory function: generate_orbit, generate_bounce, etc.
-        trajectory = trajectory_fn(n_frames, azi_deg, ele_deg)
+        if trajectories is not None:
+            if name not in trajectories:
+                raise KeyError(f"Missing trajectory for stem '{name}'")
+            trajectory = trajectories[name]
+        else:
+            azi_deg, ele_deg = positions_deg[name]
+            trajectory = trajectory_fn(n_frames, azi_deg, ele_deg)
 
         # Encode the mono signal into HOA frame by frame,
         # applying the trajectory position at each frame.
