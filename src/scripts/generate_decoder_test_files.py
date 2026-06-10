@@ -9,7 +9,7 @@ PROJECT_ROOT = SRC_DIR.parent
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from spatial_pipeline.pipeline import encode_stems_to_hoa
+from spatial_pipeline.pipeline import encode_stems_to_hoa, decode_scene_for_ls17
 from spatial_pipeline.scene_defaults import STEM_TYPES
 from spatial_pipeline.audio_io import load_mono
 from spatial_pipeline.frame_processing import split_frames
@@ -148,6 +148,14 @@ def main():
             )
 
             print(f"Saved: {out_path.name}")
+
+            decoded_path = output_folder / f"{song_name}_{test_name}_17ch.wav"
+            decode_scene_for_ls17(
+                scene_path=str(out_path),
+                out_path=str(decoded_path),
+                order=3,
+            )
+            print(f"Decoded: {decoded_path.name}")
 
     print("\nDone.\n")
 
