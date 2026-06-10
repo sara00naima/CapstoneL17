@@ -15,6 +15,13 @@ DEFAULT_DEMIX_DIR = DEFAULT_OUTPUT_DIR / "demixed"
 DEFAULT_FOA_DIR = DEFAULT_OUTPUT_DIR / "foa"
 DEFAULT_BINAURAL_DIR = DEFAULT_OUTPUT_DIR / "binaural"
 
+# Test file output directories (used by generate_decoder_test_files.py)
+DEFAULT_TEST_DIR            = DEFAULT_OUTPUT_DIR / "test"
+DEFAULT_TEST_HOA_DIR        = DEFAULT_TEST_DIR / "hoa"
+DEFAULT_TEST_LS17_DIR       = DEFAULT_TEST_DIR / "ls17"
+DEFAULT_TEST_BINAURAL_DIR   = DEFAULT_TEST_DIR / "binaural"
+DEFAULT_TEST_LS17_BINAURAL_DIR = DEFAULT_TEST_DIR / "ls17_binaural"
+
 # Path to the default SOFA HRTF file used for binaural rendering
 DEFAULT_HRTF_SOFA = PROJECT_ROOT / "hrtf" / "D1_44K_16bit_0.3s_FIR_SOFA.sofa"
 

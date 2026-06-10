@@ -1,7 +1,7 @@
 from .audio_io import load_mono, save_audio
 from .ambisonics.core.conventions import SphericalPosition, deg2rad
 from .ambisonics.encoding.foa import encode_mono_to_foa, sum_foa_sources
-from .binaural import render_binaural
+from .binaural import render_binaural, render_ls17_binaural
 from .ambisonics.encoding.hoa import encode_mono_to_hoa
 import numpy as np
 from .ambisonics.decoding.decode_to_speakers import calculate_decoder_matrix, decode_hoa_to_speakers
@@ -153,6 +153,25 @@ def render_binaural_scene(
     binaural = render_binaural(ambisonic_audio, sofa_path, order=order)
 
     # Save the stereo output
+    save_audio(out_path, binaural, sr)
+    return out_path
+
+
+def render_ls17_binaural_scene(
+    scene_path: str,
+    sofa_path: str,
+    out_path: str,
+    order: int = 3,
+) -> str:
+    """
+    Renders binaural stereo by routing through the LS17 museum decoder first,
+    then applying per-speaker HRTFs. Simulates the museum listening experience
+    on headphones without needing physical speakers.
+    """
+    ambisonic_audio, sr = sf.read(scene_path)
+    binaural = render_ls17_binaural(
+        ambisonic_audio, sofa_path, str(MEASUREMENTS_CSV), order=order
+    )
     save_audio(out_path, binaural, sr)
     return out_path
 

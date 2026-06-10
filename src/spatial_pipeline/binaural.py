@@ -53,3 +53,56 @@ def render_binaural(
 
     # trim the convolution tail back to the original signal length
     return np.stack([left[:n_samples], right[:n_samples]], axis=1).astype(np.float32)
+
+
+def _nearest_hrtf_index(
+    az: float,
+    el: float,
+    sofa_az: np.ndarray,
+    sofa_el: np.ndarray,
+) -> int:
+    # Great-circle similarity: argmax of unit-vector dot product
+    dot = (np.sin(el) * np.sin(sofa_el) +
+           np.cos(el) * np.cos(sofa_el) * np.cos(az - sofa_az))
+    return int(np.argmax(dot))
+
+
+def render_ls17_binaural(
+    ambisonic_audio: np.ndarray,
+    sofa_path: str,
+    csv_path: str,
+    order: int = 3,
+    normalization: str = "sn3d",
+) -> np.ndarray:  # (samples, 2) float32 [left, right]
+    """
+    Renders binaural stereo by first decoding the HOA bus through the LS17
+    museum speaker layout, then convolving each speaker feed with the nearest
+    HRTF from the SOFA file.  This simulates sitting at the sweet spot of the
+    museum system on headphones, making the LS17 decoder auditionable without
+    physical speakers.
+    """
+    from .ambisonics.layout.speaker_layout import load_speaker_layout, layout_to_numpy
+
+    speakers = load_speaker_layout(csv_path)
+    az_rad, el_rad, _ = layout_to_numpy(speakers)
+    decoder_matrix = calculate_decoder_matrix(az_rad, el_rad, order, normalization)
+    speaker_feeds = decode_hoa_to_speakers(ambisonic_audio, decoder_matrix)  # (samples, 17)
+
+    hrtf = sofar.read_sofa(sofa_path)
+    sofa_az = deg2rad(hrtf.SourcePosition[:, 0])
+    sofa_el = deg2rad(hrtf.SourcePosition[:, 1])
+    hrirs = hrtf.Data_IR  # (M, 2, N)
+
+    n_samples  = ambisonic_audio.shape[0]
+    ir_len     = hrirs.shape[2]
+    output_len = n_samples + ir_len - 1
+
+    left  = np.zeros(output_len, dtype=np.float64)
+    right = np.zeros(output_len, dtype=np.float64)
+
+    for i in range(len(speakers)):
+        idx = _nearest_hrtf_index(az_rad[i], el_rad[i], sofa_az, sofa_el)
+        left  += fftconvolve(speaker_feeds[:, i], hrirs[idx, 0, :])
+        right += fftconvolve(speaker_feeds[:, i], hrirs[idx, 1, :])
+
+    return np.stack([left[:n_samples], right[:n_samples]], axis=1).astype(np.float32)
