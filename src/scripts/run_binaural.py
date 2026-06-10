@@ -22,7 +22,7 @@ def main():
     output_folder = PROJECT_ROOT / "Demixing BS-RoF" / "outputs"
 
     # Pick up all HOA scene files produced by run_encode_hoa.py
-    scene_files = list(output_folder.glob("*_3d_scene_hoa3.wav"))
+    scene_files = list(output_folder.glob("*_hoa3.wav"))
 
     if not scene_files:
         print("No HOA scene files found. Run run_encode_hoa.py first.")
@@ -38,7 +38,7 @@ def main():
 
     for scene_path in scene_files:
         # Recover the original song name from the scene filename
-        song_name = scene_path.stem.replace("_3d_scene_hoa3", "")
+        song_name = scene_path.stem.replace("_hoa3", "")
         print(f"\nRendering binaural mix for: {song_name}")
 
         # Output path for the stereo binaural file
