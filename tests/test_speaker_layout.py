@@ -85,15 +85,15 @@ def test_known_rows_are_parsed_correctly():
 
     a4 = by_label["A4"]
     assert np.isclose(a4.radius_m, 1.966, atol=ATOL)
-    assert np.isclose(a4.azimuth_deg, 9.0, atol=ATOL)
+    assert np.isclose(a4.azimuth_deg, -9.0, atol=ATOL)   # CSV 9° CW → -9° CCW
     assert np.isclose(a4.elevation_deg, 18.08, atol=ATOL)
 
     a6 = by_label["A6"]
-    assert np.isclose(a6.azimuth_deg, -82.0, atol=ATOL)
+    assert np.isclose(a6.azimuth_deg, 82.0, atol=ATOL)   # CSV 278° CW → +82° CCW (West/left)
     assert np.isclose(a6.elevation_deg, 16.9, atol=ATOL)
 
     a19 = by_label["A19"]
-    assert np.isclose(a19.azimuth_deg, 67.0, atol=ATOL)
+    assert np.isclose(a19.azimuth_deg, -67.0, atol=ATOL)  # CSV 67° CW → -67° CCW
     assert np.isclose(a19.elevation_deg, 80.0, atol=ATOL)
 
 

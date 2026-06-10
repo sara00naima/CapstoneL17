@@ -75,7 +75,9 @@ def speaker_from_fields(fields: list[str]) -> Speaker:
 
     label = fields[0].strip()
     radius_m = _parse_float(fields[1])
-    azimuth_deg = wrap_azimuth_deg(_parse_float(fields[2]))
+    # CSV uses clockwise compass convention (+90° = East/right).
+    # Ambisonics convention is counter-clockwise (+90° = left), so negate.
+    azimuth_deg = wrap_azimuth_deg(-_parse_float(fields[2]))
     cardinal = fields[3].strip().upper()
     elevation_deg = _parse_float(fields[4])
 
