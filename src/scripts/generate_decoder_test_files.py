@@ -275,6 +275,51 @@ def main():
                     hoa_path.unlink(missing_ok=True)
                     print(f"    HOA removed.")
 
+        # Genereate a test with each stem on a different location
+        print(f"\n--- Song Test for '{song_name}' ---")
+        
+        # Custom test locations
+        song_test_positions = {
+            "vocals": (0.0,     0.0),   # Front
+            "guitar": (-90.0,   0.0),   # Right
+            "drums":  (90.0,    0.0),   # Left
+            "bass":  (180.0,   0.0),    # Behind
+            "other":  (0.0,    90.0),   # Above
+            "piano":   (0.0,   -20.0),  # Below
+        }
+
+        hoa_path = DEFAULT_TEST_HOA_DIR / f"{song_name}_song_test_hoa3.wav"
+
+        encode_stems_to_hoa(
+            stem_paths=stem_paths,
+            positions_deg=song_test_positions, 
+            out_path=str(hoa_path),
+            order=3,
+            normalization="sn3d",
+            trajectory_fn=generate_static,
+        )
+        print(f"    HOA:           {hoa_path.name}")
+
+        if generate_internal_decode:
+            ls17_path = DEFAULT_TEST_LS17_DIR / f"{song_name}_song_test_17ch.wav"
+            decode_scene_for_ls17(
+                scene_path=str(hoa_path),
+                out_path=str(ls17_path),
+                order=3,
+            )
+            print(f"    LS17 decoded:  {ls17_path.name}")
+            
+        if GENERATE_LS17_BINAURAL:
+            ls17_binaural_path = DEFAULT_TEST_LS17_BINAURAL_DIR / f"{song_name}_song_test_ls17_binaural.wav"
+            render_ls17_binaural_scene(
+                scene_path=str(hoa_path),
+                sofa_path=str(DEFAULT_HRTF_SOFA),
+                out_path=str(ls17_binaural_path),
+                order=3,
+            )
+            print(f"    LS17 binaural: {ls17_binaural_path.name}")
+
+
         # Generate trajectory tests
         if generate_trajectory_tests:
             print(f"\n--- Trajectory Tests for '{song_name}' ---")
