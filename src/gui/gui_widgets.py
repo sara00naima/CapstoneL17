@@ -1,4 +1,5 @@
 import math
+import threading
 import tkinter as tk
 from tkinter import filedialog
 from pathlib import Path
@@ -18,6 +19,7 @@ from gui_backend import (
     FONT_LABEL,
     FONT_SMALL,
     FONT_MONO,
+    run_demix_and_populate,
 )
 
 
@@ -113,6 +115,10 @@ class SourceRow(tk.Frame):
 
     def refresh_az(self):
         self._az_lbl.config(text=f"{self.source.azimuth:+.0f}°")
+
+    def refresh_all(self):
+        """Called after demix to update azimuth label. File is shown in inspector."""
+        self.refresh_az()
 
 
 class SourceInspector(tk.Frame):
@@ -506,9 +512,15 @@ class SceneView(tk.Canvas):
 
 
 class OutputPanel(tk.Frame):
-    def __init__(self, parent, state: AppState, **kwargs):
+    def __init__(self, parent, state: AppState,
+                 status_ref=None, scene_ref=None,
+                 inspector_ref=None, rows_ref=None, **kwargs):
         super().__init__(parent, bg=PANEL_BG, **kwargs)
         self.state = state
+        self._status_ref    = status_ref
+        self._scene_ref     = scene_ref
+        self._inspector_ref = inspector_ref
+        self._rows_ref      = rows_ref or []
         self._build()
 
     def _build(self):
@@ -535,29 +547,52 @@ class OutputPanel(tk.Frame):
                 wraplength=250,
             )
 
-        section("SONG INPUT")
-        self._song_lbl = small_value("no file selected")
-        self._song_lbl.pack(anchor="w", padx=12)
+        section("SONG & DEMIX")
+
+        # Song file row
+        song_row = tk.Frame(self, bg=PANEL_BG)
+        song_row.pack(fill="x", padx=12, pady=(0, 4))
+        self._song_lbl = tk.Label(
+            song_row, text="no song selected", bg=PANEL_BG, fg=TEXT_DIM,
+            font=FONT_SMALL, anchor="w", justify="left", wraplength=170,
+        )
+        self._song_lbl.pack(side="left", fill="x", expand=True)
         tk.Button(
-            self,
-            text="Browse…",
-            bg=ACCENT2,
-            fg=TEXT,
-            relief="flat",
-            bd=0,
-            font=FONT_SMALL,
-            command=self._pick_song,
-        ).pack(anchor="w", padx=12, pady=(6, 0))
+            song_row, text="Browse…", bg=ACCENT2, fg=TEXT,
+            relief="flat", bd=0, font=FONT_SMALL, command=self._pick_song,
+        ).pack(side="right")
+
+        # Model checkpoint row
+        model_row = tk.Frame(self, bg=PANEL_BG)
+        model_row.pack(fill="x", padx=12, pady=(0, 4))
+        self._model_lbl = tk.Label(
+            model_row, text="no model (.ckpt)", bg=PANEL_BG, fg=TEXT_DIM,
+            font=FONT_SMALL, anchor="w", justify="left", wraplength=170,
+        )
+        self._model_lbl.pack(side="left", fill="x", expand=True)
+        tk.Button(
+            model_row, text="Model…", bg=ACCENT2, fg=TEXT,
+            relief="flat", bd=0, font=FONT_SMALL, command=self._pick_model,
+        ).pack(side="right")
+
+        # Demix button
+        self._demix_btn = tk.Button(
+            self, text="🎵 Demix Song",
+            bg="#1e3a5f", fg=TEXT,
+            activebackground="#2a4f7a", activeforeground=TEXT,
+            relief="flat", bd=0,
+            font=("Helvetica", 10, "bold"),
+            padx=12, pady=6, cursor="hand2",
+            command=self._on_demix,
+        )
+        self._demix_btn.pack(anchor="w", padx=12, pady=(4, 2))
 
         tk.Label(
             self,
-            text="Leave blank if you load individual stem WAVs in the Sources panel.",
-            bg=PANEL_BG,
-            fg=TEXT_DIM,
-            font=FONT_SMALL,
-            justify="left",
-            wraplength=250,
-        ).pack(anchor="w", padx=12, pady=(6, 0))
+            text="Or load individual stem WAVs via Sources inspector → Load WAV…",
+            bg=PANEL_BG, fg=TEXT_DIM, font=FONT_SMALL,
+            justify="left", wraplength=250,
+        ).pack(anchor="w", padx=12, pady=(2, 6))
 
         section("RENDERER")
         self._renderer_var = tk.StringVar(value=s.renderer)
@@ -659,6 +694,37 @@ class OutputPanel(tk.Frame):
         if p:
             self.state.song_path = p
             self._song_lbl.config(text=Path(p).name)
+
+    def _pick_model(self):
+        p = filedialog.askopenfilename(
+            title="Select BS-RoFormer model checkpoint",
+            filetypes=[("Checkpoint", "*.ckpt *.pt *.pth"), ("All files", "*.*")],
+        )
+        if p:
+            self.state.demix_model_path = p
+            self._model_lbl.config(text=Path(p).name)
+
+    def _on_demix(self):
+        t = threading.Thread(
+            target=run_demix_and_populate,
+            args=(self.state, self._status_ref, self._demix_btn, self._after_demix),
+            daemon=True,
+        )
+        t.start()
+
+    def _after_demix(self):
+        """Runs on the main thread after demix completes. Refreshes all widgets."""
+        # 1. Refresh azimuth labels on every source row
+        for row in self._rows_ref:
+            row.refresh_all()
+
+        # 2. Reload the inspector so it shows the new file name, az, el
+        if self._inspector_ref is not None and self._inspector_ref.source is not None:
+            self._inspector_ref.set_source(self._inspector_ref.source)
+
+        # 3. Redraw the scene view (nodes may have moved)
+        if self._scene_ref is not None:
+            self._scene_ref.redraw()
 
     def _on_renderer(self):
         self.state.renderer = self._renderer_var.get()

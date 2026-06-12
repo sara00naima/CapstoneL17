@@ -167,7 +167,12 @@ class SpatialAudioGUI(tk.Tk):
             font=FONT_SECTION,
         ).pack(anchor="w", padx=14, pady=(14, 8))
 
-        OutputPanel(right, s).pack(fill="both", expand=True, padx=2, pady=(0, 8))
+        OutputPanel(right, s,
+            status_ref=self._status,
+            scene_ref=scene_view,
+            inspector_ref=inspector,
+            rows_ref=rows,
+        ).pack(fill="both", expand=True, padx=2, pady=(0, 8))
 
     def _on_generate(self):
         t = threading.Thread(

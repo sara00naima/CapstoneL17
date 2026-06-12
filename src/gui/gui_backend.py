@@ -40,12 +40,12 @@ class SourceState:
 class AppState:
     def __init__(self):
         initial_sources = [
-            ("vocals", "#c7d4ff", 0),   # chiaro, leggibile, non sparato
-            ("drums",  "#39a9c3", 35),  # teal più vivo
-            ("bass",   "#8ea6d8", -35), # blue-grey più leggibile
-            ("guitar", "#a278ff", -23), # violet deciso ma non neon
-            ("piano",  "#8e73d1", 23),  # purple morbido ma visibile
-            ("other",  "#6f8cff", -11), # blue accent un po' più brillante
+            ("vocals", "#a278ff", 0),   
+            ("drums",  "#eef093", 35),  
+            ("bass",   "#e8a146", -35), 
+            ("guitar", "#6f8cff", -23), 
+            ("piano",  "#d88ecf", 23),  
+            ("other",  "#39a9c3", -11), 
         ]
 
         self.sources = [
@@ -53,6 +53,7 @@ class AppState:
             for name, color, az in initial_sources
         ]
         self.song_path = None
+        self.demix_model_path = None
         self.renderer = "binaural"
         self.layout_path = None
         self.hrtf_path = None
@@ -60,7 +61,71 @@ class AppState:
         self.hoa_order = 3
 
 
-def run_generate(state: AppState, status, btn: tk.Button):
+def run_demix_and_populate(state, status, btn: tk.Button, on_done_callback):
+    """Background thread: demix the song, populate SourceState paths and positions."""
+    btn.config(state="disabled", text="⏳ Demixing…")
+    try:
+        _do_demix(state, status, on_done_callback)
+    except Exception as e:
+        status.set(f"DEMIX ERROR: {e}")
+        messagebox.showerror("Demix failed", str(e))
+    finally:
+        btn.config(state="normal", text="🎵 Demix Song")
+
+
+def _do_demix(state, status, on_done_callback):
+    import sys
+    src_dir = Path(__file__).resolve().parent
+    if str(src_dir) not in sys.path:
+        sys.path.insert(0, str(src_dir))
+
+    try:
+        from spatial_pipeline.demix import demix_folder
+        from spatial_pipeline.scene_defaults import DEFAULT_POSITIONS_DEG
+    except ImportError as e:
+        raise RuntimeError(f"Could not import spatial_pipeline: {e}")
+
+    if not state.song_path:
+        raise ValueError("No song file selected. Browse a song first.")
+    if not state.demix_model_path:
+        raise ValueError("No model checkpoint selected. Load a .ckpt file first.")
+
+    song_path = Path(state.song_path)
+    out_dir = state.out_dir / "demixed"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    status.set(f"Demixing '{song_path.name}'… (this may take a while)")
+
+    all_results = demix_folder(
+        input_dir=str(song_path.parent),
+        output_dir=str(out_dir),
+        model_path=state.demix_model_path,
+    )
+
+    song_key = song_path.stem
+    if song_key not in all_results:
+        raise RuntimeError(
+            f"Demix finished but '{song_key}' not found in results. "
+            f"Got: {list(all_results.keys())}"
+        )
+
+    stems = all_results[song_key]   # { "vocals": "/path/vocals.wav", ... }
+
+    for src in state.sources:
+        stem_file = stems.get(src.name)
+        if stem_file:
+            src.wav_path = stem_file
+        if src.name in DEFAULT_POSITIONS_DEG:
+            src.azimuth, src.elevation = DEFAULT_POSITIONS_DEG[src.name]
+
+    status.set(f"Demix complete — stems in {out_dir}")
+
+    # Schedule GUI refresh on the main thread (Tkinter is not thread-safe)
+    if on_done_callback:
+        status.after(0, on_done_callback)
+
+
+def run_generate(state, status, btn: tk.Button):
     btn.config(state="disabled", text="⏳ Generating…")
     try:
         _do_generate(state, status)
