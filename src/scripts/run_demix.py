@@ -12,6 +12,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from spatial_pipeline.demix import demix_folder
+from spatial_pipeline.config import BSROFORMER_ROOT, DEFAULT_DEMIX_DIR
 
 
 def main():
@@ -19,10 +20,10 @@ def main():
     input_folder = PROJECT_ROOT / "Demixing BS-RoF" / "songs"
 
     # Folder where the separated stems will be written
-    output_folder = PROJECT_ROOT / "Demixing BS-RoF" / "outputs"
+    output_folder = DEFAULT_DEMIX_DIR
 
     # Path to the pre-trained BS-RoFormer checkpoint
-    model_path = PROJECT_ROOT / "Demixing BS-RoF" / "bs_roformer" / "models" / "roformer-model-bs-roformer-sw-by-jarredou" / "BS-Rofo-SW-Fixed.ckpt"
+    model_path = BSROFORMER_ROOT / "models" / "roformer-model-bs-roformer-sw-by-jarredou" / "BS-Rofo-SW-Fixed.ckpt"
 
     print("--- THE DEMIXING STAGE ---")
 

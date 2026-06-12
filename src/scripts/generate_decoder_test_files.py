@@ -41,6 +41,7 @@ from spatial_pipeline.pipeline import (
 )
 from spatial_pipeline.config import (
     DEFAULT_HRTF_SOFA,
+    DEFAULT_DEMIX_DIR,
     DEFAULT_TEST_HOA_DIR,
     DEFAULT_TEST_LS17_DIR,
     DEFAULT_TEST_BINAURAL_DIR,
@@ -177,7 +178,7 @@ def main():
     )
     args = parser.parse_args()
 
-    stems_folder = PROJECT_ROOT / "Demixing BS-RoF" / "outputs"
+    stems_folder = DEFAULT_DEMIX_DIR
 
     print("\n=== HOA DECODER TEST FILE GENERATOR ===\n")
     print(f"Decoder mode:      {GENERATE_FOR_DECODER}")

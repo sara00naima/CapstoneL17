@@ -2,6 +2,15 @@ from pathlib import Path
 from dataclasses import dataclass
 import tkinter as tk
 from tkinter import messagebox
+import sys
+
+# Ensure spatial_pipeline is importable
+_GUI_DIR = Path(__file__).resolve().parent
+_SRC_DIR = _GUI_DIR.parent
+if str(_SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(_SRC_DIR))
+
+from spatial_pipeline.config import DEFAULT_GUI_DIR
 
 BG = "#070a12"
 BG_2 = "#0b1220"
@@ -57,7 +66,7 @@ class AppState:
         self.renderer = "binaural"
         self.layout_path = None
         self.hrtf_path = None
-        self.out_dir = Path("outputs/gui")
+        self.out_dir = DEFAULT_GUI_DIR
         self.hoa_order = 3
 
 
@@ -74,16 +83,8 @@ def run_demix_and_populate(state, status, btn: tk.Button, on_done_callback):
 
 
 def _do_demix(state, status, on_done_callback):
-    import sys
-    src_dir = Path(__file__).resolve().parent
-    if str(src_dir) not in sys.path:
-        sys.path.insert(0, str(src_dir))
-
-    try:
-        from spatial_pipeline.demix import demix_folder
-        from spatial_pipeline.scene_defaults import DEFAULT_POSITIONS_DEG
-    except ImportError as e:
-        raise RuntimeError(f"Could not import spatial_pipeline: {e}")
+    from spatial_pipeline.demix import demix_folder
+    from spatial_pipeline.scene_defaults import DEFAULT_POSITIONS_DEG
 
     if not state.song_path:
         raise ValueError("No song file selected. Browse a song first.")
@@ -137,26 +138,13 @@ def run_generate(state, status, btn: tk.Button):
 
 
 def _do_generate(state: AppState, status):
-    try:
-        import sys
-
-        src_dir = Path(__file__).resolve().parent
-        if str(src_dir) not in sys.path:
-            sys.path.insert(0, str(src_dir))
-
-        from spatial_pipeline.pipeline import (
-            encode_stems_to_hoa,
-            render_binaural_scene,
-            render_ls17_binaural_scene,
-            decode_scene_for_ls17,
-        )
-        from spatial_pipeline.config import DEFAULT_HRTF_SOFA, MEASUREMENTS_CSV
-
-    except ImportError as e:
-        raise RuntimeError(
-            f"Could not import spatial_pipeline: {e}\n"
-            "Run this script from the project root with src/ on the path."
-        )
+    from spatial_pipeline.pipeline import (
+        encode_stems_to_hoa,
+        render_binaural_scene,
+        render_ls17_binaural_scene,
+        decode_scene_for_ls17,
+    )
+    from spatial_pipeline.config import DEFAULT_HRTF_SOFA, MEASUREMENTS_CSV
 
     stem_paths = {}
     positions = {}

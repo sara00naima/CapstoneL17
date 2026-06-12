@@ -12,17 +12,17 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from spatial_pipeline.pipeline import render_binaural_scene
-from spatial_pipeline.config import DEFAULT_HRTF_SOFA, DEFAULT_BINAURAL_DIR
+from spatial_pipeline.config import DEFAULT_HRTF_SOFA, DEFAULT_BINAURAL_DIR, DEFAULT_HOA_DIR
 
 
 def main():
     print("--- BINAURAL RENDERING STAGE ---")
 
     # Folder where the HOA encoding stage wrote the scene files
-    output_folder = PROJECT_ROOT / "Demixing BS-RoF" / "outputs"
+    scene_dir = DEFAULT_HOA_DIR
 
     # Pick up all HOA scene files produced by run_encode_hoa.py
-    scene_files = list(output_folder.glob("*_hoa3.wav"))
+    scene_files = list(scene_dir.glob("*_hoa3.wav"))
 
     if not scene_files:
         print("No HOA scene files found. Run run_encode_hoa.py first.")

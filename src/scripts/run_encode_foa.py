@@ -14,6 +14,7 @@ if str(SRC_DIR) not in sys.path:
 
 from spatial_pipeline.pipeline import encode_stems_to_foa
 from spatial_pipeline.scene_defaults import STEM_TYPES, DEFAULT_POSITIONS_DEG
+from spatial_pipeline.config import DEFAULT_DEMIX_DIR, DEFAULT_FOA_DIR
 
 
 def collect_stems_by_song(output_folder: Path) -> dict[str, dict[str, str]]:
@@ -45,14 +46,16 @@ def collect_stems_by_song(output_folder: Path) -> dict[str, dict[str, str]]:
 
 
 def main():
-    output_folder = PROJECT_ROOT / "Demixing BS-RoF" / "outputs"
+    stems_folder = DEFAULT_DEMIX_DIR
+    output_folder = DEFAULT_FOA_DIR
+    output_folder.mkdir(parents=True, exist_ok=True)
 
     print("--- THE POSITIONING & ENCODING STAGE ---")
 
     # group all stems produced by the demixing stage
-    all_songs_stems = collect_stems_by_song(output_folder)
+    all_songs_stems = collect_stems_by_song(stems_folder)
     if not all_songs_stems:
-        print(f"No stems found in {output_folder}")
+        print(f"No stems found in {stems_folder}")
         return
 
     print("Assigning 3D coordinates...")

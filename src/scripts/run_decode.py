@@ -12,15 +12,20 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from spatial_pipeline.pipeline import decode_scene_for_ls17
+from spatial_pipeline.config import DEFAULT_HOA_DIR, DEFAULT_LS17_DIR
 
 def main():
     print("--- SPATIAL AUDIO DECODING STAGE ---")
     
-    # Output folder where the encoding stage wrote the HOA scene files
-    output_folder = PROJECT_ROOT / "Demixing BS-RoF" / "outputs"
+    # Folder where the encoding stage wrote the HOA scene files
+    scene_dir = DEFAULT_HOA_DIR
+
+    # Folder where the decoded LS17 files will be written
+    output_folder = DEFAULT_LS17_DIR
+    output_folder.mkdir(parents=True, exist_ok=True)
 
     # Extract all the HOA scene files produced by the encoding stage
-    scene_files = list(output_folder.glob("*_hoa3.wav"))
+    scene_files = list(scene_dir.glob("*_hoa3.wav"))
     
     if not scene_files:
         print("No HOA3 scene files found. Please execute the encoding stage prior to decoding.")

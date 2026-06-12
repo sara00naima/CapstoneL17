@@ -13,7 +13,10 @@ BSROFORMER_CONFIG = BSROFORMER_ROOT / "configs" / "config_bs_roformer_sw.yaml"
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "outputs"
 DEFAULT_DEMIX_DIR = DEFAULT_OUTPUT_DIR / "demixed"
 DEFAULT_FOA_DIR = DEFAULT_OUTPUT_DIR / "foa"
+DEFAULT_HOA_DIR = DEFAULT_OUTPUT_DIR / "hoa"
+DEFAULT_LS17_DIR = DEFAULT_OUTPUT_DIR / "ls17"
 DEFAULT_BINAURAL_DIR = DEFAULT_OUTPUT_DIR / "binaural"
+DEFAULT_GUI_DIR = DEFAULT_OUTPUT_DIR / "gui"
 
 # Test file output directories (used by generate_decoder_test_files.py)
 DEFAULT_TEST_DIR            = DEFAULT_OUTPUT_DIR / "test"
