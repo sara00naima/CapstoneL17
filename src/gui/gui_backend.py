@@ -3,15 +3,18 @@ from dataclasses import dataclass
 import tkinter as tk
 from tkinter import messagebox
 
-BG = "#090b13"
-BG_2 = "#0d1020"
-PANEL_BG = "#10182b"
-PANEL_BG2 = "#13203a"
-ACCENT = "#ff5c7a"
-ACCENT2 = "#6fd3ff"
-BORDER = "#223557"
+BG = "#070a12"
+BG_2 = "#0b1220"
+PANEL_BG = "#122038"
+PANEL_BG2 = "#1a2b46"
+
+ACCENT = "#627df7"
+ACCENT2 = "#279db4"
+BORDER = "#31476f"
+
 TEXT = "#edf2ff"
 TEXT_DIM = "#8ea0c2"
+
 CANVAS_BG = "#070a12"
 GRID_COL = "#1f3354"
 
@@ -37,12 +40,12 @@ class SourceState:
 class AppState:
     def __init__(self):
         initial_sources = [
-            ("vocals", "#4fc3f7", 0),
-            ("drums", "#81c784", 35),
-            ("bass", "#ffb74d", -35),
-            ("guitar", "#ba68c8", -23),
-            ("piano", "#f06292", 23),
-            ("other", "#4dd0e1", -11),
+            ("vocals", "#c7d4ff", 0),   # chiaro, leggibile, non sparato
+            ("drums",  "#39a9c3", 35),  # teal più vivo
+            ("bass",   "#8ea6d8", -35), # blue-grey più leggibile
+            ("guitar", "#a278ff", -23), # violet deciso ma non neon
+            ("piano",  "#8e73d1", 23),  # purple morbido ma visibile
+            ("other",  "#6f8cff", -11), # blue accent un po' più brillante
         ]
 
         self.sources = [
@@ -143,4 +146,3 @@ def _do_generate(state: AppState, status):
 
     status.set(f"Done! Output saved to {out}")
     messagebox.showinfo("Done", f"Output saved:\n{out}")
-    

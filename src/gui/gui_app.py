@@ -14,7 +14,13 @@ from gui_backend import (
     FONT_SMALL,
     run_generate,
 )
-from gui_widgets import SourceRow, SceneView, OutputPanel, StatusBar
+from gui_widgets import (
+    SourceRow,
+    SourceInspector,
+    SceneView,
+    OutputPanel,
+    StatusBar,
+)
 
 
 class SpatialAudioGUI(tk.Tk):
@@ -22,8 +28,8 @@ class SpatialAudioGUI(tk.Tk):
         super().__init__()
         self.title("Spatial Audio Pipeline")
         self.configure(bg=BG)
-        self.geometry("1220x760")
-        self.minsize(980, 640)
+        self.geometry("1280x800")
+        self.minsize(1080, 700)
 
         self.state = AppState()
         self._build()
@@ -31,47 +37,47 @@ class SpatialAudioGUI(tk.Tk):
     def _build(self):
         s = self.state
 
-        topbar = tk.Frame(self, bg=BG, height=52)
+        topbar = tk.Frame(self, bg=BG, height=70)
         topbar.pack(fill="x", side="top")
         topbar.pack_propagate(False)
 
         title_wrap = tk.Frame(topbar, bg=BG)
-        title_wrap.pack(side="left", padx=16, pady=8)
+        title_wrap.pack(side="left", padx=14, pady=10)
 
         tk.Label(
             title_wrap,
             text="SPATIAL AUDIO PIPELINE",
             bg=BG,
             fg=TEXT,
-            font=FONT_APP_TITLE,
+            font=("Helvetica", 18, "bold"),
             anchor="w",
         ).pack(anchor="w")
 
         tk.Label(
             title_wrap,
-            text="Drag stems in space · set elevation · choose renderer/output",
+            text="Drag stems in space · inspect one source at a time · choose renderer and output",
             bg=BG,
             fg=TEXT_DIM,
-            font=FONT_SMALL,
+            font=("Helvetica", 10),
             anchor="w",
-        ).pack(anchor="w")
+        ).pack(anchor="w", pady=(3, 0))
 
         self._gen_btn = tk.Button(
             topbar,
-            text="▶  GENERATE",
+            text="▸ GENERATE",
             bg=ACCENT,
             fg="white",
             activebackground="#ff7690",
             activeforeground="white",
             relief="flat",
             bd=0,
-            font=("Helvetica", 10, "bold"),
+            font=("Helvetica", 11, "bold"),
             padx=20,
-            pady=8,
+            pady=10,
             cursor="hand2",
             command=self._on_generate,
         )
-        self._gen_btn.pack(side="right", padx=16, pady=8)
+        self._gen_btn.pack(side="right", padx=14, pady=10)
 
         tk.Frame(self, bg=BORDER, height=1).pack(fill="x", side="top")
 
@@ -81,30 +87,31 @@ class SpatialAudioGUI(tk.Tk):
         body = tk.Frame(self, bg=BG)
         body.pack(fill="both", expand=True)
 
+        body.grid_rowconfigure(0, weight=1)
+        body.grid_columnconfigure(0, weight=0, minsize=360)
+        body.grid_columnconfigure(1, weight=1, minsize=480)
+        body.grid_columnconfigure(2, weight=0, minsize=300)
+
         left = tk.Frame(
             body,
             bg=PANEL_BG,
-            width=420,
             bd=0,
             highlightthickness=1,
             highlightbackground=BORDER,
         )
-        left.pack(side="left", fill="y", padx=(10, 6), pady=10)
-        left.pack_propagate(False)
+        left.grid(row=0, column=0, sticky="nsew", padx=(8, 4), pady=8)
 
         centre = tk.Frame(body, bg=BG)
-        centre.pack(side="left", fill="both", expand=True, padx=4, pady=10)
+        centre.grid(row=0, column=1, sticky="nsew", padx=2, pady=8)
 
         right = tk.Frame(
             body,
             bg=PANEL_BG,
-            width=320,
             bd=0,
             highlightthickness=1,
             highlightbackground=BORDER,
         )
-        right.pack(side="right", fill="y", padx=(6, 10), pady=10)
-        right.pack_propagate(False)
+        right.grid(row=0, column=2, sticky="nsew", padx=(4, 8), pady=8)
 
         tk.Label(
             left,
@@ -112,10 +119,10 @@ class SpatialAudioGUI(tk.Tk):
             bg=PANEL_BG,
             fg=ACCENT,
             font=FONT_SECTION,
-        ).pack(anchor="w", padx=12, pady=(12, 6))
+        ).pack(anchor="w", padx=14, pady=(14, 8))
 
         rows_wrap = tk.Frame(left, bg=PANEL_BG)
-        rows_wrap.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+        rows_wrap.pack(fill="x", padx=10, pady=(0, 8))
 
         tk.Label(
             centre,
@@ -127,22 +134,29 @@ class SpatialAudioGUI(tk.Tk):
 
         tk.Label(
             centre,
-            text="Drag the sources with the mouse. Elevation is controlled from the sliders.",
+            text="Drag a node to change azimuth. Elevation is edited in the source inspector.",
             bg=BG,
             fg=TEXT_DIM,
             font=FONT_SMALL,
         ).pack(anchor="w", padx=10, pady=(0, 8))
 
         scene_view = SceneView(centre, s)
-        scene_view.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        scene_view.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+
+        inspector = SourceInspector(left, scene_view)
+        inspector.pack(fill="x", padx=10, pady=(6, 12))
 
         rows = []
         for src in s.sources:
-            row = SourceRow(rows_wrap, src, scene_view)
+            row = SourceRow(rows_wrap, src, scene_view, on_select=inspector.set_source)
             row.pack(fill="x", padx=4, pady=4)
             rows.append(row)
 
+        if s.sources:
+            inspector.set_source(s.sources[0])
+
         scene_view.set_rows(rows)
+        scene_view.set_inspector(inspector)
         scene_view.after(100, scene_view.redraw)
 
         tk.Label(
@@ -151,9 +165,9 @@ class SpatialAudioGUI(tk.Tk):
             bg=PANEL_BG,
             fg=ACCENT,
             font=FONT_SECTION,
-        ).pack(anchor="w", padx=12, pady=(12, 4))
+        ).pack(anchor="w", padx=14, pady=(14, 8))
 
-        OutputPanel(right, s).pack(fill="both", expand=True)
+        OutputPanel(right, s).pack(fill="both", expand=True, padx=2, pady=(0, 8))
 
     def _on_generate(self):
         t = threading.Thread(
