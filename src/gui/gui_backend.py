@@ -3,17 +3,23 @@ from dataclasses import dataclass
 import tkinter as tk
 from tkinter import messagebox
 
+BG = "#090b13"
+BG_2 = "#0d1020"
+PANEL_BG = "#10182b"
+PANEL_BG2 = "#13203a"
+ACCENT = "#ff5c7a"
+ACCENT2 = "#6fd3ff"
+BORDER = "#223557"
+TEXT = "#edf2ff"
+TEXT_DIM = "#8ea0c2"
+CANVAS_BG = "#070a12"
+GRID_COL = "#1f3354"
 
-BG = "#1a1a2e"
-PANEL_BG = "#16213e"
-ACCENT = "#e94560"
-ACCENT2 = "#0f3460"
-TEXT = "#eaeaea"
-TEXT_DIM = "#7f8c9b"
-CANVAS_BG = "#0d1117"
-GRID_COL = "#1e2d40"
-SOURCE_COLS = ["#4fc3f7", "#81c784", "#ffb74d", "#ba68c8", "#f06292", "#4dd0e1"]
-STEM_TYPES = ["vocals", "drums", "bass", "guitar", "piano", "other"]
+FONT_APP_TITLE = ("Helvetica", 15, "bold")
+FONT_SECTION = ("Helvetica", 11, "bold")
+FONT_LABEL = ("Helvetica", 10)
+FONT_SMALL = ("Helvetica", 9)
+FONT_MONO = ("Courier", 10)
 
 
 @dataclass
@@ -30,7 +36,19 @@ class SourceState:
 
 class AppState:
     def __init__(self):
-        self.sources = [SourceState(n, c) for n, c in zip(STEM_TYPES, SOURCE_COLS)]
+        initial_sources = [
+            ("vocals", "#4fc3f7", 0),
+            ("drums", "#81c784", 35),
+            ("bass", "#ffb74d", -35),
+            ("guitar", "#ba68c8", -23),
+            ("piano", "#f06292", 23),
+            ("other", "#4dd0e1", -11),
+        ]
+
+        self.sources = [
+            SourceState(name, color, azimuth=az)
+            for name, color, az in initial_sources
+        ]
         self.song_path = None
         self.renderer = "binaural"
         self.layout_path = None
@@ -53,6 +71,7 @@ def run_generate(state: AppState, status, btn: tk.Button):
 def _do_generate(state: AppState, status):
     try:
         import sys
+
         src_dir = Path(__file__).resolve().parent
         if str(src_dir) not in sys.path:
             sys.path.insert(0, str(src_dir))
@@ -64,6 +83,7 @@ def _do_generate(state: AppState, status):
             decode_scene_for_ls17,
         )
         from spatial_pipeline.config import DEFAULT_HRTF_SOFA, MEASUREMENTS_CSV
+
     except ImportError as e:
         raise RuntimeError(
             f"Could not import spatial_pipeline: {e}\n"
@@ -123,3 +143,4 @@ def _do_generate(state: AppState, status):
 
     status.set(f"Done! Output saved to {out}")
     messagebox.showinfo("Done", f"Output saved:\n{out}")
+    

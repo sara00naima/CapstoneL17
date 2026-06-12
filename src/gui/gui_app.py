@@ -1,7 +1,19 @@
 import threading
 import tkinter as tk
 
-from gui_backend import AppState, BG, PANEL_BG, ACCENT, ACCENT2, TEXT, TEXT_DIM, run_generate
+from gui_backend import (
+    AppState,
+    BG,
+    PANEL_BG,
+    ACCENT,
+    BORDER,
+    TEXT,
+    TEXT_DIM,
+    FONT_APP_TITLE,
+    FONT_SECTION,
+    FONT_SMALL,
+    run_generate,
+)
 from gui_widgets import SourceRow, SceneView, OutputPanel, StatusBar
 
 
@@ -10,8 +22,8 @@ class SpatialAudioGUI(tk.Tk):
         super().__init__()
         self.title("Spatial Audio Pipeline")
         self.configure(bg=BG)
-        self.geometry("1180x720")
-        self.minsize(900, 600)
+        self.geometry("1220x760")
+        self.minsize(980, 640)
 
         self.state = AppState()
         self._build()
@@ -19,28 +31,49 @@ class SpatialAudioGUI(tk.Tk):
     def _build(self):
         s = self.state
 
-        topbar = tk.Frame(self, bg=BG, height=44)
+        topbar = tk.Frame(self, bg=BG, height=52)
         topbar.pack(fill="x", side="top")
         topbar.pack_propagate(False)
 
-        tk.Label(
-            topbar, text="SPATIAL AUDIO PIPELINE", bg=BG, fg=TEXT,
-            font=("Helvetica", 13, "bold")
-        ).pack(side="left", padx=16, pady=10)
+        title_wrap = tk.Frame(topbar, bg=BG)
+        title_wrap.pack(side="left", padx=16, pady=8)
 
         tk.Label(
-            topbar, text="museum edition", bg=BG, fg=TEXT_DIM,
-            font=("Helvetica", 9)
-        ).pack(side="left")
+            title_wrap,
+            text="SPATIAL AUDIO PIPELINE",
+            bg=BG,
+            fg=TEXT,
+            font=FONT_APP_TITLE,
+            anchor="w",
+        ).pack(anchor="w")
+
+        tk.Label(
+            title_wrap,
+            text="Drag stems in space · set elevation · choose renderer/output",
+            bg=BG,
+            fg=TEXT_DIM,
+            font=FONT_SMALL,
+            anchor="w",
+        ).pack(anchor="w")
 
         self._gen_btn = tk.Button(
-            topbar, text="▶  GENERATE",
-            bg=ACCENT, fg="white", relief="flat",
+            topbar,
+            text="▶  GENERATE",
+            bg=ACCENT,
+            fg="white",
+            activebackground="#ff7690",
+            activeforeground="white",
+            relief="flat",
+            bd=0,
             font=("Helvetica", 10, "bold"),
-            padx=18, pady=6, cursor="hand2",
+            padx=20,
+            pady=8,
+            cursor="hand2",
             command=self._on_generate,
         )
-        self._gen_btn.pack(side="right", padx=16, pady=7)
+        self._gen_btn.pack(side="right", padx=16, pady=8)
+
+        tk.Frame(self, bg=BORDER, height=1).pack(fill="x", side="top")
 
         self._status = StatusBar(self)
         self._status.pack(fill="x", side="bottom")
@@ -48,48 +81,79 @@ class SpatialAudioGUI(tk.Tk):
         body = tk.Frame(self, bg=BG)
         body.pack(fill="both", expand=True)
 
-        left = tk.Frame(body, bg=PANEL_BG, width=380)
-        left.pack(side="left", fill="y")
+        left = tk.Frame(
+            body,
+            bg=PANEL_BG,
+            width=420,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground=BORDER,
+        )
+        left.pack(side="left", fill="y", padx=(10, 6), pady=10)
         left.pack_propagate(False)
 
-        tk.Label(
-            left, text="SOURCES", bg=PANEL_BG, fg=ACCENT,
-            font=("Helvetica", 9, "bold")
-        ).pack(anchor="w", padx=10, pady=(10, 4))
-
         centre = tk.Frame(body, bg=BG)
-        centre.pack(side="left", fill="both", expand=True)
+        centre.pack(side="left", fill="both", expand=True, padx=4, pady=10)
+
+        right = tk.Frame(
+            body,
+            bg=PANEL_BG,
+            width=320,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground=BORDER,
+        )
+        right.pack(side="right", fill="y", padx=(6, 10), pady=10)
+        right.pack_propagate(False)
 
         tk.Label(
-            centre, text="SCENE VIEW  (drag sources · elevation via slider)",
-            bg=BG, fg=ACCENT, font=("Helvetica", 9, "bold")
-        ).pack(anchor="w", padx=10, pady=(10, 2))
+            left,
+            text="SOURCES",
+            bg=PANEL_BG,
+            fg=ACCENT,
+            font=FONT_SECTION,
+        ).pack(anchor="w", padx=12, pady=(12, 6))
+
+        rows_wrap = tk.Frame(left, bg=PANEL_BG)
+        rows_wrap.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+
+        tk.Label(
+            centre,
+            text="SCENE VIEW",
+            bg=BG,
+            fg=ACCENT,
+            font=FONT_SECTION,
+        ).pack(anchor="w", padx=10, pady=(2, 4))
+
+        tk.Label(
+            centre,
+            text="Drag the sources with the mouse. Elevation is controlled from the sliders.",
+            bg=BG,
+            fg=TEXT_DIM,
+            font=FONT_SMALL,
+        ).pack(anchor="w", padx=10, pady=(0, 8))
 
         scene_view = SceneView(centre, s)
         scene_view.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
         rows = []
         for src in s.sources:
-            row = SourceRow(left, src, scene_view)
-            row.pack(fill="x", padx=4, pady=3)
+            row = SourceRow(rows_wrap, src, scene_view)
+            row.pack(fill="x", padx=4, pady=4)
             rows.append(row)
 
         scene_view.set_rows(rows)
         scene_view.after(100, scene_view.redraw)
 
-        right = tk.Frame(body, bg=PANEL_BG, width=280)
-        right.pack(side="right", fill="y")
-        right.pack_propagate(False)
-
         tk.Label(
-            right, text="OUTPUT", bg=PANEL_BG, fg=ACCENT,
-            font=("Helvetica", 9, "bold")
-        ).pack(anchor="w", padx=10, pady=(10, 0))
+            right,
+            text="OUTPUT",
+            bg=PANEL_BG,
+            fg=ACCENT,
+            font=FONT_SECTION,
+        ).pack(anchor="w", padx=12, pady=(12, 4))
 
         OutputPanel(right, s).pack(fill="both", expand=True)
-
-        tk.Frame(body, bg=ACCENT2, width=1).place(in_=left, relx=1.0, rely=0, relheight=1)
-        tk.Frame(body, bg=ACCENT2, width=1).place(in_=right, relx=0.0, rely=0, relheight=1)
 
     def _on_generate(self):
         t = threading.Thread(
