@@ -85,6 +85,9 @@ def demix_folder(
 
         # Use the filename (without extension) as the song identifier
         stem_name = audio_path.stem
+        song_output_dir = out_folder / f"{stem_name}-stems"
+        song_output_dir.mkdir(parents=True, exist_ok=True)
+
         song_stems = {}
 
         for instrument, audio in result.items():
@@ -97,13 +100,13 @@ def demix_folder(
                 output = output[:, 0]
 
             # Write each separated stem as a 32-bit float wav file
-            out_file = out_folder / f"{stem_name}_{instrument}.wav"
+            out_file = song_output_dir / f"{instrument}.wav"
             save_audio(str(out_file), output, sr)
 
             # Store the output path keyed by instrument name
             song_stems[instrument] = str(out_file)
-
-        all_songs_stems[stem_name] = song_stems
+            all_songs_stems[stem_name] = song_stems
+            
         print(f"\nFinished demixing {stem_name}!\n")
 
     print("\n--- Demixing Complete! ---\n")
