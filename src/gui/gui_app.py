@@ -1,3 +1,9 @@
+"""
+GUI application for the spatial audio pipeline.
+Usage (from project root):
+    python src/gui/gui_app.py
+"""
+
 import threading
 import tkinter as tk
 

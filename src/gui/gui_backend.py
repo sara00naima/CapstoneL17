@@ -138,6 +138,7 @@ def run_generate(state, status, btn: tk.Button):
 
 
 def _do_generate(state: AppState, status):
+    from pathlib import Path
     from spatial_pipeline.pipeline import (
         encode_stems_to_hoa,
         render_binaural_scene,
@@ -165,7 +166,10 @@ def _do_generate(state: AppState, status):
 
     out_dir = state.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
-    hoa_path = str(out_dir / f"scene_hoa{state.hoa_order}.wav")
+
+    song_name = Path(state.song_path).stem if state.song_path else "output"
+
+    hoa_path = str(out_dir / f"{song_name}_scene_hoa{state.hoa_order}.wav")
 
     status.set("Encoding stems to HOA…")
     encode_stems_to_hoa(
@@ -181,17 +185,17 @@ def _do_generate(state: AppState, status):
 
     if renderer == "binaural":
         status.set("Rendering binaural…")
-        out = str(out_dir / "output_binaural.wav")
+        out = str(out_dir / f"{song_name}_binaural.wav")
         render_binaural_scene(hoa_path, hrtf, out, order=state.hoa_order)
 
     elif renderer == "ls17_binaural":
         status.set("Rendering LS17 → binaural…")
-        out = str(out_dir / "output_ls17_binaural.wav")
+        out = str(out_dir / f"{song_name}_ls17_binaural.wav")
         render_ls17_binaural_scene(hoa_path, hrtf, out, order=state.hoa_order)
 
     elif renderer == "ls17":
         status.set("Decoding to LS17…")
-        out = str(out_dir / "output_17ch.wav")
+        out = str(out_dir / f"{song_name}_17ch.wav")
         decode_scene_for_ls17(hoa_path, out, order=state.hoa_order)
 
     else:
