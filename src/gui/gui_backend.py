@@ -10,7 +10,7 @@ _SRC_DIR = _GUI_DIR.parent
 if str(_SRC_DIR) not in sys.path:
     sys.path.insert(0, str(_SRC_DIR))
 
-from spatial_pipeline.config import DEFAULT_GUI_DIR
+from spatial_pipeline.config import PROJECT_ROOT
 
 BG = "#070a12"
 BG_2 = "#0b1220"
@@ -49,12 +49,12 @@ class SourceState:
 class AppState:
     def __init__(self):
         initial_sources = [
-            ("vocals", "#a278ff", 0),   
-            ("drums",  "#eef093", 35),  
-            ("bass",   "#e8a146", -35), 
-            ("guitar", "#6f8cff", -23), 
-            ("piano",  "#d88ecf", 23),  
-            ("other",  "#39a9c3", -11), 
+            ("vocals", "#a278ff", 0),
+            ("drums", "#eef093", 35),
+            ("bass", "#e8a146", -35),
+            ("guitar", "#6f8cff", -23),
+            ("piano", "#d88ecf", 23),
+            ("other", "#39a9c3", -11),
         ]
 
         self.sources = [
@@ -66,10 +66,11 @@ class AppState:
         self.renderer = "binaural"
         self.layout_path = None
         self.hrtf_path = None
-        self.out_dir = DEFAULT_GUI_DIR
+        self.out_dir = PROJECT_ROOT / "outputs"
         self.hoa_order = 3
 
-def populate_sources_from_stem_paths(state, stems: dict[str, str]):
+
+def populate_sources_from_stem_paths(state: AppState, stems: dict[str, str]):
     from spatial_pipeline.scene_defaults import DEFAULT_POSITIONS_DEG
 
     for src in state.sources:
@@ -77,8 +78,9 @@ def populate_sources_from_stem_paths(state, stems: dict[str, str]):
         if stem_file:
             src.wav_path = stem_file
 
-        if src.name in DEFAULT_POSITIONS_DEG:
-            src.azimuth, src.elevation = DEFAULT_POSITIONS_DEG[src.name]
+            if src.name in DEFAULT_POSITIONS_DEG:
+                src.azimuth, src.elevation = DEFAULT_POSITIONS_DEG[src.name]
+
 
 def run_demix_and_populate(state, status, btn: tk.Button, on_done_callback):
     """Background thread: demix the song, populate SourceState paths and positions."""
@@ -119,12 +121,11 @@ def _do_demix(state, status, on_done_callback):
             f"Got: {list(all_results.keys())}"
         )
 
-    stems = all_results[song_key]  # { "vocals": "/path/vocals.wav", ... }
+    stems = all_results[song_key]
     populate_sources_from_stem_paths(state, stems)
 
     status.set(f"Demix complete — stems in {out_dir}")
 
-    # Schedule GUI refresh on the main thread (Tkinter is not thread-safe)
     if on_done_callback:
         status.after(0, on_done_callback)
 
@@ -137,11 +138,10 @@ def run_generate(state, status, btn: tk.Button):
         status.set(f"ERROR: {e}")
         messagebox.showerror("Generation failed", str(e))
     finally:
-        btn.config(state="normal", text="▶  GENERATE")
+        btn.config(state="normal", text="▶ GENERATE")
 
 
 def _do_generate(state: AppState, status):
-    from pathlib import Path
     from spatial_pipeline.pipeline import (
         encode_stems_to_hoa,
         render_binaural_scene,
@@ -161,6 +161,7 @@ def _do_generate(state: AppState, status):
                 f"No WAV file selected for stem '{src.name}'. "
                 "Load a WAV or mute unused stems."
             )
+
         stem_paths[src.name] = src.wav_path
         positions[src.name] = (src.azimuth, src.elevation)
 
@@ -169,6 +170,7 @@ def _do_generate(state: AppState, status):
 
     out_dir = state.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
+
     song_name = Path(state.song_path).stem if state.song_path else "output"
     hoa_path = str(out_dir / f"{song_name}_scene_hoa{state.hoa_order}.wav")
 
