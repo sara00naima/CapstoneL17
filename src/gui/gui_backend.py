@@ -169,7 +169,7 @@ def _do_generate(state: AppState, status):
             )
 
         stem_paths[src.name] = src.wav_path
-        positions[src.name] = (src.azimuth, src.elevation)
+        positions[src.name] = (-src.azimuth, src.elevation)
 
     if not stem_paths:
         raise ValueError("All stems are muted — nothing to render.")
