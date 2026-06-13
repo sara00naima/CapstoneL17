@@ -387,6 +387,8 @@ class SourceInspector(tk.Frame):
                     name == source_name
                     or name.endswith(f"_{source_name}")
                     or name.endswith(f"-{source_name}")
+                    or name.startswith(f"{source_name}_")
+                    or name.startswith(f"{source_name}-")
                 ):
                     stems[source_name] = str(wav)
                     break
