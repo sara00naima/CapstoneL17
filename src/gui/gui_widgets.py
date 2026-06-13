@@ -23,6 +23,44 @@ from gui_backend import (
     populate_sources_from_stem_paths,
 )
 
+def make_button_3d(btn, base_bg, *, fg=TEXT, border=BORDER, active_bg=None, pressed_bg=None):
+    active_bg = active_bg or base_bg
+    pressed_bg = pressed_bg or active_bg
+
+    btn.configure(
+        bg=base_bg,
+        fg=fg,
+        activebackground=active_bg,
+        activeforeground=fg,
+        relief="raised",
+        bd=1,
+        highlightthickness=1,
+        highlightbackground=border,
+        highlightcolor=border,
+        overrelief="ridge",
+        padx=8,
+        pady=4,
+        cursor="hand2",
+    )
+
+    def _press(_event):
+        btn.configure(relief="sunken", bg=pressed_bg)
+
+    def _release(_event):
+        btn.configure(relief="raised", bg=active_bg)
+
+    def _enter(_event):
+        btn.configure(bg=active_bg)
+
+    def _leave(_event):
+        btn.configure(relief="raised", bg=base_bg)
+
+    btn.bind("<ButtonPress-1>", _press, add="+")
+    btn.bind("<ButtonRelease-1>", _release, add="+")
+    btn.bind("<Enter>", _enter, add="+")
+    btn.bind("<Leave>", _leave, add="+")
+    return btn
+
 
 class SourceRow(tk.Frame):
     def __init__(self, parent, source: SourceState, scene_view, on_select=None, **kwargs):
@@ -162,16 +200,14 @@ class SourceInspector(tk.Frame):
 
         self._gain_var = tk.DoubleVar(value=0)
 
-        tk.Button(
+        gain_down_btn = tk.Button(
             gain_line,
             text="◀",
-            bg=PANEL_BG2,
-            fg=TEXT,
-            relief="flat",
-            bd=0,
             font=FONT_SMALL,
             command=lambda: self._step_gain(-0.5),
-        ).pack(side="left", padx=(0, 2))
+        )
+        make_button_3d(gain_down_btn, PANEL_BG2, active_bg=ACCENT2, pressed_bg=ACCENT)
+        gain_down_btn.pack(side="left", padx=(0, 2))
 
         self._gain_sl = tk.Scale(
             gain_line,
@@ -190,16 +226,14 @@ class SourceInspector(tk.Frame):
         )
         self._gain_sl.pack(side="left")
 
-        tk.Button(
+        gain_up_btn = tk.Button(
             gain_line,
             text="▶",
-            bg=PANEL_BG2,
-            fg=TEXT,
-            relief="flat",
-            bd=0,
             font=FONT_SMALL,
             command=lambda: self._step_gain(+0.5),
-        ).pack(side="left", padx=(2, 8))
+        )
+        make_button_3d(gain_up_btn, PANEL_BG2, active_bg=ACCENT2, pressed_bg=ACCENT)
+        gain_up_btn.pack(side="left", padx=(2, 8))
 
         self._gain_lbl = tk.Label(
             gain_line,
@@ -290,27 +324,23 @@ class SourceInspector(tk.Frame):
         btn_row = tk.Frame(file_block, bg=PANEL_BG)
         btn_row.pack(anchor="w", pady=(0, 2))
 
-        tk.Button(
+        load_wav_btn = tk.Button(
             btn_row,
             text="Load WAV…",
-            bg=ACCENT2,
-            fg=TEXT,
-            relief="flat",
-            bd=0,
             font=FONT_SMALL,
             command=self._pick_wav,
-        ).pack(side="left")
+        )
+        make_button_3d(load_wav_btn, ACCENT2, active_bg=ACCENT, pressed_bg="#123457")
+        load_wav_btn.pack(side="left")
 
-        tk.Button(
+        load_stems_btn = tk.Button(
             btn_row,
             text="Load stems folder…",
-            bg=ACCENT2,
-            fg=TEXT,
-            relief="flat",
-            bd=0,
             font=FONT_SMALL,
             command=self._pick_stems_folder,
-        ).pack(side="left", padx=(8, 0))
+        )
+        make_button_3d(load_stems_btn, ACCENT2, active_bg=ACCENT, pressed_bg="#123457")
+        load_stems_btn.pack(side="left", padx=(8, 0))
 
     def set_source(self, source: SourceState):
         self.source = source
@@ -634,33 +664,23 @@ class OutputPanel(tk.Frame):
             wraplength=170,
         )
         self._song_lbl.pack(side="left", fill="x", expand=True)
-        tk.Button(
+        browse_btn = tk.Button(
             song_row,
             text="Browse…",
-            bg=ACCENT2,
-            fg=TEXT,
-            relief="flat",
-            bd=0,
             font=FONT_SMALL,
             command=self._pick_song,
-        ).pack(side="right")
+        )
+        make_button_3d(browse_btn, ACCENT2, active_bg=ACCENT, pressed_bg="#123457")
+        browse_btn.pack(side="right")
 
 
         self._demix_btn = tk.Button(
             self,
             text="🎵 Demix Song",
-            bg="#1e3a5f",
-            fg=TEXT,
-            activebackground="#2a4f7a",
-            activeforeground=TEXT,
-            relief="flat",
-            bd=0,
             font=("Helvetica", 10, "bold"),
-            padx=12,
-            pady=6,
-            cursor="hand2",
             command=self._on_demix,
         )
+        make_button_3d(self._demix_btn, "#1e3a5f", active_bg="#2a4f7a", pressed_bg="#16304f")
         self._demix_btn.pack(anchor="w", padx=12, pady=(4, 2))
 
         section("RENDERER")
@@ -690,30 +710,26 @@ class OutputPanel(tk.Frame):
         section("SPEAKER LAYOUT")
         self._layout_lbl = small_value("default (museum 17ch)")
         self._layout_lbl.pack(anchor="w", padx=12)
-        tk.Button(
+        load_csv_btn = tk.Button(
             self,
             text="Load CSV…",
-            bg=ACCENT2,
-            fg=TEXT,
-            relief="flat",
-            bd=0,
             font=FONT_SMALL,
             command=self._pick_layout,
-        ).pack(anchor="w", padx=12, pady=(6, 0))
+        )
+        make_button_3d(load_csv_btn, ACCENT2, active_bg=ACCENT, pressed_bg="#123457")
+        load_csv_btn.pack(anchor="w", padx=12, pady=(6, 0))
 
         section("HRTF")
         self._hrtf_lbl = small_value("default HRTF")
         self._hrtf_lbl.pack(anchor="w", padx=12)
-        tk.Button(
+        load_sofa_btn = tk.Button(
             self,
             text="Load SOFA…",
-            bg=ACCENT2,
-            fg=TEXT,
-            relief="flat",
-            bd=0,
             font=FONT_SMALL,
             command=self._pick_hrtf,
-        ).pack(anchor="w", padx=12, pady=(6, 0))
+        )
+        make_button_3d(load_sofa_btn, ACCENT2, active_bg=ACCENT, pressed_bg="#123457")
+        load_sofa_btn.pack(anchor="w", padx=12, pady=(6, 0))
 
         section("HOA ORDER")
         order_row = tk.Frame(self, bg=PANEL_BG)
@@ -744,16 +760,14 @@ class OutputPanel(tk.Frame):
         section("OUTPUT DIRECTORY")
         self._outdir_lbl = small_value(str(s.out_dir))
         self._outdir_lbl.pack(anchor="w", padx=12)
-        tk.Button(
+        change_outdir_btn = tk.Button(
             self,
             text="Change…",
-            bg=ACCENT2,
-            fg=TEXT,
-            relief="flat",
-            bd=0,
             font=FONT_SMALL,
             command=self._pick_outdir,
-        ).pack(anchor="w", padx=12, pady=(6, 0))
+        )
+        make_button_3d(change_outdir_btn, ACCENT2, active_bg=ACCENT, pressed_bg="#123457")
+        change_outdir_btn.pack(anchor="w", padx=12, pady=(6, 0))
 
         section("OUTPUT FILE NAME")
 
