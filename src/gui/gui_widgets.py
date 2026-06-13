@@ -169,7 +169,7 @@ class SourceInspector(tk.Frame):
         self._build()
 
     def _build(self):
-        tk.Frame(self, bg=BORDER, height=1).pack(fill="x", pady=(4, 10))
+        tk.Frame(self, bg=BORDER, height=1).pack(fill="x", pady=(4, 8))
 
         tk.Label(
             self,
@@ -189,7 +189,7 @@ class SourceInspector(tk.Frame):
         self._title.pack(anchor="w", padx=12)
 
         gain_block = tk.Frame(self, bg=PANEL_BG)
-        gain_block.pack(fill="x", padx=12, pady=(10, 4))
+        gain_block.pack(fill="x", padx=12, pady=(8, 4))
 
         tk.Label(
             gain_block, text="Gain", bg=PANEL_BG, fg=TEXT_DIM, font=FONT_SMALL
@@ -303,7 +303,7 @@ class SourceInspector(tk.Frame):
         self._el_lbl.pack(side="left", padx=(8, 0))
 
         file_block = tk.Frame(self, bg=PANEL_BG)
-        file_block.pack(fill="x", padx=12, pady=(8, 12))
+        file_block.pack(fill="x", padx=12, pady=(8, 8))
 
         tk.Label(
             file_block, text="File", bg=PANEL_BG, fg=TEXT_DIM, font=FONT_SMALL
@@ -635,7 +635,7 @@ class OutputPanel(tk.Frame):
                 bg=PANEL_BG,
                 fg=ACCENT,
                 font=("Helvetica", 11, "bold"),
-            ).pack(anchor="w", pady=(12, 4), padx=12)
+            ).pack(anchor="w", pady=(8, 4), padx=12)
 
         def small_value(text=""):
             return tk.Label(
@@ -681,7 +681,7 @@ class OutputPanel(tk.Frame):
             command=self._on_demix,
         )
         make_button_3d(self._demix_btn, "#1e3a5f", active_bg="#2a4f7a", pressed_bg="#16304f")
-        self._demix_btn.pack(anchor="w", padx=12, pady=(4, 2))
+        self._demix_btn.pack(anchor="w", padx=8, pady=(4, 2))
 
         section("RENDERER")
         self._renderer_var = tk.StringVar(value=s.renderer)

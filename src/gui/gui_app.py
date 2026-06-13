@@ -48,7 +48,7 @@ class SpatialAudioGUI(tk.Tk):
         topbar.pack_propagate(False)
 
         title_wrap = tk.Frame(topbar, bg=BG)
-        title_wrap.pack(side="left", padx=14, pady=10)
+        title_wrap.pack(side="left", padx=14, pady=8)
 
         tk.Label(
             title_wrap,
@@ -58,15 +58,6 @@ class SpatialAudioGUI(tk.Tk):
             font=("Helvetica", 18, "bold"),
             anchor="w",
         ).pack(anchor="w")
-
-        tk.Label(
-            title_wrap,
-            text="Drag stems in space · inspect one source at a time · choose renderer and output",
-            bg=BG,
-            fg=TEXT_DIM,
-            font=("Helvetica", 10),
-            anchor="w",
-        ).pack(anchor="w", pady=(3, 0))
 
         self._gen_btn = tk.Button(
             topbar,
@@ -83,7 +74,7 @@ class SpatialAudioGUI(tk.Tk):
             cursor="hand2",
             command=self._on_generate,
         )
-        self._gen_btn.pack(side="right", padx=14, pady=10)
+        self._gen_btn.pack(side="right", padx=14, pady=8)
 
         tk.Frame(self, bg=BORDER, height=1).pack(fill="x", side="top")
 
@@ -125,7 +116,7 @@ class SpatialAudioGUI(tk.Tk):
             bg=PANEL_BG,
             fg=ACCENT,
             font=FONT_SECTION,
-        ).pack(anchor="w", padx=14, pady=(14, 8))
+        ).pack(anchor="w", padx=14, pady=(8, 8))
 
         rows_wrap = tk.Frame(left, bg=PANEL_BG)
         rows_wrap.pack(fill="x", padx=10, pady=(0, 8))
@@ -150,7 +141,7 @@ class SpatialAudioGUI(tk.Tk):
         scene_view.pack(fill="both", expand=True, padx=8, pady=(0, 8))
 
         inspector = SourceInspector(left, s, scene_view)
-        inspector.pack(fill="x", padx=10, pady=(6, 12))
+        inspector.pack(fill="x", padx=10, pady=(6, 8))
 
         rows = []
         inspector.rows = rows
@@ -172,7 +163,7 @@ class SpatialAudioGUI(tk.Tk):
             bg=PANEL_BG,
             fg=ACCENT,
             font=FONT_SECTION,
-        ).pack(anchor="w", padx=14, pady=(14, 8))
+        ).pack(anchor="w", padx=14, pady=(8, 8))
 
         OutputPanel(right, s,
             status_ref=self._status,
