@@ -365,6 +365,11 @@ class SourceInspector(tk.Frame):
             return
 
         folder_path = Path(folder)
+
+        folder_name = folder_path.name
+        song_name = folder_name.removesuffix("-stems")
+        self.state.song_path = str(folder_path / f"{song_name}.wav")
+
         wav_files = list(folder_path.glob("*.wav"))
 
         if not wav_files:

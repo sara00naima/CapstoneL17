@@ -169,9 +169,7 @@ def _do_generate(state: AppState, status):
 
     out_dir = state.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
-
     song_name = Path(state.song_path).stem if state.song_path else "output"
-
     hoa_path = str(out_dir / f"{song_name}_scene_hoa{state.hoa_order}.wav")
 
     status.set("Encoding stems to HOA…")
