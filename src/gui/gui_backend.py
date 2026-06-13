@@ -69,6 +69,16 @@ class AppState:
         self.out_dir = DEFAULT_GUI_DIR
         self.hoa_order = 3
 
+def populate_sources_from_stem_paths(state, stems: dict[str, str]):
+    from spatial_pipeline.scene_defaults import DEFAULT_POSITIONS_DEG
+
+    for src in state.sources:
+        stem_file = stems.get(src.name)
+        if stem_file:
+            src.wav_path = stem_file
+
+        if src.name in DEFAULT_POSITIONS_DEG:
+            src.azimuth, src.elevation = DEFAULT_POSITIONS_DEG[src.name]
 
 def run_demix_and_populate(state, status, btn: tk.Button, on_done_callback):
     """Background thread: demix the song, populate SourceState paths and positions."""
@@ -84,7 +94,6 @@ def run_demix_and_populate(state, status, btn: tk.Button, on_done_callback):
 
 def _do_demix(state, status, on_done_callback):
     from spatial_pipeline.demix import demix_folder
-    from spatial_pipeline.scene_defaults import DEFAULT_POSITIONS_DEG
 
     if not state.song_path:
         raise ValueError("No song file selected. Browse a song first.")
@@ -110,14 +119,8 @@ def _do_demix(state, status, on_done_callback):
             f"Got: {list(all_results.keys())}"
         )
 
-    stems = all_results[song_key]   # { "vocals": "/path/vocals.wav", ... }
-
-    for src in state.sources:
-        stem_file = stems.get(src.name)
-        if stem_file:
-            src.wav_path = stem_file
-        if src.name in DEFAULT_POSITIONS_DEG:
-            src.azimuth, src.elevation = DEFAULT_POSITIONS_DEG[src.name]
+    stems = all_results[song_key]  # { "vocals": "/path/vocals.wav", ... }
+    populate_sources_from_stem_paths(state, stems)
 
     status.set(f"Demix complete — stems in {out_dir}")
 

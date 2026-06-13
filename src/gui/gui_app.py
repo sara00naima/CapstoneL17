@@ -149,10 +149,11 @@ class SpatialAudioGUI(tk.Tk):
         scene_view = SceneView(centre, s)
         scene_view.pack(fill="both", expand=True, padx=8, pady=(0, 8))
 
-        inspector = SourceInspector(left, scene_view)
+        inspector = SourceInspector(left, s, scene_view)
         inspector.pack(fill="x", padx=10, pady=(6, 12))
 
         rows = []
+        inspector.rows = rows
         for src in s.sources:
             row = SourceRow(rows_wrap, src, scene_view, on_select=inspector.set_source)
             row.pack(fill="x", padx=4, pady=4)

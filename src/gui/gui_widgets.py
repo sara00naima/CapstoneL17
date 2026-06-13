@@ -1,7 +1,7 @@
 import math
 import threading
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from pathlib import Path
 
 from gui_backend import (
@@ -20,6 +20,7 @@ from gui_backend import (
     FONT_SMALL,
     FONT_MONO,
     run_demix_and_populate,
+    populate_sources_from_stem_paths,
 )
 
 
@@ -117,14 +118,15 @@ class SourceRow(tk.Frame):
         self._az_lbl.config(text=f"{self.source.azimuth:+.0f}°")
 
     def refresh_all(self):
-        """Called after demix to update azimuth label. File is shown in inspector."""
         self.refresh_az()
 
 
 class SourceInspector(tk.Frame):
-    def __init__(self, parent, scene_view, **kwargs):
+    def __init__(self, parent, state: AppState, scene_view, rows=None, **kwargs):
         super().__init__(parent, bg=PANEL_BG, **kwargs)
+        self.state = state
         self.scene_view = scene_view
+        self.rows = rows or []
         self.source = None
         self._build()
 
@@ -148,7 +150,6 @@ class SourceInspector(tk.Frame):
         )
         self._title.pack(anchor="w", padx=12)
 
-        # Gain
         gain_block = tk.Frame(self, bg=PANEL_BG)
         gain_block.pack(fill="x", padx=12, pady=(10, 4))
 
@@ -211,7 +212,6 @@ class SourceInspector(tk.Frame):
         )
         self._gain_lbl.pack(side="left")
 
-        # Azimuth
         az_block = tk.Frame(self, bg=PANEL_BG)
         az_block.pack(fill="x", padx=12, pady=(8, 2))
 
@@ -229,7 +229,6 @@ class SourceInspector(tk.Frame):
         )
         self._az_lbl.pack(anchor="w", pady=(3, 0))
 
-        # Elevation
         el_block = tk.Frame(self, bg=PANEL_BG)
         el_block.pack(fill="x", padx=12, pady=(8, 2))
 
@@ -269,7 +268,6 @@ class SourceInspector(tk.Frame):
         )
         self._el_lbl.pack(side="left", padx=(8, 0))
 
-        # File
         file_block = tk.Frame(self, bg=PANEL_BG)
         file_block.pack(fill="x", padx=12, pady=(8, 12))
 
@@ -289,16 +287,30 @@ class SourceInspector(tk.Frame):
         )
         self._file_lbl.pack(anchor="w", pady=(3, 6))
 
+        btn_row = tk.Frame(file_block, bg=PANEL_BG)
+        btn_row.pack(anchor="w", pady=(0, 2))
+
         tk.Button(
-            file_block,
+            btn_row,
             text="Load WAV…",
-            bg=ACCENT,
+            bg=ACCENT2,
             fg=TEXT,
             relief="flat",
             bd=0,
             font=FONT_SMALL,
             command=self._pick_wav,
-        ).pack(anchor="w")
+        ).pack(side="left")
+
+        tk.Button(
+            btn_row,
+            text="Load stems folder…",
+            bg=ACCENT2,
+            fg=TEXT,
+            relief="flat",
+            bd=0,
+            font=FONT_SMALL,
+            command=self._pick_stems_folder,
+        ).pack(side="left", padx=(8, 0))
 
     def set_source(self, source: SourceState):
         self.source = source
@@ -346,6 +358,53 @@ class SourceInspector(tk.Frame):
         if p:
             self.source.wav_path = p
             self._file_lbl.config(text=Path(p).name)
+
+    def _pick_stems_folder(self):
+        folder = filedialog.askdirectory(title="Select stems folder")
+        if not folder:
+            return
+
+        folder_path = Path(folder)
+        wav_files = list(folder_path.glob("*.wav"))
+
+        if not wav_files:
+            messagebox.showwarning("No WAV files", "The selected folder contains no .wav files.")
+            return
+
+        valid_source_names = {src.name for src in self.state.sources}
+        stems = {}
+
+        for wav in wav_files:
+            name = wav.stem.lower()
+
+            for source_name in valid_source_names:
+                if (
+                    name == source_name
+                    or name.endswith(f"_{source_name}")
+                    or name.endswith(f"-{source_name}")
+                ):
+                    stems[source_name] = str(wav)
+                    break
+
+        if not stems:
+            messagebox.showwarning(
+                "No stems recognized",
+                "No recognized stems found.\nExpected names like vocals, drums, bass, guitar, piano, other.",
+            )
+            return
+
+        populate_sources_from_stem_paths(self.state, stems)
+
+        if self.source is not None:
+            self.set_source(self.source)
+
+        for row in self.rows:
+            row.refresh_all()
+
+        self.scene_view.redraw()
+
+        loaded_names = ", ".join(sorted(stems.keys()))
+        messagebox.showinfo("Stems loaded", f"Loaded stems: {loaded_names}")
 
 
 class SceneView(tk.Canvas):
@@ -512,15 +571,22 @@ class SceneView(tk.Canvas):
 
 
 class OutputPanel(tk.Frame):
-    def __init__(self, parent, state: AppState,
-                 status_ref=None, scene_ref=None,
-                 inspector_ref=None, rows_ref=None, **kwargs):
+    def __init__(
+        self,
+        parent,
+        state: AppState,
+        status_ref=None,
+        scene_ref=None,
+        inspector_ref=None,
+        rows_ref=None,
+        **kwargs,
+    ):
         super().__init__(parent, bg=PANEL_BG, **kwargs)
         self.state = state
-        self._status_ref    = status_ref
-        self._scene_ref     = scene_ref
+        self._status_ref = status_ref
+        self._scene_ref = scene_ref
         self._inspector_ref = inspector_ref
-        self._rows_ref      = rows_ref or []
+        self._rows_ref = rows_ref or []
         self._build()
 
     def _build(self):
@@ -549,49 +615,79 @@ class OutputPanel(tk.Frame):
 
         section("SONG & DEMIX")
 
-        # Song file row
         song_row = tk.Frame(self, bg=PANEL_BG)
         song_row.pack(fill="x", padx=12, pady=(0, 4))
         self._song_lbl = tk.Label(
-            song_row, text="no song selected", bg=PANEL_BG, fg=TEXT_DIM,
-            font=FONT_SMALL, anchor="w", justify="left", wraplength=170,
+            song_row,
+            text="no song selected",
+            bg=PANEL_BG,
+            fg=TEXT_DIM,
+            font=FONT_SMALL,
+            anchor="w",
+            justify="left",
+            wraplength=170,
         )
         self._song_lbl.pack(side="left", fill="x", expand=True)
         tk.Button(
-            song_row, text="Browse…", bg=ACCENT2, fg=TEXT,
-            relief="flat", bd=0, font=FONT_SMALL, command=self._pick_song,
+            song_row,
+            text="Browse…",
+            bg=ACCENT2,
+            fg=TEXT,
+            relief="flat",
+            bd=0,
+            font=FONT_SMALL,
+            command=self._pick_song,
         ).pack(side="right")
 
-        # Model checkpoint row
         model_row = tk.Frame(self, bg=PANEL_BG)
         model_row.pack(fill="x", padx=12, pady=(0, 4))
         self._model_lbl = tk.Label(
-            model_row, text="no model (.ckpt)", bg=PANEL_BG, fg=TEXT_DIM,
-            font=FONT_SMALL, anchor="w", justify="left", wraplength=170,
+            model_row,
+            text="no model (.ckpt)",
+            bg=PANEL_BG,
+            fg=TEXT_DIM,
+            font=FONT_SMALL,
+            anchor="w",
+            justify="left",
+            wraplength=170,
         )
         self._model_lbl.pack(side="left", fill="x", expand=True)
         tk.Button(
-            model_row, text="Model…", bg=ACCENT2, fg=TEXT,
-            relief="flat", bd=0, font=FONT_SMALL, command=self._pick_model,
+            model_row,
+            text="Model…",
+            bg=ACCENT2,
+            fg=TEXT,
+            relief="flat",
+            bd=0,
+            font=FONT_SMALL,
+            command=self._pick_model,
         ).pack(side="right")
 
-        # Demix button
         self._demix_btn = tk.Button(
-            self, text="🎵 Demix Song",
-            bg="#1e3a5f", fg=TEXT,
-            activebackground="#2a4f7a", activeforeground=TEXT,
-            relief="flat", bd=0,
+            self,
+            text="🎵 Demix Song",
+            bg="#1e3a5f",
+            fg=TEXT,
+            activebackground="#2a4f7a",
+            activeforeground=TEXT,
+            relief="flat",
+            bd=0,
             font=("Helvetica", 10, "bold"),
-            padx=12, pady=6, cursor="hand2",
+            padx=12,
+            pady=6,
+            cursor="hand2",
             command=self._on_demix,
         )
         self._demix_btn.pack(anchor="w", padx=12, pady=(4, 2))
 
         tk.Label(
             self,
-            text="Or load individual stem WAVs via Sources inspector → Load WAV…",
-            bg=PANEL_BG, fg=TEXT_DIM, font=FONT_SMALL,
-            justify="left", wraplength=250,
+            text="You can also load one stem or a full stems folder from the Sources inspector.",
+            bg=PANEL_BG,
+            fg=TEXT_DIM,
+            font=FONT_SMALL,
+            justify="left",
+            wraplength=250,
         ).pack(anchor="w", padx=12, pady=(2, 6))
 
         section("RENDERER")
@@ -713,16 +809,12 @@ class OutputPanel(tk.Frame):
         t.start()
 
     def _after_demix(self):
-        """Runs on the main thread after demix completes. Refreshes all widgets."""
-        # 1. Refresh azimuth labels on every source row
         for row in self._rows_ref:
             row.refresh_all()
 
-        # 2. Reload the inspector so it shows the new file name, az, el
         if self._inspector_ref is not None and self._inspector_ref.source is not None:
             self._inspector_ref.set_source(self._inspector_ref.source)
 
-        # 3. Redraw the scene view (nodes may have moved)
         if self._scene_ref is not None:
             self._scene_ref.redraw()
 
