@@ -365,7 +365,6 @@ class SourceInspector(tk.Frame):
             return
 
         folder_path = Path(folder)
-
         folder_name = folder_path.name
         song_name = folder_name.removesuffix("-stems")
         self.state.song_path = str(folder_path / f"{song_name}.wav")
@@ -646,29 +645,6 @@ class OutputPanel(tk.Frame):
             command=self._pick_song,
         ).pack(side="right")
 
-        model_row = tk.Frame(self, bg=PANEL_BG)
-        model_row.pack(fill="x", padx=12, pady=(0, 4))
-        self._model_lbl = tk.Label(
-            model_row,
-            text="no model (.ckpt)",
-            bg=PANEL_BG,
-            fg=TEXT_DIM,
-            font=FONT_SMALL,
-            anchor="w",
-            justify="left",
-            wraplength=170,
-        )
-        self._model_lbl.pack(side="left", fill="x", expand=True)
-        tk.Button(
-            model_row,
-            text="Model…",
-            bg=ACCENT2,
-            fg=TEXT,
-            relief="flat",
-            bd=0,
-            font=FONT_SMALL,
-            command=self._pick_model,
-        ).pack(side="right")
 
         self._demix_btn = tk.Button(
             self,
@@ -686,16 +662,6 @@ class OutputPanel(tk.Frame):
             command=self._on_demix,
         )
         self._demix_btn.pack(anchor="w", padx=12, pady=(4, 2))
-
-        tk.Label(
-            self,
-            text="You can also load one stem or a full stems folder from the Sources inspector.",
-            bg=PANEL_BG,
-            fg=TEXT_DIM,
-            font=FONT_SMALL,
-            justify="left",
-            wraplength=250,
-        ).pack(anchor="w", padx=12, pady=(2, 6))
 
         section("RENDERER")
         self._renderer_var = tk.StringVar(value=s.renderer)
@@ -789,6 +755,23 @@ class OutputPanel(tk.Frame):
             command=self._pick_outdir,
         ).pack(anchor="w", padx=12, pady=(6, 0))
 
+        section("OUTPUT FILE NAME")
+
+        self._output_name_var = tk.StringVar(value=getattr(s, "output_name", ""))
+
+        output_name_entry = tk.Entry(
+            self,
+            textvariable=self._output_name_var,
+            bg=PANEL_BG2,
+            fg=TEXT,
+            insertbackground=TEXT,
+            relief="flat",
+            bd=0,
+            font=FONT_SMALL,
+        )
+        output_name_entry.pack(fill="x", padx=12, pady=(0, 4), ipady=6)
+        output_name_entry.bind("<KeyRelease>", self._on_output_name_change)
+
     def _pick_song(self):
         p = filedialog.askopenfilename(
             title="Select song file",
@@ -798,14 +781,6 @@ class OutputPanel(tk.Frame):
             self.state.song_path = p
             self._song_lbl.config(text=Path(p).name)
 
-    def _pick_model(self):
-        p = filedialog.askopenfilename(
-            title="Select BS-RoFormer model checkpoint",
-            filetypes=[("Checkpoint", "*.ckpt *.pt *.pth"), ("All files", "*.*")],
-        )
-        if p:
-            self.state.demix_model_path = p
-            self._model_lbl.config(text=Path(p).name)
 
     def _on_demix(self):
         t = threading.Thread(
@@ -827,6 +802,9 @@ class OutputPanel(tk.Frame):
 
     def _on_renderer(self):
         self.state.renderer = self._renderer_var.get()
+
+    def _on_output_name_change(self, _event=None):
+        self.state.output_name = self._output_name_var.get()
 
     def _pick_layout(self):
         p = filedialog.askopenfilename(

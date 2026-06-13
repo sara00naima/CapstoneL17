@@ -10,7 +10,7 @@ _SRC_DIR = _GUI_DIR.parent
 if str(_SRC_DIR) not in sys.path:
     sys.path.insert(0, str(_SRC_DIR))
 
-from spatial_pipeline.config import PROJECT_ROOT
+from spatial_pipeline.config import PROJECT_ROOT, BSROFORMER_ROOT
 
 BG = "#070a12"
 BG_2 = "#0b1220"
@@ -62,12 +62,18 @@ class AppState:
             for name, color, az in initial_sources
         ]
         self.song_path = None
-        self.demix_model_path = None
+        self.demix_model_path = str(
+        BSROFORMER_ROOT
+        / "models"
+        / "roformer-model-bs-roformer-sw-by-jarredou"
+        / "BS-Rofo-SW-Fixed.ckpt"
+        )
         self.renderer = "binaural"
         self.layout_path = None
         self.hrtf_path = None
         self.out_dir = PROJECT_ROOT / "outputs"
         self.hoa_order = 3
+        self.output_name = ""
 
 
 def populate_sources_from_stem_paths(state: AppState, stems: dict[str, str]):
@@ -171,7 +177,12 @@ def _do_generate(state: AppState, status):
     out_dir = state.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    song_name = Path(state.song_path).stem if state.song_path else "output"
+    custom_output_name = state.output_name.strip()
+    if custom_output_name:
+        song_name = custom_output_name
+    else:
+        song_name = Path(state.song_path).stem if state.song_path else "output"
+
     hoa_path = str(out_dir / f"{song_name}_scene_hoa{state.hoa_order}.wav")
 
     status.set("Encoding stems to HOA…")
