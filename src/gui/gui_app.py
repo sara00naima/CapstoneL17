@@ -1,7 +1,7 @@
 """
 GUI application for the spatial audio pipeline.
 Usage (from project root):
-    python src/gui/gui_app.py
+python src/gui/gui_app.py
 """
 
 import threading
@@ -11,12 +11,12 @@ from gui_backend import (
     AppState,
     BG,
     PANEL_BG,
+    PANEL_BG2,
     ACCENT,
     BORDER,
     TEXT,
     TEXT_DIM,
     FONT_APP_TITLE,
-    FONT_SECTION,
     FONT_SMALL,
     run_generate,
 )
@@ -40,6 +40,30 @@ class SpatialAudioGUI(tk.Tk):
         self.state = AppState()
         self._build()
 
+    def _panel_header(self, parent, text):
+        wrap = tk.Frame(
+            parent,
+            bg=PANEL_BG2,
+            highlightthickness=1,
+            highlightbackground=BORDER,
+        )
+        wrap.pack(fill="x", padx=8, pady=(8, 6))
+
+        tk.Frame(wrap, bg=ACCENT, width=6).pack(side="left", fill="y")
+
+        tk.Label(
+            wrap,
+            text=text,
+            bg=PANEL_BG2,
+            fg=TEXT,
+            font=("Helvetica", 12, "bold"),
+            anchor="w",
+            padx=12,
+            pady=8,
+        ).pack(side="left", fill="x", expand=True)
+
+        return wrap
+
     def _build(self):
         s = self.state
 
@@ -47,17 +71,8 @@ class SpatialAudioGUI(tk.Tk):
         topbar.pack(fill="x", side="top")
         topbar.pack_propagate(False)
 
-        title_wrap = tk.Frame(topbar, bg=BG)
-        title_wrap.pack(side="left", padx=14, pady=8)
-
-        tk.Label(
-            title_wrap,
-            text="SPATIAL AUDIO PIPELINE",
-            bg=BG,
-            fg=TEXT,
-            font=("Helvetica", 18, "bold"),
-            anchor="w",
-        ).pack(anchor="w")
+        left_spacer = tk.Frame(topbar, bg=BG, width=170)
+        left_spacer.pack(side="left")
 
         self._gen_btn = tk.Button(
             topbar,
@@ -75,6 +90,19 @@ class SpatialAudioGUI(tk.Tk):
             command=self._on_generate,
         )
         self._gen_btn.pack(side="right", padx=14, pady=8)
+
+        title_wrap = tk.Frame(topbar, bg=BG)
+        title_wrap.pack(side="left", fill="both", expand=True)
+
+        tk.Label(
+            title_wrap,
+            text="SPATIAL AUDIO PIPELINE",
+            bg=BG,
+            fg=TEXT,
+            font=FONT_APP_TITLE,
+            anchor="center",
+            justify="center",
+        ).pack(expand=True)
 
         tk.Frame(self, bg=BORDER, height=1).pack(fill="x", side="top")
 
@@ -98,7 +126,13 @@ class SpatialAudioGUI(tk.Tk):
         )
         left.grid(row=0, column=0, sticky="nsew", padx=(8, 4), pady=8)
 
-        centre = tk.Frame(body, bg=BG)
+        centre = tk.Frame(
+            body,
+            bg=PANEL_BG,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground=BORDER,
+        )
         centre.grid(row=0, column=1, sticky="nsew", padx=2, pady=8)
 
         right = tk.Frame(
@@ -110,32 +144,18 @@ class SpatialAudioGUI(tk.Tk):
         )
         right.grid(row=0, column=2, sticky="nsew", padx=(4, 8), pady=8)
 
-        tk.Label(
-            left,
-            text="SOURCES",
-            bg=PANEL_BG,
-            fg=ACCENT,
-            font=FONT_SECTION,
-        ).pack(anchor="w", padx=14, pady=(8, 8))
-
+        self._panel_header(left, "SOURCES")
         rows_wrap = tk.Frame(left, bg=PANEL_BG)
         rows_wrap.pack(fill="x", padx=10, pady=(0, 8))
 
-        tk.Label(
-            centre,
-            text="SCENE VIEW",
-            bg=BG,
-            fg=ACCENT,
-            font=FONT_SECTION,
-        ).pack(anchor="w", padx=10, pady=(2, 4))
-
+        self._panel_header(centre, "SCENE VIEW")
         tk.Label(
             centre,
             text="Drag a node to change azimuth. Elevation is edited in the source inspector.",
-            bg=BG,
+            bg=PANEL_BG,
             fg=TEXT_DIM,
             font=FONT_SMALL,
-        ).pack(anchor="w", padx=10, pady=(0, 8))
+        ).pack(anchor="w", padx=12, pady=(0, 8))
 
         scene_view = SceneView(centre, s)
         scene_view.pack(fill="both", expand=True, padx=8, pady=(0, 8))
@@ -157,15 +177,10 @@ class SpatialAudioGUI(tk.Tk):
         scene_view.set_inspector(inspector)
         scene_view.after(100, scene_view.redraw)
 
-        tk.Label(
+        self._panel_header(right, "OUTPUT")
+        OutputPanel(
             right,
-            text="OUTPUT",
-            bg=PANEL_BG,
-            fg=ACCENT,
-            font=FONT_SECTION,
-        ).pack(anchor="w", padx=14, pady=(8, 8))
-
-        OutputPanel(right, s,
+            s,
             status_ref=self._status,
             scene_ref=scene_view,
             inspector_ref=inspector,

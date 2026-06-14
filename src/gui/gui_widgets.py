@@ -635,7 +635,8 @@ class OutputPanel(tk.Frame):
                 bg=PANEL_BG,
                 fg=ACCENT,
                 font=("Helvetica", 11, "bold"),
-            ).pack(anchor="w", pady=(8, 4), padx=12)
+                anchor="w",
+            ).pack(fill="x", padx=12, pady=(6, 2))
 
         def small_value(text=""):
             return tk.Label(
@@ -684,28 +685,53 @@ class OutputPanel(tk.Frame):
         self._demix_btn.pack(anchor="w", padx=8, pady=(4, 2))
 
         section("RENDERER")
-        self._renderer_var = tk.StringVar(value=s.renderer)
-        for val, label in [
-            ("binaural", "Binaural (HOA → HRTF)"),
-            ("ls17_binaural", "LS17 → Binaural"),
-            ("ls17", "LS17 decoded (17-channel WAV)"),
-        ]:
-            tk.Radiobutton(
-                self,
-                text=label,
-                variable=self._renderer_var,
-                value=val,
-                bg=PANEL_BG,
-                fg=TEXT,
-                selectcolor=ACCENT2,
-                activebackground=PANEL_BG,
-                activeforeground=TEXT,
-                font=FONT_SMALL,
-                anchor="w",
-                justify="left",
-                wraplength=250,
-                command=self._on_renderer,
-            ).pack(anchor="w", padx=14, pady=1)
+
+        renderer_choices = {
+            "Binaural (HOA → HRTF)": "binaural",
+            "LS17 → Binaural": "ls17_binaural",
+            "LS17 decoded (17-channel WAV)": "ls17",
+        }
+
+        current_label = next(
+            (label for label, value in renderer_choices.items() if value == s.renderer),
+            "Binaural (HOA → HRTF)",
+        )
+
+        self._renderer_menu_var = tk.StringVar(value=current_label)
+        self._renderer_var = tk.StringVar(value=renderer_choices[self._renderer_menu_var.get()])
+
+        renderer_menu = tk.OptionMenu(
+            self,
+            self._renderer_menu_var,
+            *renderer_choices.keys(),
+            command=lambda selected: self._set_renderer_from_menu(renderer_choices[selected]),
+        )
+
+        renderer_menu.config(
+            bg=PANEL_BG2,
+            fg=TEXT,
+            activebackground=ACCENT2,
+            activeforeground=TEXT,
+            relief="flat",
+            bd=0,
+            highlightthickness=1,
+            highlightbackground=BORDER,
+            font=FONT_SMALL,
+            anchor="w",
+            padx=8,
+            pady=4,
+        )
+
+        renderer_menu["menu"].config(
+            bg=PANEL_BG2,
+            fg=TEXT,
+            activebackground=ACCENT,
+            activeforeground="white",
+            font=FONT_SMALL,
+            bd=0,
+        )
+
+        renderer_menu.pack(fill="x", padx=12, pady=(0, 4))
 
         section("SPEAKER LAYOUT")
         self._layout_lbl = small_value("default (museum 17ch)")

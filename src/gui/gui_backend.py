@@ -28,7 +28,7 @@ CANVAS_BG = "#070a12"
 GRID_COL = "#1f3354"
 
 FONT_APP_TITLE = ("Helvetica", 15, "bold")
-FONT_SECTION = ("Helvetica", 11, "bold")
+FONT_SECTION = ("Helvetica", 13, "bold")
 FONT_LABEL = ("Helvetica", 10)
 FONT_SMALL = ("Helvetica", 9)
 FONT_MONO = ("Courier", 10)
