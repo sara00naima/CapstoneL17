@@ -177,13 +177,18 @@ def _do_generate(state: AppState, status):
     out_dir = state.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    hoa_dir = out_dir / f"hoa{state.hoa_order}"
+    rendered_dir = out_dir / "rendered"
+    hoa_dir.mkdir(parents=True, exist_ok=True)
+    rendered_dir.mkdir(parents=True, exist_ok=True)
+
     custom_output_name = state.output_name.strip()
     if custom_output_name:
         song_name = custom_output_name
     else:
         song_name = Path(state.song_path).stem if state.song_path else "output"
 
-    hoa_path = str(out_dir / f"{song_name}_scene_hoa{state.hoa_order}.wav")
+    hoa_path = str(hoa_dir / f"{song_name}_scene_hoa{state.hoa_order}.wav")
 
     status.set("Encoding stems to HOA…")
     encode_stems_to_hoa(
@@ -199,17 +204,17 @@ def _do_generate(state: AppState, status):
 
     if renderer == "binaural":
         status.set("Rendering binaural…")
-        out = str(out_dir / f"{song_name}_binaural.wav")
+        out = str(rendered_dir / f"{song_name}_binaural.wav")
         render_binaural_scene(hoa_path, hrtf, out, order=state.hoa_order)
 
     elif renderer == "ls17_binaural":
         status.set("Rendering LS17 → binaural…")
-        out = str(out_dir / f"{song_name}_ls17_binaural.wav")
+        out = str(rendered_dir / f"{song_name}_ls17_binaural.wav")
         render_ls17_binaural_scene(hoa_path, hrtf, out, order=state.hoa_order)
 
     elif renderer == "ls17":
         status.set("Decoding to LS17…")
-        out = str(out_dir / f"{song_name}_17ch.wav")
+        out = str(rendered_dir / f"{song_name}_17ch.wav")
         decode_scene_for_ls17(hoa_path, out, order=state.hoa_order)
 
     else:
