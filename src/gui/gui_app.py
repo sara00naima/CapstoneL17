@@ -32,7 +32,7 @@ from gui_widgets import (
 class SpatialAudioGUI(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Spatial Audio Pipeline")
+        self.title("3D Audio Generator")
         self.configure(bg=BG)
         self.geometry("1280x800")
         self.minsize(1080, 700)
@@ -83,7 +83,7 @@ class SpatialAudioGUI(tk.Tk):
             activeforeground="white",
             relief="flat",
             bd=0,
-            font=("Helvetica", 11, "bold"),
+            font=("Helvetica", 13, "bold"),
             padx=20,
             pady=10,
             cursor="hand2",
@@ -94,15 +94,31 @@ class SpatialAudioGUI(tk.Tk):
         title_wrap = tk.Frame(topbar, bg=BG)
         title_wrap.pack(side="left", fill="both", expand=True)
 
-        tk.Label(
+        title_canvas = tk.Canvas(
             title_wrap,
-            text="SPATIAL AUDIO PIPELINE",
+            width=420,
+            height=36,
             bg=BG,
-            fg=TEXT,
+            highlightthickness=0,
+            bd=0,
+        )
+        title_canvas.pack(expand=True)
+
+        title_canvas.create_text(
+            211,
+            19,
+            text="3D AUDIO GENERATOR",
+            fill="#495e8d",
             font=FONT_APP_TITLE,
-            anchor="center",
-            justify="center",
-        ).pack(expand=True)
+        )
+
+        title_canvas.create_text(
+            209,
+            17,
+            text="3D AUDIO GENERATOR",
+            fill=TEXT,
+            font=FONT_APP_TITLE,
+        )
 
         tk.Frame(self, bg=BORDER, height=1).pack(fill="x", side="top")
 

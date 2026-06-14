@@ -15,19 +15,18 @@ from spatial_pipeline.config import PROJECT_ROOT, BSROFORMER_ROOT
 BG = "#070a12"
 BG_2 = "#0b1220"
 PANEL_BG = "#122038"
-PANEL_BG2 = "#1a2b46"
+PANEL_BG2 = "#2c5dae"
 
 ACCENT = "#627df7"
 ACCENT2 = "#279db4"
 BORDER = "#31476f"
-
 TEXT = "#edf2ff"
 TEXT_DIM = "#8ea0c2"
 
 CANVAS_BG = "#070a12"
 GRID_COL = "#1f3354"
 
-FONT_APP_TITLE = ("Helvetica", 15, "bold")
+FONT_APP_TITLE = ("Helvetica", 20, "bold")
 FONT_SECTION = ("Helvetica", 13, "bold")
 FONT_LABEL = ("Helvetica", 10)
 FONT_SMALL = ("Helvetica", 9)
