@@ -64,29 +64,46 @@ class SpatialAudioGUI(tk.Tk):
     def _build(self):
         s = self.state
 
-        topbar = tk.Frame(self, bg=BG, height=70)
+        topbar = tk.Frame(self, bg=BG, height=100)
         topbar.pack(fill="x", side="top")
         topbar.pack_propagate(False)
 
         left_spacer = tk.Frame(topbar, bg=BG, width=170)
         left_spacer.pack(side="left")
 
+        self._gen_img_normal = tk.PhotoImage(file="assets/generate_normal.png").subsample(2, 2)
+        self._gen_img_hover = tk.PhotoImage(file="assets/generate_hover.png").subsample(2,2)
+        self._gen_img_pressed = tk.PhotoImage(file="assets/generate_pressed.png").subsample(2, 2)
+
         self._gen_btn = tk.Button(
             topbar,
-            text="▸ GENERATE",
-            bg="#8E93FC",
-            fg="#2E241C",
-            activebackground="#E2C15A",
-            activeforeground="#2E241C",
+            image=self._gen_img_normal,
+            bg=BG,
+            activebackground=BG,
             relief="flat",
+            overrelief="flat",
+            activeforeground=TEXT,
             bd=0,
-            font=("Helvetica", 13, "bold"),
-            padx=20,
-            pady=10,
+            highlightthickness=0,
+            borderwidth=0,
             cursor="hand2",
             command=self._on_generate,
         )
-        self._gen_btn.pack(side="right", padx=14, pady=8)
+        self._gen_btn.pack(side="right", padx=14, pady=20)
+
+        self._gen_btn.bind("<Enter>", lambda e: self._gen_btn.config(image=self._gen_img_hover))
+        self._gen_btn.bind("<Leave>", lambda e: self._gen_btn.config(image=self._gen_img_normal))
+        self._gen_btn.bind("<ButtonPress-1>", lambda e: self._gen_btn.config(image=self._gen_img_pressed))
+
+        def _release_generate_image(event):
+            widget = self._gen_btn
+            x, y = event.x, event.y
+            if 0 <= x <= widget.winfo_width() and 0 <= y <= widget.winfo_height():
+                widget.config(image=self._gen_img_hover)
+            else:
+                widget.config(image=self._gen_img_normal)
+
+        self._gen_btn.bind("<ButtonRelease-1>", _release_generate_image)
 
         title_wrap = tk.Frame(topbar, bg=BG)
         title_wrap.pack(si
@@ -94,8 +111,8 @@ class SpatialAudioGUI(tk.Tk):
 
         title_canvas = tk.Canvas(
             title_wrap,
-            width=446,
-            height=227,
+            width=400,
+            height=70,
             bg=BG,
             highlightthickness=0,
             bd=0,
@@ -105,7 +122,7 @@ class SpatialAudioGUI(tk.Tk):
         self._title_img = tk.PhotoImage(file="assets/title_logo.png").zoom(2, 2).subsample(3, 3)
         title_canvas.create_image(210, 34, image=self._title_img)
 
-        tk.Frame(self, bg=BORDER, height=1).pack(fill="x", side="top")
+        #tk.Frame(self, bg=BORDER, height=1).pack(fill="x", side="top")
 
         self._status = StatusBar(self)
         self._status.pack(fill="x", side="bottom")
