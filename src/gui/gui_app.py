@@ -28,7 +28,6 @@ from gui_widgets import (
     StatusBar,
 )
 
-
 class SpatialAudioGUI(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -94,29 +93,16 @@ class SpatialAudioGUI(tk.Tk):
 
         title_canvas = tk.Canvas(
             title_wrap,
-            width=420,
-            height=36,
+            width=446,
+            height=227,
             bg=BG,
             highlightthickness=0,
             bd=0,
         )
         title_canvas.pack(expand=True)
 
-        title_canvas.create_text(
-            211,
-            19,
-            text="3D AUDIO GENERATOR",
-            fill="#495e8d",
-            font=FONT_APP_TITLE,
-        )
-
-        title_canvas.create_text(
-            209,
-            17,
-            text="3D AUDIO RENDERER",
-            fill=TEXT,
-            font=FONT_APP_TITLE,
-        )
+        self._title_img = tk.PhotoImage(file="assets/title_logo.png").zoom(2, 2).subsample(3, 3)
+        title_canvas.create_image(210, 34, image=self._title_img)
 
         tk.Frame(self, bg=BORDER, height=1).pack(fill="x", side="top")
 
