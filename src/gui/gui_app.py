@@ -113,7 +113,7 @@ class SpatialAudioGUI(tk.Tk):
         title_canvas.create_text(
             209,
             17,
-            text="3D AUDIO GENERATOR",
+            text="3D AUDIO RENDERER",
             fill=TEXT,
             font=FONT_APP_TITLE,
         )
