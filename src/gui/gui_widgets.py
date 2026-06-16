@@ -306,15 +306,6 @@ class SourceInspector(tk.Frame):
         btn_row = tk.Frame(file_block, bg=PANEL_BG)
         btn_row.pack(anchor="w", pady=(0, 2))
 
-        load_wav_btn = tk.Button(
-            btn_row,
-            text="Load WAV…",
-            font=FONT_SMALL,
-            command=self._pick_wav,
-        )
-        make_button_3d(load_wav_btn, ACCENT2, active_bg=ACCENT, pressed_bg="#123457")
-        load_wav_btn.pack(side="left")
-
         load_stems_btn = tk.Button(
             btn_row,
             text="Load stems folder…",
@@ -359,17 +350,6 @@ class SourceInspector(tk.Frame):
         self.source.elevation = v
         self._el_lbl.config(text=f"{v:+.0f}°")
         self.scene_view.redraw()
-
-    def _pick_wav(self):
-        if not self.source:
-            return
-        p = filedialog.askopenfilename(
-            title=f"Select WAV for {self.source.name}",
-            filetypes=[("WAV files", "*.wav"), ("All files", "*.*")],
-        )
-        if p:
-            self.source.wav_path = p
-            self._file_lbl.config(text=Path(p).name)
 
     def _pick_stems_folder(self):
         folder = filedialog.askdirectory(title="Select stems folder")
