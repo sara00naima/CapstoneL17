@@ -687,9 +687,8 @@ class OutputPanel(tk.Frame):
         section("RENDERER")
 
         renderer_choices = {
-            "Binaural (HOA → HRTF)": "binaural",
-            "LS17 → Binaural": "ls17_binaural",
-            "LS17 decoded (17-channel WAV)": "ls17",
+            "Binaural": "binaural",
+            "Layout Speaker": "layout_speaker",
         }
 
         current_label = next(
@@ -842,6 +841,9 @@ class OutputPanel(tk.Frame):
 
     def _on_renderer(self):
         self.state.renderer = self._renderer_var.get()
+
+    def _set_renderer_from_menu(self, value: str):
+        self.state.renderer = value
 
     def _on_output_name_change(self, _event=None):
         self.state.output_name = self._output_name_var.get()

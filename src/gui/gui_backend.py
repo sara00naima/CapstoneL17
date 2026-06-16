@@ -150,8 +150,7 @@ def _do_generate(state: AppState, status):
     from spatial_pipeline.pipeline import (
         encode_stems_to_hoa,
         render_binaural_scene,
-        render_ls17_binaural_scene,
-        decode_scene_for_ls17,
+        decode_scene_for_layout,
     )
     from spatial_pipeline.config import DEFAULT_HRTF_SOFA, MEASUREMENTS_CSV
 
@@ -206,15 +205,12 @@ def _do_generate(state: AppState, status):
         out = str(rendered_dir / f"{song_name}_binaural.wav")
         render_binaural_scene(hoa_path, hrtf, out, order=state.hoa_order)
 
-    elif renderer == "ls17_binaural":
-        status.set("Rendering LS17 → binaural…")
-        out = str(rendered_dir / f"{song_name}_ls17_binaural.wav")
-        render_ls17_binaural_scene(hoa_path, hrtf, out, order=state.hoa_order)
-
-    elif renderer == "ls17":
-        status.set("Decoding to LS17…")
-        out = str(rendered_dir / f"{song_name}_17ch.wav")
-        decode_scene_for_ls17(hoa_path, out, order=state.hoa_order)
+    elif renderer == "layout_speaker":
+        layout_csv = str(state.layout_path) if state.layout_path else str(MEASUREMENTS_CSV)
+        layout_name = Path(layout_csv).stem
+        status.set(f"Decoding to speaker layout '{layout_name}'…")
+        out = str(rendered_dir / f"{song_name}_{layout_name}.wav")
+        decode_scene_for_layout(hoa_path, out, layout_csv=layout_csv, order=state.hoa_order)
 
     else:
         raise ValueError(f"Unknown renderer: {renderer}")

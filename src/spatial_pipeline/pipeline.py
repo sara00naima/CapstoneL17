@@ -199,3 +199,18 @@ def decode_scene_for_ls17(scene_path: str, out_path: str, order: int = 3):
     save_audio(out_path, speaker_feeds.astype(np.float32), sr)
 
     return len(speakers)
+
+def decode_scene_for_layout(scene_path: str, out_path: str, layout_csv: str, order: int = 3):
+    """
+    Decodes an ambisonic scene to an arbitrary speaker layout defined by a CSV file.
+    The CSV is loaded with load_speaker_layout (same format as MEASUREMENTS_CSV).
+    Writes one audio channel per loudspeaker.
+    Returns the number of speakers in the layout.
+    """
+    speakers = load_speaker_layout(layout_csv)
+    azimuth_rad, elevation_rad, _ = layout_to_numpy(speakers)
+    decoder_matrix = calculate_decoder_matrix(azimuth_rad, elevation_rad, order=order)
+    ambisonic_audio, sr = sf.read(scene_path)
+    speaker_feeds = decode_hoa_to_speakers(ambisonic_audio, decoder_matrix)
+    save_audio(out_path, speaker_feeds.astype(np.float32), sr)
+    return len(speakers)

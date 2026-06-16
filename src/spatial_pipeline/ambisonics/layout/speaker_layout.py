@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -91,7 +92,7 @@ def speaker_from_fields(fields: list[str]) -> Speaker:
 
 # A CSV file loader
 # reads a speaker array configuration and returns an ordered list of Speaker objects
-def load_speaker_layout(csv_path: str | Path) -> list[Speaker]:
+def load_speaker_layout_csv(csv_path: str | Path) -> list[Speaker]:
     csv_path = Path(csv_path)
     speakers: list[Speaker] = []
 
@@ -113,6 +114,64 @@ def load_speaker_layout(csv_path: str | Path) -> list[Speaker]:
 
     speakers.sort(key=lambda s: int(s.label[1:]))
     return speakers
+
+
+# A JSON file loader (IEM AllRADecoder export format)
+# reads "LoudspeakerLayout.Loudspeakers" entries and returns an ordered list of Speaker objects.
+# Imaginary speakers (virtual speakers added by AllRAD for decoder stability, not
+# physically present) are skipped since they have no real-world audio channel.
+# Azimuth in this format already follows the project's counter-clockwise convention
+# (0deg = front, +90deg = left), so unlike the CSV loader it is NOT negated.
+def load_speaker_layout_json(json_path: str | Path) -> list[Speaker]:
+    json_path = Path(json_path)
+    speakers: list[Speaker] = []
+
+    with json_path.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    layout = data.get("LoudspeakerLayout", {})
+    loudspeakers = layout.get("Loudspeakers", [])
+
+    for i, ls in enumerate(loudspeakers):
+        if ls.get("IsImaginary", False):
+            continue
+
+        azimuth_deg = wrap_azimuth_deg(float(ls["Azimuth"]))
+        elevation_deg = float(ls["Elevation"])
+        radius_m = float(ls.get("Radius", 1.0))
+        channel = ls.get("Channel", i + 1)
+
+        speakers.append(
+            Speaker(
+                label=f"A{channel}",
+                radius_m=radius_m,
+                azimuth_deg=azimuth_deg,
+                elevation_deg=elevation_deg,
+                cardinal="",
+            )
+        )
+
+    if not speakers:
+        raise ValueError("No real (non-imaginary) loudspeakers found in JSON layout")
+
+    speakers.sort(key=lambda s: int(s.label[1:]))
+    return speakers
+
+
+# Dispatching loader: picks the CSV or JSON parser based on file extension.
+def load_speaker_layout(layout_path: str | Path) -> list[Speaker]:
+    layout_path = Path(layout_path)
+    suffix = layout_path.suffix.lower()
+
+    if suffix == ".json":
+        return load_speaker_layout_json(layout_path)
+    elif suffix == ".csv":
+        return load_speaker_layout_csv(layout_path)
+    else:
+        raise ValueError(
+            f"Unsupported speaker layout file extension: '{suffix}'. "
+            "Expected .csv or .json."
+        )
 
 # unpacking the speaker list into vectorized form
 def layout_to_numpy(
