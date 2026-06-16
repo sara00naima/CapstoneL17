@@ -49,15 +49,13 @@ class SpatialAudioGUI(tk.Tk):
         )
         wrap.pack(fill="x", padx=8, pady=(8, 6))
 
-        tk.Frame(wrap, bg=ACCENT, width=6).pack(side="left", fill="y")
-
         tk.Label(
             wrap,
             text=text,
             bg=PANEL_BG2,
             fg=TEXT,
             font=("Helvetica", 12, "bold"),
-            anchor="w",
+            anchor="center",
             padx=12,
             pady=8,
         ).pack(side="left", fill="x", expand=True)
