@@ -194,6 +194,7 @@ def _do_generate(state: AppState, status):
         positions_deg=positions,
         out_path=hoa_path,
         order=state.hoa_order,
+        gains_db={src.name: src.gain_db for src in state.sources},
     )
 
     hrtf = str(state.hrtf_path) if state.hrtf_path else str(DEFAULT_HRTF_SOFA)

@@ -200,15 +200,6 @@ class SourceInspector(tk.Frame):
 
         self._gain_var = tk.DoubleVar(value=0)
 
-        gain_down_btn = tk.Button(
-            gain_line,
-            text="◀",
-            font=FONT_SMALL,
-            command=lambda: self._step_gain(-0.5),
-        )
-        make_button_3d(gain_down_btn, PANEL_BG2, active_bg=ACCENT2, pressed_bg=ACCENT)
-        gain_down_btn.pack(side="left", padx=(0, 2))
-
         self._gain_sl = tk.Scale(
             gain_line,
             variable=self._gain_var,
@@ -225,15 +216,6 @@ class SourceInspector(tk.Frame):
             command=self._on_gain,
         )
         self._gain_sl.pack(side="left")
-
-        gain_up_btn = tk.Button(
-            gain_line,
-            text="▶",
-            font=FONT_SMALL,
-            command=lambda: self._step_gain(+0.5),
-        )
-        make_button_3d(gain_up_btn, PANEL_BG2, active_bg=ACCENT2, pressed_bg=ACCENT)
-        gain_up_btn.pack(side="left", padx=(2, 8))
 
         self._gain_lbl = tk.Label(
             gain_line,

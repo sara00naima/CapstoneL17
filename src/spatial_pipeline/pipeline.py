@@ -71,6 +71,7 @@ def encode_stems_to_hoa(
     normalization: str = "sn3d",                   # AmbiX standard normalization
     trajectory_fn=generate_static,                 # defaults to no movement
     trajectories: dict[str, list] | None = None,
+    gains_db: dict[str, float] | None = None,      # { instrument: gain_dB }, 0 dB = unity
 ):
     hoa_sources = []  # accumulates the encoded HOA signal for each stem
     sr_ref = None     # reference sample rate, set from the first stem
@@ -83,6 +84,11 @@ def encode_stems_to_hoa(
 
     for name, path in stem_paths.items():
         signal, sr = load_mono(path)
+
+        # Apply per-stem gain (dB → linear multiplier). Defaults to 0 dB (unity).
+        gain_db = (gains_db or {}).get(name, 0.0)
+        if gain_db != 0.0:
+            signal = signal * (10.0 ** (gain_db / 20.0))
 
         if sr_ref is None:
             # First stem sets the reference sample rate and length
