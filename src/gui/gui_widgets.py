@@ -5,6 +5,7 @@ from tkinter import filedialog, messagebox
 from pathlib import Path
 
 from gui_backend import (
+    BG_2,
     AppState,
     SourceState,
     PANEL_BG,
@@ -463,43 +464,43 @@ class SceneView(tk.Canvas):
         steps = 90
         for i in range(steps):
             t = i / max(1, steps - 1)
-            r = int(8 + (18 - 8) * t)
-            g = int(12 + (20 - 12) * t)
-            b = int(24 + (36 - 24) * t)
+            r = int(36 + (58 - 36) * t)
+            g = int(27 + (44 - 27) * t)
+            b = int(21 + (34 - 21) * t)
             col = f"#{r:02x}{g:02x}{b:02x}"
             y1 = int(i * h / steps)
             y2 = int((i + 1) * h / steps)
             self.create_rectangle(0, y1, w, y2, outline="", fill=col)
 
         for rr, col in [
-            (R * 0.82, "#0e1930"),
-            (R * 0.62, "#12213d"),
-            (R * 0.44, "#15294a"),
-            (R * 0.28, "#183153"),
+            (R * 0.82, "#3B2B21"),
+            (R * 0.62, "#473327"),
+            (R * 0.44, "#534032"),
+            (R * 0.28, "#604B3C"),
         ]:
             self.create_oval(cx - rr, cy - rr, cx + rr, cy + rr, outline="", fill=col)
 
-        self.create_rectangle(1, 1, w - 1, h - 1, outline="#1e2c47", width=1)
+        self.create_rectangle(1, 1, w - 1, h - 1, outline=BORDER, width=1)
 
         for frac, col, width in [
-            (0.33, "#1a2b46", 1),
-            (0.66, "#213654", 1),
-            (1.00, "#2b4a73", 1),
+            (0.33, "#5A4A36", 1),
+            (0.66, "#6A5A45", 1),
+            (1.00, "#7B6A53", 1),
         ]:
             rr = R * frac
             self.create_oval(cx - rr, cy - rr, cx + rr, cy + rr, outline=col, width=width)
 
-        self.create_line(cx - R - 10, cy, cx + R + 10, cy, fill="#22395a", width=1, dash=(4, 4))
-        self.create_line(cx, cy - R - 10, cx, cy + R + 10, fill="#22395a", width=1, dash=(4, 4))
+        self.create_line(cx - R - 10, cy, cx + R + 10, cy, fill="#74624D", width=1, dash=(4, 4))
+        self.create_line(cx, cy - R - 10, cx, cy + R + 10, fill="#74624D", width=1, dash=(4, 4))
 
-        label_col = "#7f93b8"
+        label_col = TEXT_DIM
         self.create_text(cx, cy - R - 40, text="FRONT", fill=label_col, font=("Helvetica", 9, "bold"), anchor="s")
         self.create_text(cx, cy + R + 40, text="BACK", fill=label_col, font=("Helvetica", 9, "bold"), anchor="n")
         self.create_text(cx - R - 40, cy, text="LEFT", fill=label_col, font=("Helvetica", 9, "bold"), anchor="e")
         self.create_text(cx + R + 40, cy, text="RIGHT", fill=label_col, font=("Helvetica", 9, "bold"), anchor="w")
 
-        self.create_oval(cx - 15, cy - 15, cx + 15, cy + 15, outline="#203a61", width=1, fill="#0f1728")
-        self.create_oval(cx - 8, cy - 8, cx + 8, cy + 8, fill="#101d34", outline=ACCENT, width=2)
+        self.create_oval(cx - 15, cy - 15, cx + 15, cy + 15, outline="#7A5C43", width=1, fill="#2C2119")
+        self.create_oval(cx - 8, cy - 8, cx + 8, cy + 8, fill="#3A2A1F", outline=ACCENT, width=2)
         self.create_text(cx, cy, text="•", fill=ACCENT, font=("Helvetica", 14, "bold"))
 
         for i, src in enumerate(self.state.sources):
@@ -511,19 +512,22 @@ class SceneView(tk.Canvas):
             col = src.color
 
             self.create_line(cx, cy, x, y, fill=col, width=1, dash=(3, 3))
-            self.create_oval(x - (nr + 7), y - (nr + 7), x + (nr + 7), y + (nr + 7), outline="", fill="#17233a")
+            self.create_oval(
+                x - (nr + 7), y - (nr + 7), x + (nr + 7), y + (nr + 7),
+                outline="", fill="#2B2119"
+            )
 
             el_r = nr + 5 + (src.elevation / 90) * 11
             self.create_oval(x - el_r, y - el_r, x + el_r, y + el_r, outline=col, width=1, dash=(2, 3))
 
-            self.create_oval(x - nr, y - nr, x + nr, y + nr, fill=col, outline="white", width=1.5)
-            self.create_oval(x - nr + 3, y - nr + 3, x - nr + 6, y - nr + 6, outline="", fill="#ffffff")
+            self.create_oval(x - nr, y - nr, x + nr, y + nr, fill=col, outline=TEXT, width=1.5)
+            self.create_oval(x - nr + 3, y - nr + 3, x - nr + 6, y - nr + 6, outline="", fill="#fffaf2")
 
             self.create_text(
                 x,
                 y - nr - 10,
                 text=src.name,
-                fill="#c8d4ea",
+                fill=TEXT,
                 font=("Helvetica", 8, "bold"),
                 anchor="s",
             )
@@ -532,7 +536,7 @@ class SceneView(tk.Canvas):
                 x,
                 y + nr + 10,
                 text=f"{src.azimuth:+.0f}°",
-                fill="#aab7d1",
+                fill=TEXT_DIM,
                 font=("Courier", 8),
                 anchor="n",
             )
@@ -643,7 +647,14 @@ class OutputPanel(tk.Frame):
             font=("Helvetica", 10, "bold"),
             command=self._on_demix,
         )
-        make_button_3d(self._demix_btn, "#1e3a5f", active_bg="#2a4f7a", pressed_bg="#16304f")
+        make_button_3d(
+            self._demix_btn,
+            ACCENT2,
+            fg="#241B15",
+            border=BORDER,
+            active_bg="#96B87A",
+            pressed_bg="#6E8E59",
+        )
         self._demix_btn.pack(anchor="w", padx=8, pady=(4, 2))
 
         section("RENDERER")
@@ -837,12 +848,12 @@ class OutputPanel(tk.Frame):
 
 class StatusBar(tk.Frame):
     def __init__(self, parent, **kwargs):
-        super().__init__(parent, bg="#0d1117", height=26, **kwargs)
+        super().__init__(parent, bg=BG_2, height=26, **kwargs)
         self._var = tk.StringVar(value="Ready.")
         tk.Label(
             self,
             textvariable=self._var,
-            bg="#0d1117",
+            bg=BG_2,
             fg=TEXT_DIM,
             font=FONT_SMALL,
             anchor="w",

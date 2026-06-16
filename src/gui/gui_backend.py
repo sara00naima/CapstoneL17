@@ -12,19 +12,19 @@ if str(_SRC_DIR) not in sys.path:
 
 from spatial_pipeline.config import PROJECT_ROOT, BSROFORMER_ROOT
 
-BG = "#070a12"
-BG_2 = "#0b1220"
-PANEL_BG = "#122038"
-PANEL_BG2 = "#2c5dae"
+BG = "#C8A97E"        
+BG_2 = "#2E241C"      
+PANEL_BG = "#433126"  
+PANEL_BG2 = "#5E7D4B" 
 
-ACCENT = "#5066ca"
-ACCENT2 = "#599fad"
-BORDER = "#31476f"
-TEXT = "#edf2ff"
-TEXT_DIM = "#8ea0c2"
+ACCENT = "#D6B347"    
+ACCENT2 = "#7FA36B"   
+BORDER = "#6F5642"
+TEXT = "#F7F1E8"
+TEXT_DIM = "#D2C3AF"
 
-CANVAS_BG = "#070a12"
-GRID_COL = "#1f3354"
+CANVAS_BG = "#241B15"
+GRID_COL = "#5A4A36"
 
 FONT_APP_TITLE = ("Helvetica", 20, "bold")
 FONT_SECTION = ("Helvetica", 13, "bold")
@@ -48,13 +48,13 @@ class SourceState:
 class AppState:
     def __init__(self):
         initial_sources = [
-            ("vocals", "#a278ff", 0),
-            ("drums", "#eef093", 35),
-            ("bass", "#e8a146", -35),
-            ("guitar", "#6f8cff", -23),
-            ("piano", "#d88ecf", 23),
-            ("other", "#39a9c3", -11),
-        ]
+        ("vocals", "#D9B44A", 0),   # mustard gold
+        ("drums", "#E27C3B", 35),   # terracotta
+        ("bass", "#A65E2E", -35),   # burnt wood
+        ("guitar", "#6B8E23", -23), # olive green
+        ("piano", "#8FBC8F", 23),   # sage green
+        ("other", "#2F7F73", -11),  # deep teal
+    ]
 
         self.sources = [
             SourceState(name, color, azimuth=az)

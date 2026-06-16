@@ -74,10 +74,10 @@ class SpatialAudioGUI(tk.Tk):
         self._gen_btn = tk.Button(
             topbar,
             text="▸ GENERATE",
-            bg=ACCENT,
-            fg="white",
-            activebackground="#ff7690",
-            activeforeground="white",
+            bg="#8E93FC",
+            fg="#2E241C",
+            activebackground="#E2C15A",
+            activeforeground="#2E241C",
             relief="flat",
             bd=0,
             font=("Helvetica", 13, "bold"),
@@ -89,7 +89,8 @@ class SpatialAudioGUI(tk.Tk):
         self._gen_btn.pack(side="right", padx=14, pady=8)
 
         title_wrap = tk.Frame(topbar, bg=BG)
-        title_wrap.pack(side="left", fill="both", expand=True)
+        title_wrap.pack(si
+        ="left", fill="both", expand=True)
 
         title_canvas = tk.Canvas(
             title_wrap,
