@@ -737,7 +737,7 @@ class OutputPanel(tk.Frame):
         self._layout_lbl.pack(anchor="w", padx=12)
         load_csv_btn = tk.Button(
             self,
-            text="Load CSV…",
+            text="Load .json/.csv",
             font=FONT_SMALL,
             command=self._pick_layout,
         )
