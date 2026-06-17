@@ -28,6 +28,7 @@ from gui_widgets import (
     StatusBar,
 )
 
+
 class SpatialAudioGUI(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -37,6 +38,9 @@ class SpatialAudioGUI(tk.Tk):
         self.minsize(1080, 700)
 
         self.state = AppState()
+        self._generate_item = None
+        self._title_item = None
+        self._topbar_gradient = None
         self._build()
 
     def _panel_header(self, parent, text):
@@ -61,68 +65,94 @@ class SpatialAudioGUI(tk.Tk):
 
         return wrap
 
+    def _hex_to_rgb(self, value):
+        value = value.lstrip("#")
+        return tuple(int(value[i:i + 2], 16) for i in (0, 2, 4))
+
+    def _make_vertical_gradient(self, width, height, color_top, color_bottom):
+        img = tk.PhotoImage(width=width, height=height)
+
+        r1, g1, b1 = self._hex_to_rgb(color_top)
+        r2, g2, b2 = self._hex_to_rgb(color_bottom)
+
+        for y in range(height):
+            t = y / max(1, height - 1)
+            r = int(r1 + (r2 - r1) * t)
+            g = int(g1 + (g2 - g1) * t)
+            b = int(b1 + (b2 - b1) * t)
+            color = f"#{r:02x}{g:02x}{b:02x}"
+            img.put(color, to=(0, y, width, y + 1))
+
+        return img
+
+    def _redraw_topbar(self, event=None):
+        canvas = self._topbar
+        w = max(1, canvas.winfo_width())
+        h = max(1, canvas.winfo_height())
+
+        self._topbar_gradient = self._make_vertical_gradient(
+            w,
+            h,
+            "#b88d5c",
+            "#d8b58b",
+        )
+
+        canvas.delete("gradient")
+        canvas.create_image(0, 0, image=self._topbar_gradient, anchor="nw", tags="gradient")
+        canvas.tag_lower("gradient")
+
+        canvas.coords(self._title_item, w // 2, h // 2)
+        canvas.coords(self._generate_item, w - 95, h // 2)
+
+    def _on_generate_enter(self, _event=None):
+        self._topbar.itemconfig(self._generate_item, image=self._gen_img_hover)
+
+    def _on_generate_leave(self, _event=None):
+        self._topbar.itemconfig(self._generate_item, image=self._gen_img_normal)
+
+    def _on_generate_press(self, _event=None):
+        self._topbar.itemconfig(self._generate_item, image=self._gen_img_pressed)
+
+    def _on_generate_release(self, event):
+        x = self._topbar.canvasx(event.x)
+        y = self._topbar.canvasy(event.y)
+        bbox = self._topbar.bbox(self._generate_item)
+
+        if bbox is None:
+            return
+
+        x1, y1, x2, y2 = bbox
+        if x1 <= x <= x2 and y1 <= y <= y2:
+            self._topbar.itemconfig(self._generate_item, image=self._gen_img_hover)
+            self._on_generate()
+        else:
+            self._topbar.itemconfig(self._generate_item, image=self._gen_img_normal)
+
     def _build(self):
         s = self.state
 
-        topbar = tk.Frame(self, bg=BG, height=100)
-        topbar.pack(fill="x", side="top")
-        topbar.pack_propagate(False)
-
-        left_spacer = tk.Frame(topbar, bg=BG, width=170)
-        left_spacer.pack(side="left")
+        self._topbar = tk.Canvas(
+            self,
+            bg=BG,
+            height=100,
+            highlightthickness=0,
+            bd=0,
+        )
+        self._topbar.pack(fill="x", side="top")
+        self._topbar.bind("<Configure>", self._redraw_topbar)
 
         self._gen_img_normal = tk.PhotoImage(file="assets/generate_normal.png").subsample(2, 2)
-        self._gen_img_hover = tk.PhotoImage(file="assets/generate_hover.png").subsample(2,2)
+        self._gen_img_hover = tk.PhotoImage(file="assets/generate_hover.png").subsample(2, 2)
         self._gen_img_pressed = tk.PhotoImage(file="assets/generate_pressed.png").subsample(2, 2)
-
-        self._gen_btn = tk.Button(
-            topbar,
-            image=self._gen_img_normal,
-            bg=BG,
-            activebackground=BG,
-            relief="flat",
-            overrelief="flat",
-            activeforeground=TEXT,
-            bd=0,
-            highlightthickness=0,
-            borderwidth=0,
-            cursor="hand2",
-            command=self._on_generate,
-        )
-        self._gen_btn.pack(side="right", padx=14, pady=20)
-
-        self._gen_btn.bind("<Enter>", lambda e: self._gen_btn.config(image=self._gen_img_hover))
-        self._gen_btn.bind("<Leave>", lambda e: self._gen_btn.config(image=self._gen_img_normal))
-        self._gen_btn.bind("<ButtonPress-1>", lambda e: self._gen_btn.config(image=self._gen_img_pressed))
-
-        def _release_generate_image(event):
-            widget = self._gen_btn
-            x, y = event.x, event.y
-            if 0 <= x <= widget.winfo_width() and 0 <= y <= widget.winfo_height():
-                widget.config(image=self._gen_img_hover)
-            else:
-                widget.config(image=self._gen_img_normal)
-
-        self._gen_btn.bind("<ButtonRelease-1>", _release_generate_image)
-
-        title_wrap = tk.Frame(topbar, bg=BG)
-        title_wrap.pack(si
-        ="left", fill="both", expand=True)
-
-        title_canvas = tk.Canvas(
-            title_wrap,
-            width=400,
-            height=70,
-            bg=BG,
-            highlightthickness=0,
-            bd=0,
-        )
-        title_canvas.pack(expand=True)
-
         self._title_img = tk.PhotoImage(file="assets/title_logo.png").zoom(2, 2).subsample(3, 3)
-        title_canvas.create_image(210, 34, image=self._title_img)
 
-        #tk.Frame(self, bg=BORDER, height=1).pack(fill="x", side="top")
+        self._title_item = self._topbar.create_image(0, 0, image=self._title_img, anchor="center")
+        self._generate_item = self._topbar.create_image(0, 0, image=self._gen_img_normal, anchor="center")
+
+        self._topbar.tag_bind(self._generate_item, "<Enter>", self._on_generate_enter)
+        self._topbar.tag_bind(self._generate_item, "<Leave>", self._on_generate_leave)
+        self._topbar.tag_bind(self._generate_item, "<ButtonPress-1>", self._on_generate_press)
+        self._topbar.tag_bind(self._generate_item, "<ButtonRelease-1>", self._on_generate_release)
 
         self._status = StatusBar(self)
         self._status.pack(fill="x", side="bottom")
@@ -206,12 +236,33 @@ class SpatialAudioGUI(tk.Tk):
         ).pack(fill="both", expand=True, padx=2, pady=(0, 8))
 
     def _on_generate(self):
+        fake_btn = _CanvasButtonProxy(
+            on_config=lambda **kwargs: self.after(0, self._apply_generate_state, kwargs)
+        )
+
         t = threading.Thread(
             target=run_generate,
-            args=(self.state, self._status, self._gen_btn),
+            args=(self.state, self._status, fake_btn),
             daemon=True,
         )
         t.start()
+
+    def _apply_generate_state(self, kwargs):
+        state = kwargs.get("state")
+        if state == "disabled":
+            self._topbar.itemconfig(self._generate_item, image=self._gen_img_pressed)
+        elif state == "normal":
+            self._topbar.itemconfig(self._generate_item, image=self._gen_img_normal)
+
+
+class _CanvasButtonProxy:
+    def __init__(self, on_config):
+        self._on_config = on_config
+
+    def config(self, **kwargs):
+        self._on_config(**kwargs)
+
+    configure = config
 
 
 if __name__ == "__main__":
