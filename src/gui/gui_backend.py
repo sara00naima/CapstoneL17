@@ -203,7 +203,11 @@ def _do_generate(state: AppState, status):
 
     if renderer == "binaural":
         status.set("Rendering binaural…")
-        out = str(rendered_dir / f"{song_name}_binaural.wav")
+        # Always enforce the "_binaural" suffix on the output filename so that
+        # evaluate_spatial.py can reliably recognize this as a binaural render,
+        # regardless of the (optional) custom name typed by the user.
+        binaural_name = song_name if song_name.lower().endswith("_binaural") else f"{song_name}_binaural"
+        out = str(rendered_dir / f"{binaural_name}.wav")
         render_binaural_scene(hoa_path, hrtf, out, order=state.hoa_order)
 
     elif renderer == "layout_speaker":

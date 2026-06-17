@@ -18,6 +18,12 @@ DEFAULT_LS17_DIR = DEFAULT_OUTPUT_DIR / "ls17"
 DEFAULT_BINAURAL_DIR = DEFAULT_OUTPUT_DIR / "binaural"
 DEFAULT_GUI_DIR = DEFAULT_OUTPUT_DIR / "gui"
 
+# Folder where the GUI writes its rendered output (binaural and/or layout-decoded
+# files), produced by _do_generate() in gui_backend.py. Both file types live
+# together here; evaluate_spatial.py tells them apart by filename suffix
+# (binaural files always end in "_binaural.wav", enforced by the GUI backend).
+DEFAULT_RENDERED_DIR = DEFAULT_OUTPUT_DIR / "rendered"
+
 # Test file output directories (used by generate_decoder_test_files.py)
 DEFAULT_TEST_DIR            = DEFAULT_OUTPUT_DIR / "test"
 DEFAULT_TEST_HOA_DIR        = DEFAULT_TEST_DIR / "hoa"

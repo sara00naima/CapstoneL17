@@ -4,12 +4,18 @@ evaluate_spatial.py
 Evaluation tools for the spatial audio pipeline.
 
 Provides:
-  1. plot_speaker_energy_polar  — polar plot of per-speaker energy for LS17 decoded files
+  1. plot_speaker_energy_polar  — polar plot of per-speaker energy for layout-decoded files
   2. compute_itd_ild            — ITD and ILD estimation from a binaural WAV
-  3. run_evaluation             — batch evaluation across all test cases
+  3. run_evaluation             — batch evaluation across all rendered files
 
 Usage (from project root):
     python src/scripts/evaluate_spatial.py
+
+Input folder: outputs/rendered/ (written by the GUI's "GENERATE" step)
+  Both binaural and layout-decoded files live in this same folder.
+  A file is treated as binaural if its name ends in "_binaural.wav"
+  (this suffix is always enforced by gui_backend.py); everything else
+  is treated as a layout-decoded, multichannel file for the polar plot.
 
 Output folder: outputs/evaluation/
   ├── polar/      ← one PNG per test case (speaker energy polar plot)
@@ -36,9 +42,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from spatial_pipeline.config import (
-    DEFAULT_TEST_LS17_DIR,
-    DEFAULT_TEST_BINAURAL_DIR,
-    DEFAULT_TEST_LS17_BINAURAL_DIR,
+    DEFAULT_RENDERED_DIR,
     MEASUREMENTS_CSV,
 )
 from spatial_pipeline.ambisonics.layout.speaker_layout import load_speaker_layout
@@ -47,6 +51,13 @@ from spatial_pipeline.ambisonics.layout.speaker_layout import load_speaker_layou
 EVAL_DIR         = PROJECT_ROOT / "outputs" / "evaluation"
 POLAR_DIR        = EVAL_DIR / "polar"
 ITD_ILD_DIR      = EVAL_DIR / "itd_ild"
+
+# Marker that identifies a rendered file as binaural. The GUI backend
+# (gui_backend.py) always appends this suffix to binaural output filenames,
+# even when the user supplies a custom name, so this is a reliable way to
+# tell binaural (stereo) renders apart from layout-decoded (multichannel)
+# renders sitting in the same outputs/rendered/ folder.
+BINAURAL_SUFFIX = "_binaural"
 
 # Expected DOA for each static test case (azimuth_deg, elevation_deg)
 # Must match TEST_POSITIONS in generate_decoder_test_files.py
@@ -67,11 +78,11 @@ def plot_speaker_energy_polar(
     expected_doa: tuple[float, float] | None = None,
 ) -> None:
     """
-    Reads a 17-channel decoded WAV and plots per-speaker RMS energy on a polar axis.
+    Reads a multichannel decoded WAV and plots per-speaker RMS energy on a polar axis.
 
     Parameters
     ----------
-    ls17_wav_path   : path to the *_17ch.wav file
+    ls17_wav_path   : path to the layout-decoded WAV file (one channel per speaker)
     speakers        : list of Speaker objects from load_speaker_layout()
     title           : plot title
     out_path        : if given, saves the figure there; otherwise shows interactively
@@ -297,13 +308,17 @@ def plot_itd_ild(
 # 3. BATCH EVALUATION
 
 def run_evaluation(
-    ls17_dir:      Path = DEFAULT_TEST_LS17_DIR,
-    binaural_dir:  Path = DEFAULT_TEST_LS17_BINAURAL_DIR,
+    rendered_dir:  Path = DEFAULT_RENDERED_DIR,
     polar_out:     Path = POLAR_DIR,
     itd_ild_out:   Path = ITD_ILD_DIR,
 ) -> None:
     """
-    Scans ls17_dir and binaural_dir for test files and runs the full evaluation.
+    Scans rendered_dir for rendered WAV files and runs the full evaluation.
+
+    Files ending in "_binaural.wav" are treated as binaural stereo renders
+    (ITD/ILD analysis). All other WAV files are treated as layout-decoded,
+    multichannel renders (per-speaker polar energy plot).
+
     Saves all figures and a CSV summary.
     """
     polar_out.mkdir(parents=True, exist_ok=True)
@@ -313,16 +328,23 @@ def run_evaluation(
 
     summary_rows = []
 
-    #Polar plots from LS17 decoded files
-    ls17_files = sorted(ls17_dir.glob("*_17ch.wav"))
-    if not ls17_files:
-        print(f"[polar] No *_17ch.wav files found in {ls17_dir}")
-    else:
-        print(f"\n[polar] Found {len(ls17_files)} LS17 files")
+    if not rendered_dir.exists():
+        print(f"[evaluate_spatial] Rendered folder not found: {rendered_dir}")
+        print("Run the GUI's GENERATE step first, or pass a different --rendered-dir.")
+        return
 
-    for wav in ls17_files:
-        # Parse test name from filename, e.g. mysong_all_left_17ch.wav
-        stem = wav.stem.replace("_17ch", "")
+    all_wavs = sorted(rendered_dir.glob("*.wav"))
+    layout_files   = [w for w in all_wavs if not w.stem.lower().endswith(BINAURAL_SUFFIX)]
+    binaural_files = [w for w in all_wavs if w.stem.lower().endswith(BINAURAL_SUFFIX)]
+
+    #Polar plots from layout-decoded files
+    if not layout_files:
+        print(f"[polar] No layout-decoded WAV files found in {rendered_dir}")
+    else:
+        print(f"\n[polar] Found {len(layout_files)} layout-decoded files")
+
+    for wav in layout_files:
+        stem = wav.stem
         test_name = next(
             (k for k in EXPECTED_DOA if stem.endswith(k)),
             None,
@@ -335,17 +357,13 @@ def run_evaluation(
                                   out_path=out, expected_doa=expected)
 
     #ITD / ILD from binaural files
-    bin_files = sorted(binaural_dir.glob("*.wav"))
-    if not bin_files:
-        print(f"[itd/ild] No WAV files found in {binaural_dir}")
+    if not binaural_files:
+        print(f"[itd/ild] No binaural WAV files found in {rendered_dir}")
     else:
-        print(f"\n[itd/ild] Found {len(bin_files)} binaural files")
+        print(f"\n[itd/ild] Found {len(binaural_files)} binaural files")
 
-    for wav in bin_files:
-        stem = wav.stem
-        # Strip known suffixes to find test name
-        for suffix in ("_ls17_binaural", "_binaural"):
-            stem = stem.replace(suffix, "")
+    for wav in binaural_files:
+        stem = wav.stem[: -len(BINAURAL_SUFFIX)]  # strip "_binaural"
         test_name = next(
             (k for k in EXPECTED_DOA if stem.endswith(k)),
             None,
@@ -392,4 +410,15 @@ def run_evaluation(
 
 
 if __name__ == "__main__":
-    run_evaluation()
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--rendered-dir",
+        type=Path,
+        default=DEFAULT_RENDERED_DIR,
+        help="Folder containing rendered WAV files (default: outputs/rendered/)",
+    )
+    args = parser.parse_args()
+
+    run_evaluation(rendered_dir=args.rendered_dir)
