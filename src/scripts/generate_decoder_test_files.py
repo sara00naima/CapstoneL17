@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys
 import argparse
+from collections import defaultdict
 
 
 # When the code is run with flag "--trajectories", it will generate trajectory test files (orbit, flyover, bounce) in addition to static positions.
@@ -37,6 +38,7 @@ PROJECT_ROOT = SRC_DIR.parent
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
+
 from spatial_pipeline.pipeline import (
     encode_stems_to_hoa,
     decode_scene_for_ls17,
@@ -62,23 +64,6 @@ from spatial_pipeline.ambisonics.core.trajectories import (
 )
 
 
-"""
-generate_decoder_test_files.py
-==============================
-
-Utility script used exclusively for HOA decoder validation and trajectory testing.
-
-This version processes one song at a time from:
-    outputs/demixed/{song_name}-stems/
-
-Examples:
-    python generate_decoder_test_files.py
-    python generate_decoder_test_files.py --song my-song
-    python generate_decoder_test_files.py --trajectories
-    python generate_decoder_test_files.py --song my-song --trajectories
-"""
-
-
 TEST_POSITIONS = {
     "all_front": (0.0, 0.0),
     "all_left": (90.0, 0.0),
@@ -102,41 +87,45 @@ TEST_TRAJECTORIES = {
 }
 
 
-def collect_single_song_stems(song_dir: Path):
-    stem_paths = {}
-    unmatched_files = []
+def collect_stems_by_song(demix_root: Path):
+    all_songs_stems = defaultdict(dict)
 
-    if not song_dir.exists():
-        raise FileNotFoundError(f"Song stems folder not found: {song_dir}")
+    if not demix_root.exists():
+        return {}
 
-    if not song_dir.is_dir():
-        raise NotADirectoryError(f"Expected a directory, got: {song_dir}")
-
-    for wav_path in song_dir.glob("*.wav"):
-        name = wav_path.stem
-
-        if name.endswith("_3d_scene"):
+    for song_dir in demix_root.iterdir():
+        if not song_dir.is_dir():
             continue
 
-        if name.endswith("_hoa3"):
-            continue
+        folder_name = song_dir.name
+        song_name = folder_name[:-len("-stems")] if folder_name.endswith("-stems") else folder_name
 
-        matched = False
-        for stem in STEM_TYPES:
-            if name.startswith(f"{stem}-"):
-                stem_paths[stem] = str(wav_path)
-                matched = True
-                break
+        unmatched_files = []
 
-        if not matched:
-            unmatched_files.append(wav_path.name)
+        for wav_path in song_dir.glob("*.wav"):
+            name = wav_path.stem
 
-    if unmatched_files:
-        print("\nWARNING: these files did not match any known stem type:")
-        for name in unmatched_files:
-            print(f"  - {name}")
+            if name.endswith("_3d_scene"):
+                continue
+            if name.endswith("_hoa3"):
+                continue
 
-    return stem_paths
+            matched = False
+            for stem in STEM_TYPES:
+                if name.startswith(f"{stem}-"):
+                    all_songs_stems[song_name][stem] = str(wav_path)
+                    matched = True
+                    break
+
+            if not matched:
+                unmatched_files.append(wav_path.name)
+
+        if unmatched_files:
+            print(f"\nWARNING: in '{song_dir.name}' these files did not match any known stem type:")
+            for name in unmatched_files:
+                print(f"  - {name}")
+
+    return dict(all_songs_stems)
 
 
 def get_initial_azimuth(kwargs):
@@ -155,8 +144,8 @@ def main():
     )
     parser.add_argument(
         "--song",
-        default="test_audio",
-        help='Song name without "-stems" suffix, default: test_audio'
+        default=None,
+        help='Optional: process only one song, without "-stems" suffix'
     )
     parser.add_argument(
         "--trajectories",
@@ -170,30 +159,28 @@ def main():
     )
     args = parser.parse_args()
 
-    song_name = args.song
-    song_folder = (DEFAULT_DEMIX_DIR / f"{song_name}-stems").resolve()
+    demix_root = DEFAULT_DEMIX_DIR.resolve()
 
     print("\n=== HOA DECODER TEST FILE GENERATOR ===\n")
     print(f"Decoder mode:      {GENERATE_FOR_DECODER}")
     print(f"Binaural:          {GENERATE_BINAURAL}")
     print(f"LS17 binaural:     {GENERATE_LS17_BINAURAL}")
-    print(f"Song name:         {song_name}")
-    print(f"Song stems folder: {song_folder}")
+    print(f"Demix root:        {demix_root}")
     print(f"Output root:       {DEFAULT_TEST_HOA_DIR.parent}\n")
 
-    stem_paths = collect_single_song_stems(song_folder)
+    all_songs_stems = collect_stems_by_song(demix_root)
 
-    if not stem_paths:
+    if args.song is not None:
+        if args.song not in all_songs_stems:
+            print(f"Song '{args.song}' not found in {demix_root}")
+            print("Available songs:")
+            for name in sorted(all_songs_stems):
+                print(f"  - {name}")
+            return
+        all_songs_stems = {args.song: all_songs_stems[args.song]}
+
+    if not all_songs_stems:
         print("No stems found.")
-        return
-
-    print("Found stems:")
-    for stem, path in sorted(stem_paths.items()):
-        print(f"  - {stem}: {path}")
-
-    missing_stems = [stem for stem in STEM_TYPES if stem not in stem_paths]
-    if missing_stems:
-        print(f"\nSkipping '{song_name}' (missing stems {missing_stems})")
         return
 
     generate_static_tests = True
@@ -214,128 +201,32 @@ def main():
     if GENERATE_LS17_BINAURAL:
         DEFAULT_TEST_LS17_BINAURAL_DIR.mkdir(parents=True, exist_ok=True)
 
-    if generate_static_tests:
-        print(f"\n--- Static Position Tests for '{song_name}' ---")
-        for test_name, (azi_deg, ele_deg) in TEST_POSITIONS.items():
-            print(f"  {test_name}...")
+    for song_name, stem_paths in sorted(all_songs_stems.items()):
+        print(f"\n=== Processing song: {song_name} ===")
 
-            hoa_path = DEFAULT_TEST_HOA_DIR / f"{song_name}_{test_name}_hoa3.wav"
+        print("Found stems:")
+        for stem, path in sorted(stem_paths.items()):
+            print(f"  - {stem}: {path}")
 
-            encode_stems_to_hoa(
-                stem_paths=stem_paths,
-                positions_deg={stem: (azi_deg, ele_deg) for stem in STEM_TYPES},
-                out_path=str(hoa_path),
-                order=3,
-                normalization="sn3d",
-                trajectory_fn=generate_static,
-            )
-            print(f"    HOA:            {hoa_path.name}")
+        missing_stems = [stem for stem in STEM_TYPES if stem not in stem_paths]
+        if missing_stems:
+            print(f"Skipping '{song_name}' (missing stems {missing_stems})")
+            continue
 
-            if generate_internal_decode:
-                ls17_path = DEFAULT_TEST_LS17_DIR / f"{song_name}_{test_name}_17ch.wav"
-                decode_scene_for_ls17(
-                    scene_path=str(hoa_path),
-                    out_path=str(ls17_path),
-                    order=3,
-                )
-                print(f"    LS17 decoded:   {ls17_path.name}")
-
-            if GENERATE_BINAURAL:
-                binaural_path = DEFAULT_TEST_BINAURAL_DIR / f"{song_name}_{test_name}_binaural.wav"
-                render_binaural_scene(
-                    scene_path=str(hoa_path),
-                    sofa_path=str(DEFAULT_HRTF_SOFA),
-                    out_path=str(binaural_path),
-                    order=3,
-                )
-                print(f"    Binaural:       {binaural_path.name}")
-
-            if GENERATE_LS17_BINAURAL:
-                ls17_binaural_path = DEFAULT_TEST_LS17_BINAURAL_DIR / f"{song_name}_{test_name}_ls17_binaural.wav"
-                render_ls17_binaural_scene(
-                    scene_path=str(hoa_path),
-                    sofa_path=str(DEFAULT_HRTF_SOFA),
-                    out_path=str(ls17_binaural_path),
-                    order=3,
-                )
-                print(f"    LS17 binaural:  {ls17_binaural_path.name}")
-
-            if GENERATE_FOR_DECODER == "internal_only":
-                hoa_path.unlink(missing_ok=True)
-                print("    HOA removed.")
-
-    print(f"\n--- Song Test for '{song_name}' ---")
-
-    song_test_positions = {
-        "vocals": (0.0, 0.0),
-        "guitar": (-90.0, 0.0),
-        "drums": (90.0, 0.0),
-        "bass": (180.0, 0.0),
-        "other": (0.0, 90.0),
-        "piano": (0.0, -20.0),
-    }
-
-    hoa_path = DEFAULT_TEST_HOA_DIR / f"{song_name}_song_test_hoa3.wav"
-
-    encode_stems_to_hoa(
-        stem_paths=stem_paths,
-        positions_deg=song_test_positions,
-        out_path=str(hoa_path),
-        order=3,
-        normalization="sn3d",
-        trajectory_fn=generate_static,
-    )
-    print(f"    HOA:            {hoa_path.name}")
-
-    if generate_internal_decode:
-        ls17_path = DEFAULT_TEST_LS17_DIR / f"{song_name}_song_test_17ch.wav"
-        decode_scene_for_ls17(
-            scene_path=str(hoa_path),
-            out_path=str(ls17_path),
-            order=3,
-        )
-        print(f"    LS17 decoded:   {ls17_path.name}")
-
-    if GENERATE_LS17_BINAURAL:
-        ls17_binaural_path = DEFAULT_TEST_LS17_BINAURAL_DIR / f"{song_name}_song_test_ls17_binaural.wav"
-        render_ls17_binaural_scene(
-            scene_path=str(hoa_path),
-            sofa_path=str(DEFAULT_HRTF_SOFA),
-            out_path=str(ls17_binaural_path),
-            order=3,
-        )
-        print(f"    LS17 binaural:  {ls17_binaural_path.name}")
-
-    if generate_trajectory_tests:
-        print(f"\n--- Trajectory Tests for '{song_name}' ---")
-
-        frame_size = 1024
-        hop_size = 512
-        first_stem_path = list(stem_paths.values())[0]
-        signal, _ = load_mono(first_stem_path)
-        n_frames = len(split_frames(signal, frame_size, hop_size))
-
-        for test_name, (trajectory_fn, kwargs) in TEST_TRAJECTORIES.items():
-            try:
+        if generate_static_tests:
+            print(f"\n--- Static Position Tests for '{song_name}' ---")
+            for test_name, (azi_deg, ele_deg) in TEST_POSITIONS.items():
                 print(f"  {test_name}...")
 
                 hoa_path = DEFAULT_TEST_HOA_DIR / f"{song_name}_{test_name}_hoa3.wav"
 
-                trajectories = {
-                    stem: trajectory_fn(n_frames, **kwargs)
-                    for stem in STEM_TYPES
-                }
-
-                initial_azi = get_initial_azimuth(kwargs)
-
                 encode_stems_to_hoa(
                     stem_paths=stem_paths,
-                    positions_deg={stem: (initial_azi, 0.0) for stem in STEM_TYPES},
+                    positions_deg={stem: (azi_deg, ele_deg) for stem in STEM_TYPES},
                     out_path=str(hoa_path),
                     order=3,
                     normalization="sn3d",
-                    trajectory_fn=trajectory_fn,
-                    trajectories=trajectories,
+                    trajectory_fn=generate_static,
                 )
                 print(f"    HOA:            {hoa_path.name}")
 
@@ -372,10 +263,118 @@ def main():
                     hoa_path.unlink(missing_ok=True)
                     print("    HOA removed.")
 
-            except Exception as e:
-                print(f"  ERROR generating {test_name}: {e}")
-                import traceback
-                traceback.print_exc()
+        print(f"\n--- Song Test for '{song_name}' ---")
+
+        song_test_positions = {
+            "vocals": (0.0, 0.0),
+            "guitar": (-90.0, 0.0),
+            "drums": (90.0, 0.0),
+            "bass": (180.0, 0.0),
+            "other": (0.0, 90.0),
+            "piano": (0.0, -20.0),
+        }
+
+        hoa_path = DEFAULT_TEST_HOA_DIR / f"{song_name}_song_test_hoa3.wav"
+
+        encode_stems_to_hoa(
+            stem_paths=stem_paths,
+            positions_deg=song_test_positions,
+            out_path=str(hoa_path),
+            order=3,
+            normalization="sn3d",
+            trajectory_fn=generate_static,
+        )
+        print(f"    HOA:            {hoa_path.name}")
+
+        if generate_internal_decode:
+            ls17_path = DEFAULT_TEST_LS17_DIR / f"{song_name}_song_test_17ch.wav"
+            decode_scene_for_ls17(
+                scene_path=str(hoa_path),
+                out_path=str(ls17_path),
+                order=3,
+            )
+            print(f"    LS17 decoded:   {ls17_path.name}")
+
+        if GENERATE_LS17_BINAURAL:
+            ls17_binaural_path = DEFAULT_TEST_LS17_BINAURAL_DIR / f"{song_name}_song_test_ls17_binaural.wav"
+            render_ls17_binaural_scene(
+                scene_path=str(hoa_path),
+                sofa_path=str(DEFAULT_HRTF_SOFA),
+                out_path=str(ls17_binaural_path),
+                order=3,
+            )
+            print(f"    LS17 binaural:  {ls17_binaural_path.name}")
+
+        if generate_trajectory_tests:
+            print(f"\n--- Trajectory Tests for '{song_name}' ---")
+
+            frame_size = 1024
+            hop_size = 512
+            first_stem_path = list(stem_paths.values())[0]
+            signal, _ = load_mono(first_stem_path)
+            n_frames = len(split_frames(signal, frame_size, hop_size))
+
+            for test_name, (trajectory_fn, kwargs) in TEST_TRAJECTORIES.items():
+                try:
+                    print(f"  {test_name}...")
+
+                    hoa_path = DEFAULT_TEST_HOA_DIR / f"{song_name}_{test_name}_hoa3.wav"
+
+                    trajectories = {
+                        stem: trajectory_fn(n_frames, **kwargs)
+                        for stem in STEM_TYPES
+                    }
+
+                    initial_azi = get_initial_azimuth(kwargs)
+
+                    encode_stems_to_hoa(
+                        stem_paths=stem_paths,
+                        positions_deg={stem: (initial_azi, 0.0) for stem in STEM_TYPES},
+                        out_path=str(hoa_path),
+                        order=3,
+                        normalization="sn3d",
+                        trajectory_fn=trajectory_fn,
+                        trajectories=trajectories,
+                    )
+                    print(f"    HOA:            {hoa_path.name}")
+
+                    if generate_internal_decode:
+                        ls17_path = DEFAULT_TEST_LS17_DIR / f"{song_name}_{test_name}_17ch.wav"
+                        decode_scene_for_ls17(
+                            scene_path=str(hoa_path),
+                            out_path=str(ls17_path),
+                            order=3,
+                        )
+                        print(f"    LS17 decoded:   {ls17_path.name}")
+
+                    if GENERATE_BINAURAL:
+                        binaural_path = DEFAULT_TEST_BINAURAL_DIR / f"{song_name}_{test_name}_binaural.wav"
+                        render_binaural_scene(
+                            scene_path=str(hoa_path),
+                            sofa_path=str(DEFAULT_HRTF_SOFA),
+                            out_path=str(binaural_path),
+                            order=3,
+                        )
+                        print(f"    Binaural:       {binaural_path.name}")
+
+                    if GENERATE_LS17_BINAURAL:
+                        ls17_binaural_path = DEFAULT_TEST_LS17_BINAURAL_DIR / f"{song_name}_{test_name}_ls17_binaural.wav"
+                        render_ls17_binaural_scene(
+                            scene_path=str(hoa_path),
+                            sofa_path=str(DEFAULT_HRTF_SOFA),
+                            out_path=str(ls17_binaural_path),
+                            order=3,
+                        )
+                        print(f"    LS17 binaural:  {ls17_binaural_path.name}")
+
+                    if GENERATE_FOR_DECODER == "internal_only":
+                        hoa_path.unlink(missing_ok=True)
+                        print("    HOA removed.")
+
+                except Exception as e:
+                    print(f"  ERROR generating {test_name}: {e}")
+                    import traceback
+                    traceback.print_exc()
 
     print("\nDone.\n")
 

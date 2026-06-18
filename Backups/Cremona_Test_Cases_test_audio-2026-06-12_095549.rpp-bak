@@ -1,4 +1,4 @@
-<REAPER_PROJECT 0.1 "7.73/win64" 1781791828 0
+<REAPER_PROJECT 0.1 "7.54/win64" 1781211129 0
   <NOTES 0 2
   >
   RIPPLE 0 0
@@ -21,7 +21,7 @@
   PANLAWFLAGS 3
   CURSOR 0.5
   ZOOM 96.91493823956877 0 0
-  VZOOMEX 0 156
+  VZOOMEX 0 396
   USE_REC_CFG 0
   RECMODE 1
   SMPTESYNC 0 30 100 40 1000 300 0 0 1 0 0
@@ -98,9 +98,6 @@
     ARM 0
     DEFSHAPE 1 -1 -1
   >
-  RULERHEIGHT 86 86
-  RULERLANE 1 4 "" 0 -1 0
-  RULERLANE 2 8 "" 0 -1 0
   <PROJBAY
   >
   <TRACK {2896236E-CE47-4173-9868-E13B75C811CD}
@@ -460,7 +457,6 @@
     BUSCOMP 0 0 0 0 0
     SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
     FIXEDLANES 9 0 0 0 0
-    LANEREC -1 -1 -1 0
     SEL 0
     REC 0 0 1 0 0 0 0 0
     VU 64
@@ -509,7 +505,6 @@
     BUSCOMP 0 0 0 0 0
     SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
     FIXEDLANES 9 0 0 0 0
-    LANEREC -1 -1 -1 0
     SEL 0
     REC 0 0 1 0 0 0 0 0
     VU 64
@@ -540,7 +535,7 @@
       CHANMODE 0
       GUID {3F5C174F-A270-4B37-9863-A7D23AE2322E}
       <SOURCE WAVE
-        FILE "outputs\ls17\test_audio_3d_scene_17ch_museum_mix.wav"
+        FILE "Media\test_audio_3d_scene_17ch_museum_mix.wav"
       >
     >
   >
@@ -589,7 +584,7 @@
       CHANMODE 0
       GUID {6F486A2D-326B-4D26-A812-171BD62CA6DB}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\sound_garage-funky-loop-382957_all_back_17ch.wav"
+        FILE "Media\sound_garage-funky-loop-382957_all_back_17ch.wav"
       >
     >
   >
@@ -638,7 +633,7 @@
       CHANMODE 0
       GUID {EC8DA8E9-909D-4B12-B181-10E2EAFAF5D3}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\sound_garage-funky-loop-382957_all_front_17ch.wav"
+        FILE "Media\sound_garage-funky-loop-382957_all_front_17ch.wav"
       >
     >
   >
@@ -687,7 +682,7 @@
       CHANMODE 0
       GUID {F03DA92D-C6E6-43AA-8B0C-34A59B5029A5}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\sound_garage-funky-loop-382957_all_left_17ch.wav"
+        FILE "Media\sound_garage-funky-loop-382957_all_left_17ch.wav"
       >
     >
   >
@@ -736,7 +731,7 @@
       CHANMODE 0
       GUID {85517599-E689-425C-92EC-E833AB8C1574}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\sound_garage-funky-loop-382957_all_right_17ch.wav"
+        FILE "Media\sound_garage-funky-loop-382957_all_right_17ch.wav"
       >
     >
   >
@@ -785,7 +780,7 @@
       CHANMODE 0
       GUID {6DB4E7D8-79F4-4F73-B9CD-45009EDD3413}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\sound_garage-funky-loop-382957_bounce_17ch.wav"
+        FILE "Media\sound_garage-funky-loop-382957_bounce_17ch.wav"
       >
     >
   >
@@ -805,7 +800,7 @@
     FIXEDLANES 9 0 0 0 0
     LANEREC -1 -1 -1 0
     SEL 1
-    REC 0 0 0 0 0 0 0 0
+    REC 0 0 1 0 0 0 0 0
     VU 64
     TRACKHEIGHT 0 0 0 0 0 0 0
     INQ 0 0 0 0.5 100 0 0 100
@@ -834,7 +829,7 @@
       CHANMODE 0
       GUID {DAB714B0-0FCC-4CAA-AA0D-5CE1588048D5}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\sound_garage-funky-loop-382957_flyover_17ch.wav"
+        FILE "Media\sound_garage-funky-loop-382957_flyover_17ch.wav"
       >
     >
   >
@@ -883,7 +878,7 @@
       CHANMODE 0
       GUID {3E12E6BA-AF3D-44F9-8338-AFCC074BF053}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\sound_garage-funky-loop-382957_orbit_17ch.wav"
+        FILE "Media\sound_garage-funky-loop-382957_orbit_17ch.wav"
       >
     >
   >
@@ -901,7 +896,6 @@
     BUSCOMP 0 0 0 0 0
     SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
     FIXEDLANES 9 0 0 0 0
-    LANEREC -1 -1 -1 0
     SEL 0
     REC 0 0 1 0 0 0 0 0
     VU 64
@@ -932,7 +926,7 @@
       CHANMODE 0
       GUID {6D92D5A9-5851-4D8C-93AB-817E315BB811}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\sound_garage-funky-loop-382957_song_test_17ch.wav"
+        FILE "Media\sound_garage-funky-loop-382957_song_test_17ch.wav"
       >
     >
   >
@@ -950,7 +944,6 @@
     BUSCOMP 0 0 0 0 0
     SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
     FIXEDLANES 9 0 0 0 0
-    LANEREC -1 -1 -1 0
     SEL 0
     REC 0 0 1 0 0 0 0 0
     VU 64
@@ -981,7 +974,7 @@
       CHANMODE 0
       GUID {E9BEFBEC-1C45-4BF0-B24B-FA7A73BE7F50}
       <SOURCE WAVE
-        FILE "outputs\ls17\sound_garage-funky-loop-382957_3d_scene_17ch_museum_mix.wav"
+        FILE "Media\sound_garage-funky-loop-382957_3d_scene_17ch_museum_mix.wav"
       >
     >
   >
@@ -1030,7 +1023,7 @@
       CHANMODE 0
       GUID {FA6AD71A-5D5B-4862-A4AD-D790B0A9C7F1}
       <SOURCE WAVE
-        FILE "outputs\ls17\Still Corners - The Message_3d_scene_17ch_museum_mix.wav"
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_back_17ch.wav"
       >
     >
   >
@@ -1079,7 +1072,7 @@
       CHANMODE 0
       GUID {3DD55CFE-6C7B-4874-A4F0-AF776896F6FF}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\Still Corners - The Message_all_front_17ch.wav"
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_front_17ch.wav"
       >
     >
   >
@@ -1128,7 +1121,7 @@
       CHANMODE 0
       GUID {4EFF98DB-EC50-4226-A5C5-B71CFCA8C25A}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\Still Corners - The Message_all_left_17ch.wav"
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_left_17ch.wav"
       >
     >
   >
@@ -1177,7 +1170,7 @@
       CHANMODE 0
       GUID {E192D057-F80A-4251-B2ED-145286C71734}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\Still Corners - The Message_all_right_17ch.wav"
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_right_17ch.wav"
       >
     >
   >
@@ -1226,7 +1219,7 @@
       CHANMODE 0
       GUID {B0DC4DA4-5647-47A2-A283-DAB346CF9561}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\Still Corners - The Message_bounce_17ch.wav"
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_bounce_17ch.wav"
       >
     >
   >
@@ -1275,7 +1268,7 @@
       CHANMODE 0
       GUID {54AC466C-F2B6-413C-AA09-D9D68BEB00DE}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\Still Corners - The Message_flyover_17ch.wav"
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_flyover_17ch.wav"
       >
     >
   >
@@ -1324,7 +1317,7 @@
       CHANMODE 0
       GUID {E38BD0C5-769D-4102-A70D-5436B2C70C08}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\Still Corners - The Message_orbit_17ch.wav"
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_orbit_17ch.wav"
       >
     >
   >
@@ -1342,7 +1335,6 @@
     BUSCOMP 0 0 0 0 0
     SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
     FIXEDLANES 9 0 0 0 0
-    LANEREC -1 -1 -1 0
     SEL 0
     REC 0 0 1 0 0 0 0 0
     VU 64
@@ -1373,7 +1365,7 @@
       CHANMODE 0
       GUID {B1E8BF8F-EE40-4F0F-BEDE-FC81910F157C}
       <SOURCE WAVE
-        FILE "outputs\test\ls17\Still Corners - The Message_song_test_17ch.wav"
+        FILE "Media\Still Corners - The Message_song_test_17ch.wav"
       >
     >
   >
@@ -1391,7 +1383,6 @@
     BUSCOMP 0 0 0 0 0
     SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
     FIXEDLANES 9 0 0 0 0
-    LANEREC -1 -1 -1 0
     SEL 0
     REC 0 0 1 0 0 0 0 0
     VU 64
@@ -1422,7 +1413,7 @@
       CHANMODE 0
       GUID {ACFA3290-2071-4BB2-ADDA-5776DE990A53}
       <SOURCE WAVE
-        FILE "outputs\ls17\Still Corners - The Message_3d_scene_17ch_museum_mix.wav"
+        FILE "Media\Still Corners - The Message_3d_scene_17ch_museum_mix.wav"
       >
     >
   >

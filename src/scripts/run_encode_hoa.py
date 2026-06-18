@@ -26,28 +26,50 @@ from spatial_pipeline.ambisonics.core.trajectories import (
 
 def collect_stems_by_song(output_folder: Path) -> dict[str, dict[str, str]]:
     """
-    Scans the output folder for stem wav files produced by the demixing stage
-    and groups them by song name.
+    Scans the demixed output folder, where each song has its own directory:
+        outputs/demixed/{song_name}-stems/
 
-    Expected filename format: {song_name}_{stem_type}.wav
+    Expected stem filename format inside each song directory:
+        {stem_type}-{song_name}.wav
 
-    Returns: { "my_song": { "vocals": "/path/to/my_song_vocals.wav", ... } }
+    Returns:
+        {
+            "my-song": {
+                "vocals": "/path/to/vocals-my-song.wav",
+                "drums": "/path/to/drums-my-song.wav",
+                ...
+            }
+        }
     """
     all_songs_stems = defaultdict(dict)
 
-    for wav_path in output_folder.glob("*.wav"):
-        # Skip any already-encoded scene files from a previous run
-        if wav_path.stem.endswith("_3d_scene"):
+    if not output_folder.exists():
+        return {}
+
+    for song_dir in output_folder.iterdir():
+        if not song_dir.is_dir():
             continue
-        
-        # Check which stem type this file corresponds to by matching the filename suffix
-        for stem in STEM_TYPES:
-            suffix = f"_{stem}"
-            if wav_path.stem.endswith(suffix):
-                # Strip the stem suffix to recover the original song name
-                song_name = wav_path.stem[: -len(suffix)]
-                all_songs_stems[song_name][stem] = str(wav_path)
-                break # a file can only match one stem type, no need to check further
+
+        song_dir_name = song_dir.name
+
+        if song_dir_name.endswith("-stems"):
+            song_name = song_dir_name[:-len("-stems")]
+        else:
+            song_name = song_dir_name
+
+        for wav_path in song_dir.glob("*.wav"):
+            if wav_path.stem.endswith("_3d_scene"):
+                continue
+
+            matched = False
+            for stem in STEM_TYPES:
+                if wav_path.stem.startswith(f"{stem}-"):
+                    all_songs_stems[song_name][stem] = str(wav_path)
+                    matched = True
+                    break
+
+            if not matched:
+                print(f"Warning: unrecognized stem file: {wav_path.name}")
 
     return dict(all_songs_stems)
 
