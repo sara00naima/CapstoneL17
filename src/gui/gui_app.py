@@ -13,6 +13,7 @@ from gui_backend import (
     PANEL_BG,
     PANEL_BG2,
     ACCENT,
+    ACCENT2,
     BORDER,
     TEXT,
     TEXT_DIM,
@@ -26,6 +27,7 @@ from gui_widgets import (
     SceneView,
     OutputPanel,
     StatusBar,
+    make_button_3d,
 )
 
 
@@ -208,6 +210,46 @@ class SpatialAudioGUI(tk.Tk):
         scene_view = SceneView(centre, s)
         scene_view.pack(fill="both", expand=True, padx=8, pady=(0, 8))
 
+        record_bar = tk.Frame(centre, bg=PANEL_BG)
+        record_bar.pack(fill="x", padx=8, pady=(0, 8))
+
+        record_btn = tk.Button(
+            record_bar,
+            text="● Record Movement",
+            font=("Helvetica", 10, "bold"),
+            command=lambda: scene_view.toggle_recording(),
+        )
+        make_button_3d(
+            record_btn,
+            ACCENT2,
+            fg="#241B15",
+            border=BORDER,
+            active_bg="#96B87A",
+            pressed_bg="#6E8E59",
+        )
+        record_btn.pack(side="left")
+
+        clear_btn = tk.Button(
+            record_bar,
+            text="Clear Movement",
+            font=FONT_SMALL,
+            command=lambda: self._on_clear_movement(scene_view),
+        )
+        make_button_3d(clear_btn, PANEL_BG2, active_bg=ACCENT, pressed_bg="#123457")
+        clear_btn.pack(side="left", padx=(8, 0))
+
+        tk.Label(
+            record_bar,
+            text="Click to start, move/click the node, click again to stop.\n"
+                 "The gesture loops for the whole rendered file.",
+            bg=PANEL_BG,
+            fg=TEXT_DIM,
+            font=FONT_SMALL,
+            justify="left",
+        ).pack(side="left", padx=(12, 0))
+
+        scene_view.set_record_button(record_btn)
+
         inspector = SourceInspector(left, s, scene_view)
         inspector.pack(fill="x", padx=10, pady=(6, 8))
 
@@ -234,6 +276,14 @@ class SpatialAudioGUI(tk.Tk):
             inspector_ref=inspector,
             rows_ref=rows,
         ).pack(fill="both", expand=True, padx=2, pady=(0, 8))
+
+    def _on_clear_movement(self, scene_view):
+        inspector_source = scene_view.get_selected_source()
+
+        if inspector_source is None:
+            return
+
+        scene_view.clear_recorded_movement(inspector_source)
 
     def _on_generate(self):
         fake_btn = _CanvasButtonProxy(

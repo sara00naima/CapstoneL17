@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import tkinter as tk
 from tkinter import messagebox
 import sys
+import numpy as np
 
 # Ensure spatial_pipeline is importable
 _GUI_DIR = Path(__file__).resolve().parent
@@ -43,6 +44,10 @@ class SourceState:
     mute: bool = False
     solo: bool = False
     wav_path: str | None = None
+    # Recorded movement gesture: list of (t_seconds, azimuth_deg, elevation_deg)
+    # sampled while the "Record Movement" button was held down. None means
+    # "use the static azimuth/elevation instead" (default behaviour).
+    recorded_movement: list[tuple[float, float, float]] | None = None
 
 
 class AppState:
@@ -153,9 +158,24 @@ def _do_generate(state: AppState, status):
         decode_scene_for_layout,
     )
     from spatial_pipeline.config import DEFAULT_HRTF_SOFA, MEASUREMENTS_CSV
+    from spatial_pipeline.frame_processing import split_frames
+    from spatial_pipeline.ambisonics.core.trajectories import (
+        generate_from_recording,
+        generate_static,
+    )
+    import soundfile as sf
+
+    # Frame parameters must match those used internally by encode_stems_to_hoa,
+    # so that a recorded trajectory has exactly one position per frame.
+    frame_size = 1024
+    hop_size = 512
 
     stem_paths = {}
     positions = {}
+    trajectories = {}
+    any_recorded = any(
+        src.recorded_movement and not src.mute for src in state.sources
+    )
 
     for src in state.sources:
         if src.mute:
@@ -168,6 +188,32 @@ def _do_generate(state: AppState, status):
 
         stem_paths[src.name] = src.wav_path
         positions[src.name] = (-src.azimuth, src.elevation)
+
+        if not any_recorded:
+            continue
+
+        info = sf.info(src.wav_path)
+        n_frames = len(split_frames(np.zeros(info.frames), frame_size, hop_size))
+
+        if src.recorded_movement:
+            frame_hop_seconds = hop_size / info.samplerate
+
+            # The recording is captured in screen/azimuth convention; positions_deg
+            # elsewhere negates azimuth before encoding (see -src.azimuth above), so
+            # we apply the same negation here for consistency between static and
+            # recorded sources.
+            negated = [(t, -azi, ele) for t, azi, ele in src.recorded_movement]
+
+            trajectories[src.name] = generate_from_recording(
+                n_frames=n_frames,
+                recording=negated,
+                frame_hop_seconds=frame_hop_seconds,
+            )
+        else:
+            # encode_stems_to_hoa requires a trajectory for EVERY active stem
+            # once the trajectories dict is non-None, so stems without a
+            # recorded movement fall back to their static anchor position.
+            trajectories[src.name] = generate_static(n_frames, -src.azimuth, src.elevation)
 
     if not stem_paths:
         raise ValueError("All stems are muted — nothing to render.")
@@ -195,6 +241,7 @@ def _do_generate(state: AppState, status):
         out_path=hoa_path,
         order=state.hoa_order,
         gains_db={src.name: src.gain_db for src in state.sources},
+        trajectories=trajectories or None,
     )
 
     hrtf = str(state.hrtf_path) if state.hrtf_path else str(DEFAULT_HRTF_SOFA)

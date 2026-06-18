@@ -1,4 +1,5 @@
 import math
+import time
 import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -330,6 +331,11 @@ class SourceInspector(tk.Frame):
         if self.source:
             self._az_lbl.config(text=f"{self.source.azimuth:+.0f}°")
 
+    def update_elevation_display(self):
+        if self.source:
+            self._el_var.set(self.source.elevation)
+            self._el_lbl.config(text=f"{self.source.elevation:+.0f}°")
+
     def _step_gain(self, delta):
         if not self.source:
             return
@@ -416,6 +422,13 @@ class SceneView(tk.Canvas):
         self._inspector = None
         self._drag = None
 
+        # --- Record Movement state ---
+        self._recording = False
+        self._record_source = None      # SourceState being recorded
+        self._record_start_time = None  # time.perf_counter() at REC start
+        self._record_samples = []       # [(t_seconds, azimuth_deg, elevation_deg), ...]
+        self._record_btn_ref = None     # external "Record Movement" tk.Button, for visual toggling
+
         self.bind("<Configure>", lambda _e: self.redraw())
         self.bind("<Button-1>", self._on_press)
         self.bind("<B1-Motion>", self._on_drag)
@@ -426,6 +439,81 @@ class SceneView(tk.Canvas):
 
     def set_inspector(self, inspector):
         self._inspector = inspector
+
+    def get_selected_source(self):
+        return self._inspector.source if self._inspector is not None else None
+
+    def set_record_button(self, btn):
+        self._record_btn_ref = btn
+
+    # --- Record Movement: public API, called by the "Record Movement" button ---
+
+    def is_recording(self):
+        return self._recording
+
+    def toggle_recording(self):
+        if self._recording:
+            self._stop_recording()
+        else:
+            self._start_recording()
+
+    def _start_recording(self):
+        source = self._inspector.source if self._inspector is not None else None
+        if source is None:
+            messagebox.showinfo(
+                "No source selected",
+                "Select a source first (click a node or a row in SOURCES), "
+                "then press Record Movement.",
+            )
+            return
+
+        self._recording = True
+        self._record_source = source
+        self._record_start_time = time.perf_counter()
+        # Seed the recording with the source's current position at t=0, so
+        # even a "click somewhere and release immediately" gesture produces
+        # a valid two-point movement (start anchor -> clicked point).
+        self._record_samples = [(0.0, source.azimuth, source.elevation)]
+
+        if self._record_btn_ref is not None:
+            self._record_btn_ref.config(text="■ Stop Recording", bg="#B33A3A")
+
+        self.redraw()
+
+    def _stop_recording(self):
+        self._recording = False
+        source = self._record_source
+
+        if source is not None and len(self._record_samples) >= 1:
+            # Close the loop: append a final sample at the loop's end time,
+            # equal to the last recorded position, so generate_from_recording
+            # has a well-defined loop_duration even if the user stopped
+            # mid-drag rather than exactly on a sample.
+            elapsed = time.perf_counter() - self._record_start_time
+            last_t, last_az, last_el = self._record_samples[-1]
+            if elapsed > last_t:
+                self._record_samples.append((elapsed, last_az, last_el))
+
+            source.recorded_movement = list(self._record_samples)
+
+        self._record_source = None
+        self._record_start_time = None
+        self._record_samples = []
+
+        if self._record_btn_ref is not None:
+            self._record_btn_ref.config(text="● Record Movement", bg=ACCENT2)
+
+        if self._rows:
+            for row in self._rows:
+                if row.source is source:
+                    row.refresh_all()
+
+        self.redraw()
+
+    def clear_recorded_movement(self, source):
+        """Removes a recorded movement from a source, reverting it to a static anchor."""
+        source.recorded_movement = None
+        self.redraw()
 
     def _center(self):
         return self.winfo_width() / 2, self.winfo_height() / 2
@@ -541,7 +629,55 @@ class SceneView(tk.Canvas):
                 anchor="n",
             )
 
+            if src.recorded_movement and src is not self._record_source:
+                # Small loop badge marking a saved recorded movement.
+                self.create_text(
+                    x + nr + 6,
+                    y - nr - 6,
+                    text="↻",
+                    fill=ACCENT,
+                    font=("Helvetica", 11, "bold"),
+                    anchor="center",
+                )
+
+        if self._recording and self._record_source is not None:
+            self._draw_recording_overlay()
+
+    def _draw_recording_overlay(self):
+        """Draws the live trail of the gesture being recorded, plus a REC badge."""
+        cx, cy = self._center()
+        src = self._record_source
+
+        # Trail: connect the recorded samples in order so the user can see
+        # the shape of the gesture as they draw it.
+        if len(self._record_samples) >= 2:
+            pts = []
+            for _, azi_deg, ele_deg in self._record_samples:
+                tmp = SourceState(name="", color="", azimuth=azi_deg, elevation=ele_deg)
+                pts.append(self._source_to_xy(tmp))
+
+            for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+                self.create_line(x1, y1, x2, y2, fill="#FF6B6B", width=2)
+
+        x, y = self._source_to_xy(src)
+        self.create_oval(
+            x - self.NODE_R - 3, y - self.NODE_R - 3,
+            x + self.NODE_R + 3, y + self.NODE_R + 3,
+            outline="#FF6B6B", width=2,
+        )
+        self.create_text(
+            cx, 18,
+            text="● RECORDING — click the button again to stop",
+            fill="#FF6B6B",
+            font=("Helvetica", 10, "bold"),
+            anchor="n",
+        )
+
     def _on_press(self, event):
+        if self._recording:
+            self._record_move_to(event.x, event.y)
+            return
+
         nr = self.NODE_R + 8
         for i, src in enumerate(self.state.sources):
             if src.mute:
@@ -555,10 +691,16 @@ class SceneView(tk.Canvas):
         self._drag = None
 
     def _on_drag(self, event):
+        if self._recording:
+            self._record_move_to(event.x, event.y)
+            return
+
         if self._drag is None:
             return
 
         src = self.state.sources[self._drag]
+        if src.recorded_movement is not None:
+            src.recorded_movement = None
         src.azimuth = self._xy_to_az(event.x, event.y)
         self.redraw()
 
@@ -570,6 +712,44 @@ class SceneView(tk.Canvas):
 
     def _on_release(self, _event):
         self._drag = None
+
+    def _record_move_to(self, x, y):
+        """
+        Called on every click/drag event while recording. Moves the source
+        being recorded to the clicked/dragged point — this is what allows
+        both continuous gestures (circular motion, drag left-to-right) and
+        instant "teleports" (single clicks at different spots, so the source
+        appears to jump/disappear-and-reappear elsewhere).
+        """
+        src = self._record_source
+        if src is None:
+            return
+
+        azimuth = self._xy_to_az(x, y)
+
+        # Elevation follows distance from centre (same mapping used for display):
+        # near the centre = high elevation (overhead), near the edge = horizon.
+        cx, cy = self._center()
+        r = self._effective_radius()
+        dist = math.hypot(x - cx, y - cy)
+        elevation = max(0.0, min(90.0, 90.0 * (1.0 - dist / r))) if r > 0 else 0.0
+
+        src.azimuth = azimuth
+        src.elevation = elevation
+
+        t = time.perf_counter() - self._record_start_time
+        self._record_samples.append((t, azimuth, elevation))
+
+        self.redraw()
+
+        if self._rows:
+            for row in self._rows:
+                if row.source is src:
+                    row.refresh_az()
+
+        if self._inspector is not None and self._inspector.source is src:
+            self._inspector.update_azimuth()
+            self._inspector.update_elevation_display()
 
 
 class OutputPanel(tk.Frame):
