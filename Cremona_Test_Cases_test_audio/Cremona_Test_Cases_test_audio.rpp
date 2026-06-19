@@ -1,0 +1,1426 @@
+<REAPER_PROJECT 0.1 "7.54/win64" 1781858110 0
+  <NOTES 0 2
+  >
+  RIPPLE 0 0
+  GROUPOVERRIDE 0 0 0 0
+  AUTOXFADE 129
+  ENVATTACH 3
+  POOLEDENVATTACH 0
+  TCPUIFLAGS 0
+  MIXERUIFLAGS 11 48
+  ENVFADESZ10 40
+  PEAKGAIN 1
+  FEEDBACK 0
+  PANLAW 1
+  PROJOFFS 0 0 0
+  MAXPROJLEN 0 0
+  GRID 3199 8 1 8 1 0 0 0
+  TIMEMODE 1 5 -1 30 0 0 -1 0
+  VIDEO_CONFIG 0 0 65792
+  PANMODE 3
+  PANLAWFLAGS 3
+  CURSOR 6
+  ZOOM 31.27660147968023 0 0
+  VZOOMEX 0 82
+  USE_REC_CFG 0
+  RECMODE 1
+  SMPTESYNC 0 30 100 40 1000 300 0 0 1 0 0
+  LOOP 0
+  LOOPGRAN 0 4
+  RECORD_PATH "Media" ""
+  <RECORD_CFG
+    ZXZhdxgAAQ==
+  >
+  <APPLYFX_CFG
+  >
+  RENDER_FILE ""
+  RENDER_PATTERN ""
+  RENDER_FMT 0 2 0
+  RENDER_1X 0
+  RENDER_RANGE 1 0 0 0 1000
+  RENDER_RESAMPLE 3 0 1
+  RENDER_ADDTOPROJ 0
+  RENDER_STEMS 0
+  RENDER_DITHER 0
+  RENDER_TRIM 0.000001 0.000001 0 0
+  TIMELOCKMODE 1
+  TEMPOENVLOCKMODE 1
+  ITEMMIX 1
+  DEFPITCHMODE 589824 0
+  TAKELANE 1
+  SAMPLERATE 44100 0 0
+  <RENDER_CFG
+    ZXZhdxgAAQ==
+  >
+  LOCK 1
+  <METRONOME 6 2
+    VOL 0.25 0.125
+    BEATLEN 4
+    FREQ 1760 880 1
+    SAMPLES "" "" "" ""
+    SPLIGNORE 0 0
+    SPLDEF 2 660 "" 0 ""
+    SPLDEF 3 440 "" 0 ""
+    PATTERN 0 169
+    PATTERNSTR ABBB
+    MULT 1
+  >
+  GLOBAL_AUTO -1
+  TEMPO 120 4 4 0
+  PLAYRATE 1 0 0.25 4
+  SELECTION 0 0
+  SELECTION2 0 0
+  MASTERAUTOMODE 0
+  MASTERTRACKHEIGHT 0 0
+  MASTERPEAKCOL 16576
+  MASTERMUTESOLO 0
+  MASTERTRACKVIEW 0 0.6667 0.5 0.5 0 0 0 0 0 0 0 0 0 0 1
+  MASTERHWOUT 0 0 1 0 0 0 0 -1
+  MASTER_NCH 18 2
+  MASTER_VOLUME 1 0 -1 -1 1
+  MASTER_PANMODE 3
+  MASTER_PANLAWFLAGS 3
+  MASTER_FX 1
+  MASTER_SEL 0
+  <MASTERPLAYSPEEDENV
+    EGUID {1EF183A9-C6D0-4512-86CD-CB3DB2BE2832}
+    ACT 0 -1
+    VIS 0 1 1
+    LANEHEIGHT 0 0
+    ARM 0
+    DEFSHAPE 0 -1 -1
+  >
+  <TEMPOENVEX
+    EGUID {3A59F83E-6B50-48BC-812C-E483998AE5F5}
+    ACT 0 -1
+    VIS 1 0 1
+    LANEHEIGHT 0 0
+    ARM 0
+    DEFSHAPE 1 -1 -1
+  >
+  <PROJBAY
+  >
+  <TRACK {2896236E-CE47-4173-9868-E13B75C811CD}
+    NAME test_audio_all_back_17ch
+    PEAKCOL 18400412
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {2896236E-CE47-4173-9868-E13B75C811CD}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 0.5
+      SNAPOFFS 0
+      LENGTH 13
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {E81EA0AA-65B3-4565-B9B2-E871B88E7BFF}
+      IID 1
+      NAME test_audio_all_back_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {627FB6F7-93B5-4018-A689-8F30493E16B7}
+      <SOURCE WAVE
+        FILE "Media\test_audio_all_back_17ch.wav"
+      >
+    >
+  >
+  <TRACK {984507F0-955C-4C2C-8011-5FEDD077FADF}
+    NAME test_audio_all_front_17ch
+    PEAKCOL 18400412
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {984507F0-955C-4C2C-8011-5FEDD077FADF}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 0.5
+      SNAPOFFS 0
+      LENGTH 13
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {81AC554E-748C-4DCB-8F16-3AD33C3B2EAD}
+      IID 2
+      NAME test_audio_all_front_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {AC828ACC-1D5A-4D08-AE4B-6E825D52F5B5}
+      <SOURCE WAVE
+        FILE "Media\test_audio_all_front_17ch.wav"
+      >
+    >
+  >
+  <TRACK {B36B6484-EE43-4291-9B31-AF9729ACCC2C}
+    NAME test_audio_all_left_17ch
+    PEAKCOL 18400412
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {B36B6484-EE43-4291-9B31-AF9729ACCC2C}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 0.5
+      SNAPOFFS 0
+      LENGTH 13
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {C19BAF7C-B31E-4938-AFB9-2B6C1B740C06}
+      IID 3
+      NAME test_audio_all_left_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {50CCB24E-0A02-4406-813E-45543CFB9E4D}
+      <SOURCE WAVE
+        FILE "Media\test_audio_all_left_17ch.wav"
+      >
+    >
+  >
+  <TRACK {4B723468-AACB-4092-A354-37FE2E1F4ADA}
+    NAME test_audio_all_right_17ch
+    PEAKCOL 18400412
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {4B723468-AACB-4092-A354-37FE2E1F4ADA}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 0.5
+      SNAPOFFS 0
+      LENGTH 13
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {7444D881-61EC-4C38-9B3A-B7B6B8A7B358}
+      IID 4
+      NAME test_audio_all_right_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {C8C0D89B-153B-4F23-9625-FC301262584B}
+      <SOURCE WAVE
+        FILE "Media\test_audio_all_right_17ch.wav"
+      >
+    >
+  >
+  <TRACK {C01C272C-D225-47EE-8BA8-B1603DC269AD}
+    NAME test_audio_bounce_17ch
+    PEAKCOL 18400412
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {C01C272C-D225-47EE-8BA8-B1603DC269AD}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 0.5
+      SNAPOFFS 0
+      LENGTH 13
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {7EFCEAB2-52D1-4EDC-97FB-4703E875ECFC}
+      IID 5
+      NAME test_audio_bounce_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {5902FB88-BD38-4D66-82DC-A9332996BE44}
+      <SOURCE WAVE
+        FILE "Media\test_audio_bounce_17ch.wav"
+      >
+    >
+  >
+  <TRACK {984AB9A6-8FF3-49DA-AE2F-D9D6BF3E9EDC}
+    NAME test_audio_flyover_17ch
+    PEAKCOL 18400412
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {984AB9A6-8FF3-49DA-AE2F-D9D6BF3E9EDC}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 0.5
+      SNAPOFFS 0
+      LENGTH 13
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {53CE928F-596E-404D-8683-6EB3744BD684}
+      IID 6
+      NAME test_audio_flyover_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {4B0E6BD7-6C1C-4F03-8E5B-169E49B0F9EE}
+      <SOURCE WAVE
+        FILE "Media\test_audio_flyover_17ch.wav"
+      >
+    >
+  >
+  <TRACK {1148B5C2-02D2-47EB-BBA8-163ADE4CFDA0}
+    NAME test_audio_orbit_17ch
+    PEAKCOL 18400412
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {1148B5C2-02D2-47EB-BBA8-163ADE4CFDA0}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 0.5
+      SNAPOFFS 0
+      LENGTH 13
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {301CA8B7-6F21-4245-ACF8-80B8A1DD2006}
+      IID 7
+      NAME test_audio_orbit_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {5C4F0F9D-3ECE-4529-97C4-1A183D434C8A}
+      <SOURCE WAVE
+        FILE "Media\test_audio_orbit_17ch.wav"
+      >
+    >
+  >
+  <TRACK {49416B6C-69B7-493A-BB20-49460DCCE4D1}
+    NAME test_audio_song_test_17ch
+    PEAKCOL 18400412
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {49416B6C-69B7-493A-BB20-49460DCCE4D1}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 0.5
+      SNAPOFFS 0
+      LENGTH 13
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {4AC6BAE3-335E-4FD6-931F-B474011B6E5D}
+      IID 27
+      NAME test_audio_song_test_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {5E2006AC-A3B6-4ACB-8A91-6E740890DF1D}
+      <SOURCE WAVE
+        FILE "Media\test_audio_song_test_17ch.wav"
+      >
+    >
+  >
+  <TRACK {31EBB825-C186-4A47-ADB4-F4160673F6F7}
+    NAME test_audio_3d_scene_17ch_museum_mix
+    PEAKCOL 18400412
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {31EBB825-C186-4A47-ADB4-F4160673F6F7}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 0.5
+      SNAPOFFS 0
+      LENGTH 13
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {E296C93D-D133-489F-ABBF-3ACDB8675D46}
+      IID 30
+      NAME test_audio_3d_scene_17ch_museum_mix.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {3F5C174F-A270-4B37-9863-A7D23AE2322E}
+      <SOURCE WAVE
+        FILE "Media\test_audio_3d_scene_17ch_museum_mix.wav"
+      >
+    >
+  >
+  <TRACK {EAEE69E1-0641-4536-B562-25D393321AF3}
+    NAME sound_garage-funky-loop-382957_all_back_17ch
+    PEAKCOL 33528160
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 1
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {EAEE69E1-0641-4536-B562-25D393321AF3}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 2
+      SNAPOFFS 0
+      LENGTH 8.38530612244898
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 1
+      IGUID {778DA202-1BFA-4121-BCF7-8CE6C4D60B9A}
+      IID 8
+      NAME sound_garage-funky-loop-382957_all_back_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {6F486A2D-326B-4D26-A812-171BD62CA6DB}
+      <SOURCE WAVE
+        FILE "Media\sound_garage-funky-loop-382957_all_back_17ch.wav"
+      >
+    >
+  >
+  <TRACK {781B1169-CA09-4D65-8C62-69FE38C53181}
+    NAME sound_garage-funky-loop-382957_all_front_17ch
+    PEAKCOL 33528160
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {781B1169-CA09-4D65-8C62-69FE38C53181}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 2
+      SNAPOFFS 0
+      LENGTH 8.38530612244898
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {BE1B9B9F-AD6F-42C4-8667-74B3B937F66F}
+      IID 9
+      NAME sound_garage-funky-loop-382957_all_front_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {EC8DA8E9-909D-4B12-B181-10E2EAFAF5D3}
+      <SOURCE WAVE
+        FILE "Media\sound_garage-funky-loop-382957_all_front_17ch.wav"
+      >
+    >
+  >
+  <TRACK {71F869A3-544D-416A-8524-ADEE237AF15C}
+    NAME sound_garage-funky-loop-382957_all_left_17ch
+    PEAKCOL 33528160
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {71F869A3-544D-416A-8524-ADEE237AF15C}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 2
+      SNAPOFFS 0
+      LENGTH 8.38530612244898
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {DD851A3C-1E1B-4AA4-90C6-8EAE3B1872C4}
+      IID 10
+      NAME sound_garage-funky-loop-382957_all_left_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {F03DA92D-C6E6-43AA-8B0C-34A59B5029A5}
+      <SOURCE WAVE
+        FILE "Media\sound_garage-funky-loop-382957_all_left_17ch.wav"
+      >
+    >
+  >
+  <TRACK {91C83AFE-BDEC-458D-A2E3-3B26622A3D1D}
+    NAME sound_garage-funky-loop-382957_all_right_17ch
+    PEAKCOL 33528160
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {91C83AFE-BDEC-458D-A2E3-3B26622A3D1D}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 2
+      SNAPOFFS 0
+      LENGTH 8.38530612244898
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {BD12596C-5904-4782-A991-52EEA9DD5CEB}
+      IID 11
+      NAME sound_garage-funky-loop-382957_all_right_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {85517599-E689-425C-92EC-E833AB8C1574}
+      <SOURCE WAVE
+        FILE "Media\sound_garage-funky-loop-382957_all_right_17ch.wav"
+      >
+    >
+  >
+  <TRACK {33972B3C-EE72-422E-B19D-C5E74C58FA77}
+    NAME sound_garage-funky-loop-382957_bounce_17ch
+    PEAKCOL 33528160
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {33972B3C-EE72-422E-B19D-C5E74C58FA77}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 2
+      SNAPOFFS 0
+      LENGTH 8.38530612244898
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {B114C9E2-2619-4CD9-882C-B24D3415F9AC}
+      IID 12
+      NAME sound_garage-funky-loop-382957_bounce_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {6DB4E7D8-79F4-4F73-B9CD-45009EDD3413}
+      <SOURCE WAVE
+        FILE "Media\sound_garage-funky-loop-382957_bounce_17ch.wav"
+      >
+    >
+  >
+  <TRACK {5A415CFB-4E1F-4D6F-9E6B-9AC68EE3E863}
+    NAME sound_garage-funky-loop-382957_flyover_17ch
+    PEAKCOL 33528160
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {5A415CFB-4E1F-4D6F-9E6B-9AC68EE3E863}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 2
+      SNAPOFFS 0
+      LENGTH 8.38530612244898
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {9CDFD505-64C5-4EB7-A200-CA510D3B57C2}
+      IID 13
+      NAME sound_garage-funky-loop-382957_flyover_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {DAB714B0-0FCC-4CAA-AA0D-5CE1588048D5}
+      <SOURCE WAVE
+        FILE "Media\sound_garage-funky-loop-382957_flyover_17ch.wav"
+      >
+    >
+  >
+  <TRACK {9B57FF81-E878-407E-AB0C-CE6FBBC6273E}
+    NAME sound_garage-funky-loop-382957_orbit_17ch
+    PEAKCOL 33528160
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {9B57FF81-E878-407E-AB0C-CE6FBBC6273E}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 2
+      SNAPOFFS 0
+      LENGTH 8.38530612244898
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {6B72A00D-4FB7-4162-8B3B-1574524C1803}
+      IID 14
+      NAME sound_garage-funky-loop-382957_orbit_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {3E12E6BA-AF3D-44F9-8338-AFCC074BF053}
+      <SOURCE WAVE
+        FILE "Media\sound_garage-funky-loop-382957_orbit_17ch.wav"
+      >
+    >
+  >
+  <TRACK {DE829F88-E690-4F42-B1F3-C502EA5082A9}
+    NAME sound_garage-funky-loop-382957_song_test_17ch
+    PEAKCOL 33528160
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {DE829F88-E690-4F42-B1F3-C502EA5082A9}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 2
+      SNAPOFFS 0
+      LENGTH 8.38530612244898
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {6036CEBF-51B6-40F9-8779-895543F2F3BA}
+      IID 26
+      NAME sound_garage-funky-loop-382957_song_test_17ch.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {6D92D5A9-5851-4D8C-93AB-817E315BB811}
+      <SOURCE WAVE
+        FILE "Media\sound_garage-funky-loop-382957_song_test_17ch.wav"
+      >
+    >
+  >
+  <TRACK {E5E9E4A8-A3C1-4D71-9EF0-C8F53C2214E6}
+    NAME sound_garage-funky-loop-382957_3d_scene_17ch_museum_mix
+    PEAKCOL 33528160
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {E5E9E4A8-A3C1-4D71-9EF0-C8F53C2214E6}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 2
+      SNAPOFFS 0
+      LENGTH 8.38530612244898
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {0C4F6D4E-11A7-4F7F-ABFC-00CEBA0861DA}
+      IID 29
+      NAME sound_garage-funky-loop-382957_3d_scene_17ch_museum_mix.wav
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {E9BEFBEC-1C45-4BF0-B24B-FA7A73BE7F50}
+      <SOURCE WAVE
+        FILE "Media\sound_garage-funky-loop-382957_3d_scene_17ch_museum_mix.wav"
+      >
+    >
+  >
+  <TRACK {C4F39B0B-87D2-4B49-9281-91E9F478D3C0}
+    NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_back_17ch"
+    PEAKCOL 30243316
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {C4F39B0B-87D2-4B49-9281-91E9F478D3C0}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 3.5
+      SNAPOFFS 0
+      LENGTH 20.09808333333334
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {49D54255-6811-41CE-9310-21366FCFE685}
+      IID 15
+      NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_back_17ch.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {FA6AD71A-5D5B-4862-A4AD-D790B0A9C7F1}
+      <SOURCE WAVE
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_back_17ch.wav"
+      >
+    >
+  >
+  <TRACK {25E7DEB9-E155-48E6-B3EB-32CD53920211}
+    NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_front_17ch"
+    PEAKCOL 30243316
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {25E7DEB9-E155-48E6-B3EB-32CD53920211}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 3.5
+      SNAPOFFS 0
+      LENGTH 20.09808333333334
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {CD2FEA38-6E4D-48BD-8352-2B67C44E1D30}
+      IID 16
+      NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_front_17ch.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {3DD55CFE-6C7B-4874-A4F0-AF776896F6FF}
+      <SOURCE WAVE
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_front_17ch.wav"
+      >
+    >
+  >
+  <TRACK {306F1B13-DB81-4FCF-AA11-3427F7C00E39}
+    NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_left_17ch"
+    PEAKCOL 30243316
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {306F1B13-DB81-4FCF-AA11-3427F7C00E39}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 3.5
+      SNAPOFFS 0
+      LENGTH 20.09808333333334
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {3F8411F5-BF47-4D30-9518-9707B49263C4}
+      IID 17
+      NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_left_17ch.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {4EFF98DB-EC50-4226-A5C5-B71CFCA8C25A}
+      <SOURCE WAVE
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_left_17ch.wav"
+      >
+    >
+  >
+  <TRACK {B8FAE44D-B1D5-4E13-90CE-7A7BFA6B7D57}
+    NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_right_17ch"
+    PEAKCOL 30243316
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {B8FAE44D-B1D5-4E13-90CE-7A7BFA6B7D57}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 3.5
+      SNAPOFFS 0
+      LENGTH 20.09808333333334
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {248731F0-4A84-4F12-AED2-C80D0A1890E4}
+      IID 18
+      NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_right_17ch.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {E192D057-F80A-4251-B2ED-145286C71734}
+      <SOURCE WAVE
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_all_right_17ch.wav"
+      >
+    >
+  >
+  <TRACK {2CCB503B-FB66-48FD-934A-8C0567ABB3F9}
+    NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_bounce_17ch"
+    PEAKCOL 30243316
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {2CCB503B-FB66-48FD-934A-8C0567ABB3F9}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 3.5
+      SNAPOFFS 0
+      LENGTH 20.09808333333334
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {8A4BA10D-3955-493C-BE54-F2E88FF56B0F}
+      IID 19
+      NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_bounce_17ch.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {B0DC4DA4-5647-47A2-A283-DAB346CF9561}
+      <SOURCE WAVE
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_bounce_17ch.wav"
+      >
+    >
+  >
+  <TRACK {E6E24CF8-338F-4C1F-98C2-F3C5E068D929}
+    NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_flyover_17ch"
+    PEAKCOL 30243316
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {E6E24CF8-338F-4C1F-98C2-F3C5E068D929}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 3.5
+      SNAPOFFS 0
+      LENGTH 20.09808333333334
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {EAE2A82D-0B34-4435-BC8C-E0CBD236CB01}
+      IID 20
+      NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_flyover_17ch.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {54AC466C-F2B6-413C-AA09-D9D68BEB00DE}
+      <SOURCE WAVE
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_flyover_17ch.wav"
+      >
+    >
+  >
+  <TRACK {CFDEF57B-A975-4911-B3D9-7E97796CAD0E}
+    NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_orbit_17ch"
+    PEAKCOL 30243316
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {CFDEF57B-A975-4911-B3D9-7E97796CAD0E}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 3.5
+      SNAPOFFS 0
+      LENGTH 20.09808333333334
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {91F3F7CB-CCCE-41A6-8546-9F28AA641F55}
+      IID 21
+      NAME "Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_orbit_17ch.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {E38BD0C5-769D-4102-A70D-5436B2C70C08}
+      <SOURCE WAVE
+        FILE "Media\Still Corners - The Message (OFFICIAL VIDEO) - Still Corners (128k)_[cut_20sec]_orbit_17ch.wav"
+      >
+    >
+  >
+  <TRACK {F9DB92A2-EFC3-4FD0-8E7D-CF21B53318E6}
+    NAME "Still Corners - The Message_song_test_17ch"
+    PEAKCOL 30243316
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {F9DB92A2-EFC3-4FD0-8E7D-CF21B53318E6}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 3.5
+      SNAPOFFS 0
+      LENGTH 20.09808333333334
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {E90554BA-19B4-4800-8FE2-B89D4AECECD7}
+      IID 25
+      NAME "Still Corners - The Message_song_test_17ch.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {B1E8BF8F-EE40-4F0F-BEDE-FC81910F157C}
+      <SOURCE WAVE
+        FILE "Media\Still Corners - The Message_song_test_17ch.wav"
+      >
+    >
+  >
+  <TRACK {E01B7F4D-71AA-4B59-8D18-24BF178D7ABC}
+    NAME "Still Corners - The Message_3d_scene_17ch_museum_mix"
+    PEAKCOL 30243316
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 18
+    FX 1
+    TRACKID {E01B7F4D-71AA-4B59-8D18-24BF178D7ABC}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 0 0
+    <ITEM
+      POSITION 3.5
+      SNAPOFFS 0
+      LENGTH 20.09808333333334
+      LOOP 1
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0
+      FADEOUT 1 0 0 1 0 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {FDC98117-E6AA-42AA-8357-42B2915E8FF9}
+      IID 28
+      NAME "Still Corners - The Message_3d_scene_17ch_museum_mix.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {ACFA3290-2071-4BB2-ADDA-5776DE990A53}
+      <SOURCE WAVE
+        FILE "Media\Still Corners - The Message_3d_scene_17ch_museum_mix.wav"
+      >
+    >
+  >
+>
