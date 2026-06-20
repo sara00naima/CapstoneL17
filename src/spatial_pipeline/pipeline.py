@@ -4,7 +4,11 @@ from .ambisonics.encoding.foa import encode_mono_to_foa, sum_foa_sources
 from .binaural import render_binaural, render_ls17_binaural
 from .ambisonics.encoding.hoa import encode_mono_to_hoa
 import numpy as np
-from .ambisonics.decoding.decode_to_speakers import calculate_decoder_matrix, decode_hoa_to_speakers
+from .ambisonics.decoding.decode_to_speakers import (
+    calculate_decoder_matrix, 
+    calculate_speaker_delays,
+    decode_hoa_to_speakers
+)
 from .ambisonics.layout.speaker_layout import load_speaker_layout, layout_to_numpy
 from .frame_processing import split_frames
 from .frame_ambisonics import process_hoa_frames
@@ -191,20 +195,27 @@ def decode_scene_for_ls17(scene_path: str, out_path: str, order: int = 3):
     # Load the museum speaker layout from the measurements CSV
     speakers = load_speaker_layout(MEASUREMENTS_CSV)
 
-    # Unpack speaker positions into numpy arrays for the decoder
-    azimuth_rad, elevation_rad, _ = layout_to_numpy(speakers)
+    # Unpack including cartesian coordinates (N, 3)
+    azimuth_rad, elevation_rad, cartesian = layout_to_numpy(speakers)
+    
+    # Calculate 1D array of radii (distances) from the cartesian coordinates
+    radii_m = np.linalg.norm(cartesian, axis=1)
 
-    # Calculate the mode-matching decoder matrix for this layout
-    decoder_matrix = calculate_decoder_matrix(azimuth_rad, elevation_rad, order=order)
+    # Calculate the mode-matching decoder matrix for this layout (now with gains)
+    decoder_matrix = calculate_decoder_matrix(azimuth_rad, elevation_rad, radii_m, order=order)
 
     # Load the encoded ambisonic scene
     ambisonic_audio, sr = sf.read(scene_path)
 
-    # Decode to one audio channel per loudspeaker and save
-    speaker_feeds = decode_hoa_to_speakers(ambisonic_audio, decoder_matrix)
+    # Calculate per-speaker time delays
+    delay_samples = calculate_speaker_delays(radii_m, sr)
+
+    # Decode to one audio channel per loudspeaker with delays and save
+    speaker_feeds = decode_hoa_to_speakers(ambisonic_audio, decoder_matrix, delay_samples)
     save_audio(out_path, speaker_feeds.astype(np.float32), sr)
 
     return len(speakers)
+
 
 def decode_scene_for_layout(scene_path: str, out_path: str, layout_csv: str, order: int = 3):
     """
@@ -214,9 +225,27 @@ def decode_scene_for_layout(scene_path: str, out_path: str, layout_csv: str, ord
     Returns the number of speakers in the layout.
     """
     speakers = load_speaker_layout(layout_csv)
-    azimuth_rad, elevation_rad, _ = layout_to_numpy(speakers)
-    decoder_matrix = calculate_decoder_matrix(azimuth_rad, elevation_rad, order=order)
+    
+    # Unpack and calculate 1D array of radii
+    az_rad, el_rad, cartesian = layout_to_numpy(speakers)
+    radii_m = np.linalg.norm(cartesian, axis=1)
+
+    # Using explicit keyword arguments prevents position mix-ups
+    decoder_matrix = calculate_decoder_matrix(
+        azimuth_rad=az_rad, 
+        elevation_rad=el_rad, 
+        radii_m=radii_m, 
+        order=order, 
+        normalization=normalization
+    )
+    # Load audio
     ambisonic_audio, sr = sf.read(scene_path)
-    speaker_feeds = decode_hoa_to_speakers(ambisonic_audio, decoder_matrix)
+    
+    # Calculate delays
+    delay_samples = calculate_speaker_delays(radii_m, sr)
+    
+    # Decode with time alignment
+    speaker_feeds = decode_hoa_to_speakers(ambisonic_audio, decoder_matrix, delay_samples)
+    
     save_audio(out_path, speaker_feeds.astype(np.float32), sr)
     return len(speakers)

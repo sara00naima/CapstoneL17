@@ -84,8 +84,17 @@ def render_ls17_binaural(
     from .ambisonics.layout.speaker_layout import load_speaker_layout, layout_to_numpy
 
     speakers = load_speaker_layout(csv_path)
-    az_rad, el_rad, _ = layout_to_numpy(speakers)
-    decoder_matrix = calculate_decoder_matrix(az_rad, el_rad, order, normalization)
+    az_rad, el_rad, cartesian = layout_to_numpy(speakers)
+    radii_m = np.linalg.norm(cartesian, axis=1)
+
+    # Use explicit keyword arguments to avoid passing the string "sn3d" into the 'order' integer parameter
+    decoder_matrix = calculate_decoder_matrix(
+        azimuth_rad=az_rad, 
+        elevation_rad=el_rad, 
+        radii_m=radii_m, 
+        order=order, 
+        normalization=normalization
+    )
     speaker_feeds = decode_hoa_to_speakers(ambisonic_audio, decoder_matrix)  # (samples, 17)
 
     hrtf = sofar.read_sofa(sofa_path)
