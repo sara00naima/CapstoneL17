@@ -217,7 +217,7 @@ def decode_scene_for_ls17(scene_path: str, out_path: str, order: int = 3):
     return len(speakers)
 
 
-def decode_scene_for_layout(scene_path: str, out_path: str, layout_csv: str, order: int = 3):
+def decode_scene_for_layout(scene_path: str, out_path: str, layout_csv: str, order: int = 3, normalization: str = "sn3d"):
     """
     Decodes an ambisonic scene to an arbitrary speaker layout defined by a CSV file.
     The CSV is loaded with load_speaker_layout (same format as MEASUREMENTS_CSV).

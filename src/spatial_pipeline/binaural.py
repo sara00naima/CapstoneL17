@@ -32,8 +32,13 @@ def render_binaural(
 
     # a mode-matching decoder that maps the HOA bus to one feed per
     # virtual speaker (each SOFA measurement position is one virtual speaker)
+    radii_m = hrtf.SourcePosition[:, 2]
     decoder_matrix = calculate_decoder_matrix(
-        azimuth_rad, elevation_rad, order, normalization
+        azimuth_rad=azimuth_rad,
+        elevation_rad=elevation_rad,
+        radii_m=radii_m,
+        order=order,
+        normalization=normalization,
     )
 
     # Decode the ambisonic bus to virtual speaker feeds: (samples, M)
