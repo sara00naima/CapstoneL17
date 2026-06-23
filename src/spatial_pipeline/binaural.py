@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.signal import fftconvolve
+from scipy.fft import next_fast_len, rfft, irfft
 import sofar
 
 from .ambisonics.decoding.decode_to_speakers import calculate_decoder_matrix, decode_hoa_to_speakers
@@ -44,20 +44,23 @@ def render_binaural(
     # Decode the ambisonic bus to virtual speaker feeds: (samples, M)
     virtual_feeds = decode_hoa_to_speakers(ambisonic_audio, decoder_matrix)
 
-    n_samples  = ambisonic_audio.shape[0]
-    ir_len     = hrirs.shape[2]
-    output_len = n_samples + ir_len - 1
+    n_samples = ambisonic_audio.shape[0]
+    ir_len    = hrirs.shape[2]
+    N_fft     = next_fast_len(n_samples + ir_len - 1)
 
-    left  = np.zeros(output_len, dtype=np.float64)
-    right = np.zeros(output_len, dtype=np.float64)
+    # Accumulate left/right in the frequency domain: one IFFT per ear instead
+    # of one per virtual speaker (M × 2 → 2 IFFTs total).
+    left_fft  = np.zeros(N_fft // 2 + 1, dtype=np.complex128)
+    right_fft = np.zeros(N_fft // 2 + 1, dtype=np.complex128)
 
-    # convolve each virtual speaker feed with its left and right HRIR and accumulate
     for i in range(virtual_feeds.shape[1]):
-        left  += fftconvolve(virtual_feeds[:, i], hrirs[i, 0, :])
-        right += fftconvolve(virtual_feeds[:, i], hrirs[i, 1, :])
+        feed_fft   = rfft(virtual_feeds[:, i], n=N_fft)
+        left_fft  += feed_fft * rfft(hrirs[i, 0, :], n=N_fft)
+        right_fft += feed_fft * rfft(hrirs[i, 1, :], n=N_fft)
 
-    # trim the convolution tail back to the original signal length
-    return np.stack([left[:n_samples], right[:n_samples]], axis=1).astype(np.float32)
+    left  = irfft(left_fft,  n=N_fft)[:n_samples]
+    right = irfft(right_fft, n=N_fft)[:n_samples]
+    return np.stack([left, right], axis=1).astype(np.float32)
 
 
 def _nearest_hrtf_index(
@@ -107,16 +110,19 @@ def render_ls17_binaural(
     sofa_el = deg2rad(hrtf.SourcePosition[:, 1])
     hrirs = hrtf.Data_IR  # (M, 2, N)
 
-    n_samples  = ambisonic_audio.shape[0]
-    ir_len     = hrirs.shape[2]
-    output_len = n_samples + ir_len - 1
+    n_samples = ambisonic_audio.shape[0]
+    ir_len    = hrirs.shape[2]
+    N_fft     = next_fast_len(n_samples + ir_len - 1)
 
-    left  = np.zeros(output_len, dtype=np.float64)
-    right = np.zeros(output_len, dtype=np.float64)
+    left_fft  = np.zeros(N_fft // 2 + 1, dtype=np.complex128)
+    right_fft = np.zeros(N_fft // 2 + 1, dtype=np.complex128)
 
     for i in range(len(speakers)):
-        idx = _nearest_hrtf_index(az_rad[i], el_rad[i], sofa_az, sofa_el)
-        left  += fftconvolve(speaker_feeds[:, i], hrirs[idx, 0, :])
-        right += fftconvolve(speaker_feeds[:, i], hrirs[idx, 1, :])
+        idx        = _nearest_hrtf_index(az_rad[i], el_rad[i], sofa_az, sofa_el)
+        feed_fft   = rfft(speaker_feeds[:, i], n=N_fft)
+        left_fft  += feed_fft * rfft(hrirs[idx, 0, :], n=N_fft)
+        right_fft += feed_fft * rfft(hrirs[idx, 1, :], n=N_fft)
 
-    return np.stack([left[:n_samples], right[:n_samples]], axis=1).astype(np.float32)
+    left  = irfft(left_fft,  n=N_fft)[:n_samples]
+    right = irfft(right_fft, n=N_fft)[:n_samples]
+    return np.stack([left, right], axis=1).astype(np.float32)

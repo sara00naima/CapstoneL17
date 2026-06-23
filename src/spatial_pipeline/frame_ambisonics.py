@@ -15,6 +15,8 @@ from .ambisonics.core.conventions import (
     SphericalPosition,
 )
 
+from .ambisonics.core.spherical_harmonics import sh_basis_real
+
 
 def process_hoa_frames(
     signal: np.ndarray,
@@ -34,10 +36,25 @@ def process_hoa_frames(
         dtype=np.float32,
     )
 
-    # Validate that the input signal is mono 
+    # Validate that the input signal is mono
     if signal.ndim != 1:
         raise ValueError(f"signal must be 1D, got shape {signal.shape}")
 
+    # Fast path: static source (all positions identical).
+    # For a COLA-compliant windowed OLA the reconstruction envelope normalises
+    # out the window, so OLA(gains × windowed_frames) == gains × signal.
+    # Skipping the frame loop gives an identical result in O(T·C) instead of
+    # O(N_frames · frame_size · C).
+    if len(positions) >= 1:
+        p0 = positions[0]
+        check_idxs = [len(positions) // 4, len(positions) // 2,
+                      3 * len(positions) // 4, len(positions) - 1]
+        if all(
+            positions[i].azimuth == p0.azimuth and positions[i].elevation == p0.elevation
+            for i in check_idxs if i > 0
+        ):
+            gains = sh_basis_real(order, p0.azimuth, p0.elevation, normalization).astype(np.float32)
+            return signal[:, None] * gains[None, :]
 
     # Split the signal into overlapping frames.
     frames = split_frames(
@@ -55,7 +72,6 @@ def process_hoa_frames(
             f"number of frames ({len(frames)}). "
             "Recompute the trajectory using the same frame_size and hop_size."
         )
-
 
     # Store the encoded HOA frame sequence.
     encoded_frames = []
