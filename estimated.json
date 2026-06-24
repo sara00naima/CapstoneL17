@@ -3,72 +3,72 @@
     "Name": "Museum_17ch",
     "Loudspeakers": [
       {
-        "Azimuth": -62.0,
-        "Elevation": 19.5,
+        "Azimuth": -63.0,
+        "Elevation": 20.6,
         "Radius": 1.532,
         "IsImaginary": false,
         "Channel": 1,
         "Gain": 1.0
       },
       {
-        "Azimuth": -17.0,
-        "Elevation": 14.0,
+        "Azimuth": -18.0,
+        "Elevation": 18.0,
         "Radius": 1.966,
         "IsImaginary": false,
         "Channel": 2,
         "Gain": 1.0
       },
       {
-        "Azimuth": 25.0,
-        "Elevation": 21.5,
+        "Azimuth": 24.0,
+        "Elevation": 21.8,
         "Radius": 1.53,
         "IsImaginary": false,
         "Channel": 3,
         "Gain": 1.0
       },
       {
-        "Azimuth": 73.0,
-        "Elevation": 16.2,
+        "Azimuth": 72.0,
+        "Elevation": 18.6,
         "Radius": 2.0,
         "IsImaginary": false,
         "Channel": 4,
         "Gain": 1.0
       },
       {
-        "Azimuth": 115.0,
-        "Elevation": 23.9,
+        "Azimuth": 114.0,
+        "Elevation": 25.8,
         "Radius": 1.555,
         "IsImaginary": false,
         "Channel": 5,
         "Gain": 1.0
       },
       {
-        "Azimuth": 160.0,
-        "Elevation": 15.7,
+        "Azimuth": 159.0,
+        "Elevation": 17.7,
         "Radius": 2.015,
         "IsImaginary": false,
         "Channel": 6,
         "Gain": 1.0
       },
       {
-        "Azimuth": -155.0,
-        "Elevation": 22.3,
+        "Azimuth": -159.0,
+        "Elevation": 22.2,
         "Radius": 1.54,
         "IsImaginary": false,
         "Channel": 7,
         "Gain": 1.0
       },
       {
-        "Azimuth": -110.0,
-        "Elevation": 13.5,
+        "Azimuth": -111.0,
+        "Elevation": 17.1,
         "Radius": 1.995,
         "IsImaginary": false,
         "Channel": 8,
         "Gain": 1.0
       },
       {
-        "Azimuth": -64.0,
-        "Elevation": 50.6,
+        "Azimuth": -65.0,
+        "Elevation": 51.5,
         "Radius": 1.878,
         "IsImaginary": false,
         "Channel": 9,
@@ -76,7 +76,7 @@
       },
       {
         "Azimuth": 22.0,
-        "Elevation": 54.4,
+        "Elevation": 52.3,
         "Radius": 1.873,
         "IsImaginary": false,
         "Channel": 10,
@@ -84,15 +84,15 @@
       },
       {
         "Azimuth": 113.0,
-        "Elevation": 54.0,
+        "Elevation": 53.2,
         "Radius": 1.9,
         "IsImaginary": false,
         "Channel": 11,
         "Gain": 1.0
       },
       {
-        "Azimuth": -155.0,
-        "Elevation": 52.8,
+        "Azimuth": -157.0,
+        "Elevation": 52.6,
         "Radius": 1.894,
         "IsImaginary": false,
         "Channel": 12,
@@ -100,39 +100,39 @@
       },
       {
         "Azimuth": -58.0,
-        "Elevation": -34.2,
+        "Elevation": -8.3,
         "Radius": 1.23,
         "IsImaginary": false,
         "Channel": 13,
         "Gain": 1.0
       },
       {
-        "Azimuth": 33.0,
-        "Elevation": -34.4,
+        "Azimuth": 29.0,
+        "Elevation": -9.4,
         "Radius": 1.182,
         "IsImaginary": false,
         "Channel": 14,
         "Gain": 1.0
       },
       {
-        "Azimuth": 117.0,
-        "Elevation": -27.2,
+        "Azimuth": 115.0,
+        "Elevation": -4.5,
         "Radius": 1.212,
         "IsImaginary": false,
         "Channel": 15,
         "Gain": 1.0
       },
       {
-        "Azimuth": -159.0,
-        "Elevation": -28.9,
+        "Azimuth": -158.0,
+        "Elevation": -8.8,
         "Radius": 1.174,
         "IsImaginary": false,
         "Channel": 16,
         "Gain": 1.0
       },
       {
-        "Azimuth": -80.0,
-        "Elevation": 87.5,
+        "Azimuth": -96.0,
+        "Elevation": 88.4,
         "Radius": 1.72,
         "IsImaginary": false,
         "Channel": 17,

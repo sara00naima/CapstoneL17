@@ -25,8 +25,9 @@ Pipeline
    IMPORTANT: the reference directions are taken AS SEEN FROM THE MIC -- the
    Eigenmike sits 0.61 m above the CSV reference point, so each source appears
    at a different (parallax-shifted) elevation than the floor-referenced CSV
-   value.  Speakers whose direct sound is corrupted by the floor reflection
-   (the lowest ring) are rejected from the rotation fit automatically.
+   value.  An iterative outlier rejection drops any speaker that still does not
+   fit the rigid rotation (e.g. residual floor-reflection bias on the lowest
+   ring), so the orientation is fixed by the cleanly localised sources.
 5. Each source is placed at its (copied) distance along the estimated mic ray
    and re-expressed from the reference point -> (Distance, Azimuth, Elevation).
    Distance is COPIED from the reference CSV: the takes are not time-synchronised
@@ -60,11 +61,17 @@ MIC_HEIGHT_M = 0.61      # Eigenmike height ABOVE the CSV reference point [m]
 A_RADIUS = 0.042         # EM32 rigid-sphere radius [m]
 AZ_TRANS_TO_ORIGINAL = 70.0   # original azimuth = transcription azimuth + 70 deg
 
-# DOA analysis settings (validated against measurements_transcription.csv)
+# DOA analysis settings (validated against measurements_transcription.csv).
+# The window is deliberately SHORT (~1 ms): the lowest ring (A15-A18) sits close
+# to the floor, so a strong early reflection arrives only ~1 ms after the direct
+# sound; a longer window blends them and drags the estimated elevation ~30 deg
+# too low.  A 48-sample gate keeps mostly the direct wavefront.  The high band
+# (up to ~5 kHz, the EM32 order-4 spatial-aliasing limit) keeps enough frequency
+# bins for the modal beamformer despite the short window.
 SH_ORDER = 4
-BAND_HZ = (300.0, 4000.0)
-WIN_LEN = 192            # direct-sound snapshot length [samples] (~4 ms @ 48 kHz)
-WIN_PRE = 16            # samples kept before the direct peak
+BAND_HZ = (400.0, 5000.0)
+WIN_LEN = 48            # direct-sound snapshot length [samples] (~1 ms @ 48 kHz)
+WIN_PRE = 8             # samples kept before the direct peak
 GRID_STEP_DEG = 3.0     # DOA search-grid resolution
 CALIB_OUTLIER_DEG = 18.0  # speakers above this residual are dropped from the fit
 
