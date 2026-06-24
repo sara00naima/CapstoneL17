@@ -118,10 +118,14 @@ def _do_demix(state, status, on_done_callback):
 
     status.set(f"Demixing '{song_path.name}'… (this may take a while)")
 
+    def _progress(msg):
+        status.after(0, lambda: status.set(msg))
+
     all_results = demix_track_single(
         audio_path=str(song_path),
         output_dir=str(out_dir),
         model_path=state.demix_model_path,
+        progress_callback=_progress,
     )
 
     song_key = song_path.stem
