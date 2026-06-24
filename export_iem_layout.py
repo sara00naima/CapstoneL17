@@ -20,9 +20,20 @@ import argparse
 from pathlib import Path
 
 
-def parse_float(value: str) -> float:
-    """Accepts both '.' and ',' as decimal separators."""
-    return float(value.strip().replace(",", "."))
+def parse_float(value: str, default: float | None = None) -> float:
+    """Accepts both '.' and ',' as decimal separators.
+
+    If the field is empty and ``default`` is given, returns the default
+    instead of raising. The DOA estimation script leaves the Distance/Radius
+    column blank (it measures direction only), so the radius falls back to
+    ``default`` for those rows.
+    """
+    value = value.strip().replace(",", ".")
+    if not value:
+        if default is not None:
+            return default
+        raise ValueError("empty numeric field")
+    return float(value)
 
 
 def wrap_azimuth(angle_deg: float) -> float:
@@ -31,7 +42,7 @@ def wrap_azimuth(angle_deg: float) -> float:
     return 180.0 if abs(wrapped + 180.0) < 1e-9 else wrapped
 
 
-def load_speakers_from_csv(csv_path: Path) -> list[dict]:
+def load_speakers_from_csv(csv_path: Path, default_radius: float = 1.0) -> list[dict]:
     """
     Reads the museum CSV and returns a list of speaker dictionaries.
     Expected CSV format (delimiter ';'):
@@ -53,8 +64,10 @@ def load_speakers_from_csv(csv_path: Path) -> list[dict]:
             if not label or not label.startswith("A"):
                 continue
 
-            radius_m    = parse_float(fields[1])
-            azimuth_deg = wrap_azimuth(parse_float(fields[2]))
+            radius_m    = parse_float(fields[1], default=default_radius)
+            # Compass CSV (90=Right) -> IEM ambisonics (+90=Left): negate. See
+            # module docstring; without this the whole layout is mirrored L<->R.
+            azimuth_deg = wrap_azimuth(-parse_float(fields[2]))
             # fields[3] = cardinal (N/S/E/W ecc.) — non serve per IEM
             elevation_deg = parse_float(fields[4])
 
@@ -138,13 +151,20 @@ def main():
         default=Path(__file__).resolve().parent / "museum_17ch_iem.json",
         help="Path to the output JSON file (default: museum_17ch_iem.json in the same directory)"
     )
+    parser.add_argument(
+        "--default-radius",
+        type=float,
+        default=1.0,
+        help="Radius [m] used for real speakers when the CSV Distance column "
+             "is empty (the DOA estimator measures direction only)"
+    )
     args = parser.parse_args()
 
     if not args.csv.exists():
         raise FileNotFoundError(f"CSV not found: {args.csv}")
 
     print(f"Reading layout from: {args.csv}")
-    speakers = load_speakers_from_csv(args.csv)
+    speakers = load_speakers_from_csv(args.csv, default_radius=args.default_radius)
     print(f"  Found {len(speakers)} speakers: {[s['label'] for s in speakers]}")
 
     layout = build_iem_json(speakers)
