@@ -78,20 +78,61 @@ class LivePlayer:
             )
 
         self._stream = None
+        # Current trajectory position per stem in GUI screen convention (right = +),
+        # written by the audio callback and read by the GUI animation loop.
+        self.display_positions: dict[str, tuple[float, float]] = {}
+
+    def _position_at_time(self, src, t_seconds: float) -> tuple[float, float]:
+        """
+        Returns (az_deg, el_deg) in GUI screen convention (right = +).
+        If the source has a recorded movement, the gesture is looped using the same
+        hold-and-loop logic as generate_from_recording() — evaluated per block instead
+        of pre-computed for all frames.  Falls back to the static azimuth/elevation
+        when no recording is present.
+        """
+        recording = src.recorded_movement  # snapshot reference (thread-safe on CPython)
+
+        if not recording:
+            return src.azimuth, src.elevation
+
+        samples = sorted(recording, key=lambda s: s[0])
+        loop_duration = samples[-1][0]
+
+        if loop_duration <= 0:
+            _, azi_deg, ele_deg = samples[0]
+            return azi_deg, ele_deg
+
+        t = t_seconds % loop_duration
+
+        # Hold: advance to the last sample whose timestamp is <= t
+        idx = 0
+        for i, (st, _, _) in enumerate(samples):
+            if st <= t:
+                idx = i
+            else:
+                break
+
+        _, azi_deg, ele_deg = samples[idx]
+        return azi_deg, ele_deg
 
     def _callback(self, outdata: np.ndarray, frames: int, time_info, status) -> None:
         out = np.zeros((frames, 2), dtype=np.float64)
 
+        any_solo = any(s.solo for s in self._state.sources)
+
         for src in self._state.sources:
             if src.mute or src.name not in self._stems:
                 continue
+            if any_solo and not src.solo:
+                continue
 
             audio = self._stems[src.name]
-            pos = self._read_pos[src.name]
+            start_pos = self._read_pos[src.name]
+            t_seconds = start_pos / self._sr
 
             # Read `frames` samples with seamless looping
             chunk = np.empty(frames, dtype=np.float64)
-            remaining, offset = frames, 0
+            remaining, offset, pos = frames, 0, start_pos
             while remaining > 0:
                 take = min(len(audio) - pos, remaining)
                 chunk[offset:offset + take] = audio[pos:pos + take]
@@ -103,10 +144,12 @@ class LivePlayer:
             if src.gain_db != 0.0:
                 chunk *= 10.0 ** (src.gain_db / 20.0)
 
-            # GUI azimuth uses screen convention (right = +).
-            # SOFA and Ambisonics use CCW (left = +), so negate — same as _do_generate.
-            az_rad = deg2rad(-src.azimuth)
-            el_rad = deg2rad(src.elevation)
+            az_gui, el_gui = self._position_at_time(src, t_seconds)
+            # Publish for the GUI animation loop (GUI screen convention, degrees)
+            self.display_positions[src.name] = (az_gui, el_gui)
+            # Negate azimuth: GUI uses right=+, Ambisonics uses left=+
+            az_rad = deg2rad(-az_gui)
+            el_rad = deg2rad(el_gui)
             idx = nearest_hrtf_index(az_rad, el_rad, self._sofa_az, self._sofa_el)
             hrir_fft = self._hrir_ffts[idx]  # (2, n_fft//2 + 1)
 

@@ -429,6 +429,7 @@ class SceneView(tk.Canvas):
         self._record_start_time = None  # time.perf_counter() at REC start
         self._record_samples = []       # [(t_seconds, azimuth_deg, elevation_deg), ...]
         self._record_btn_ref = None     # external "Record Movement" tk.Button, for visual toggling
+        self._live_player = None        # LivePlayer reference during playback
 
         self.bind("<Configure>", lambda _e: self.redraw())
         self.bind("<Button-1>", self._on_press)
@@ -446,6 +447,20 @@ class SceneView(tk.Canvas):
 
     def set_record_button(self, btn):
         self._record_btn_ref = btn
+
+    def set_live_player(self, player):
+        """Call with a LivePlayer to start animating trajectories, or None to stop."""
+        self._live_player = player
+        if player is not None:
+            self._animate_live()
+        else:
+            self.redraw()
+
+    def _animate_live(self):
+        if self._live_player is None:
+            return
+        self.redraw()
+        self.after(50, self._animate_live)  # ~20 fps
 
     # --- Record Movement: public API, called by the "Record Movement" button ---
 
@@ -524,13 +539,16 @@ class SceneView(tk.Canvas):
         h = self.winfo_height()
         return max(120, min(w, h) * 0.34)
 
-    def _source_to_xy(self, source: SourceState):
+    def _source_to_xy_deg(self, az: float, el: float):
         cx, cy = self._center()
-        r = self._effective_radius() * math.cos(math.radians(max(0, source.elevation)))
-        angle_rad = math.radians(90 - source.azimuth)
+        r = self._effective_radius() * math.cos(math.radians(max(0, el)))
+        angle_rad = math.radians(90 - az)
         x = cx + r * math.cos(angle_rad)
         y = cy - r * math.sin(angle_rad)
         return x, y
+
+    def _source_to_xy(self, source: SourceState):
+        return self._source_to_xy_deg(source.azimuth, source.elevation)
 
     def _xy_to_az(self, x, y):
         cx, cy = self._center()
@@ -596,9 +614,26 @@ class SceneView(tk.Canvas):
             if src.mute:
                 continue
 
-            x, y = self._source_to_xy(src)
+            # During live playback, sources with a recorded movement follow the trajectory
+            live_pos = None
+            if self._live_player is not None and src.recorded_movement:
+                live_pos = self._live_player.display_positions.get(src.name)
+
+            display_az = live_pos[0] if live_pos else src.azimuth
+            display_el = live_pos[1] if live_pos else src.elevation
+            x, y = self._source_to_xy_deg(display_az, display_el)
+
             nr = self.NODE_R
             col = src.color
+
+            # Faint trajectory trail while the live player is animating this source
+            if live_pos is not None:
+                pts = [
+                    self._source_to_xy_deg(azi_deg, ele_deg)
+                    for _, azi_deg, ele_deg in src.recorded_movement
+                ]
+                for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+                    self.create_line(x1, y1, x2, y2, fill=col, width=1, dash=(3, 5))
 
             self.create_line(cx, cy, x, y, fill=col, width=1, dash=(3, 3))
             self.create_oval(
@@ -606,7 +641,7 @@ class SceneView(tk.Canvas):
                 outline="", fill="#2B2119"
             )
 
-            el_r = nr + 5 + (src.elevation / 90) * 11
+            el_r = nr + 5 + (display_el / 90) * 11
             self.create_oval(x - el_r, y - el_r, x + el_r, y + el_r, outline=col, width=1, dash=(2, 3))
 
             self.create_oval(x - nr, y - nr, x + nr, y + nr, fill=col, outline=TEXT, width=1.5)
@@ -624,7 +659,7 @@ class SceneView(tk.Canvas):
             self.create_text(
                 x,
                 y + nr + 10,
-                text=f"{src.azimuth:+.0f}°",
+                text=f"{display_az:+.0f}°",
                 fill=TEXT_DIM,
                 font=("Courier", 8),
                 anchor="n",
@@ -652,10 +687,10 @@ class SceneView(tk.Canvas):
         # Trail: connect the recorded samples in order so the user can see
         # the shape of the gesture as they draw it.
         if len(self._record_samples) >= 2:
-            pts = []
-            for _, azi_deg, ele_deg in self._record_samples:
-                tmp = SourceState(name="", color="", azimuth=azi_deg, elevation=ele_deg)
-                pts.append(self._source_to_xy(tmp))
+            pts = [
+                self._source_to_xy_deg(azi_deg, ele_deg)
+                for _, azi_deg, ele_deg in self._record_samples
+            ]
 
             for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
                 self.create_line(x1, y1, x2, y2, fill="#FF6B6B", width=2)

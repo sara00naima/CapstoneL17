@@ -51,6 +51,7 @@ class SpatialAudioGUI(tk.Tk):
         self._topbar_gradient = None
         self._play_item = None
         self._live_player = None
+        self._scene_view = None
         self._build()
 
     def _panel_header(self, parent, text):
@@ -237,6 +238,7 @@ class SpatialAudioGUI(tk.Tk):
 
         scene_view = SceneView(centre, s)
         scene_view.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+        self._scene_view = scene_view
 
         record_bar = tk.Frame(centre, bg=PANEL_BG)
         record_bar.pack(fill="x", padx=8, pady=(0, 8))
@@ -326,6 +328,8 @@ class SpatialAudioGUI(tk.Tk):
         if self._live_player is not None:
             self._live_player.stop()
             self._live_player = None
+            if self._scene_view is not None:
+                self._scene_view.set_live_player(None)
             self._play_btn.config(text="▶  Play")
             return
 
@@ -344,6 +348,8 @@ class SpatialAudioGUI(tk.Tk):
                 self._play_btn.after(0, lambda: self._play_btn.config(
                     text="■  Stop", state="normal"
                 ))
+                if self._scene_view is not None:
+                    self._play_btn.after(0, lambda p=player: self._scene_view.set_live_player(p))
             except Exception as e:
                 self._live_player = None
                 self._play_btn.after(0, lambda: self._play_btn.config(
