@@ -105,7 +105,7 @@ def run_demix_and_populate(state, status, btn: tk.Button, on_done_callback):
 
 
 def _do_demix(state, status, on_done_callback):
-    from spatial_pipeline.demix import demix_folder
+    from spatial_pipeline.demix import demix_track_single
 
     if not state.song_path:
         raise ValueError("No song file selected. Browse a song first.")
@@ -118,8 +118,8 @@ def _do_demix(state, status, on_done_callback):
 
     status.set(f"Demixing '{song_path.name}'… (this may take a while)")
 
-    all_results = demix_folder(
-        input_dir=str(song_path.parent),
+    all_results = demix_track_single(
+        audio_path=str(song_path),
         output_dir=str(out_dir),
         model_path=state.demix_model_path,
     )
