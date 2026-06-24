@@ -78,6 +78,7 @@ class AppState:
         self.out_dir = PROJECT_ROOT / "outputs"
         self.hoa_order = 3
         self.output_name = ""
+        self.last_output_path: str | None = None
 
 
 def populate_sources_from_stem_paths(state: AppState, stems: dict[str, str]):
@@ -266,5 +267,6 @@ def _do_generate(state: AppState, status):
     else:
         raise ValueError(f"Unknown renderer: {renderer}")
 
+    state.last_output_path = out
     status.set(f"Done! Output saved to {out}")
     messagebox.showinfo("Done", f"Output saved:\n{out}")

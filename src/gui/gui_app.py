@@ -7,6 +7,13 @@ python src/gui/gui_app.py
 import threading
 import tkinter as tk
 
+try:
+    import sounddevice as _sd
+    import soundfile as _sf
+    _PLAYBACK_AVAILABLE = True
+except ImportError:
+    _PLAYBACK_AVAILABLE = False
+
 from gui_backend import (
     AppState,
     BG,
@@ -43,6 +50,8 @@ class SpatialAudioGUI(tk.Tk):
         self._generate_item = None
         self._title_item = None
         self._topbar_gradient = None
+        self._play_item = None
+        self._playing = False
         self._build()
 
     def _panel_header(self, parent, text):
@@ -105,6 +114,7 @@ class SpatialAudioGUI(tk.Tk):
 
         canvas.coords(self._title_item, w // 2, h // 2)
         canvas.coords(self._generate_item, w - 95, h // 2)
+        canvas.coords(self._play_item, 95, h // 2)
 
     def _on_generate_enter(self, _event=None):
         self._topbar.itemconfig(self._generate_item, image=self._gen_img_hover)
@@ -155,6 +165,25 @@ class SpatialAudioGUI(tk.Tk):
         self._topbar.tag_bind(self._generate_item, "<Leave>", self._on_generate_leave)
         self._topbar.tag_bind(self._generate_item, "<ButtonPress-1>", self._on_generate_press)
         self._topbar.tag_bind(self._generate_item, "<ButtonRelease-1>", self._on_generate_release)
+
+        self._play_btn = tk.Button(
+            self._topbar,
+            text="▶  Play",
+            font=("Helvetica", 10, "bold"),
+            bg=ACCENT2,
+            fg="#241B15",
+            activebackground="#96B87A",
+            activeforeground="#241B15",
+            relief="raised",
+            bd=1,
+            highlightthickness=1,
+            highlightbackground=BORDER,
+            padx=12,
+            pady=6,
+            cursor="hand2",
+            command=self._on_play_stop,
+        )
+        self._play_item = self._topbar.create_window(0, 0, window=self._play_btn, anchor="center")
 
         self._status = StatusBar(self)
         self._status.pack(fill="x", side="bottom")
@@ -284,6 +313,39 @@ class SpatialAudioGUI(tk.Tk):
             return
 
         scene_view.clear_recorded_movement(inspector_source)
+
+    def _on_play_stop(self):
+        if not _PLAYBACK_AVAILABLE:
+            from tkinter import messagebox
+            messagebox.showerror(
+                "Missing dependency",
+                "Install sounddevice to enable playback:\n  pip install sounddevice",
+            )
+            return
+
+        if self._playing:
+            _sd.stop()
+            self._playing = False
+            self._play_btn.config(text="▶  Play")
+            return
+
+        path = self.state.last_output_path
+        if not path:
+            from tkinter import messagebox
+            messagebox.showinfo("No output", "Generate audio first, then press Play.")
+            return
+
+        data, sr = _sf.read(path)
+        _sd.play(data, sr)
+        self._playing = True
+        self._play_btn.config(text="■  Stop")
+
+        def _monitor():
+            _sd.wait()
+            self._playing = False
+            self._play_btn.after(0, lambda: self._play_btn.config(text="▶  Play"))
+
+        threading.Thread(target=_monitor, daemon=True).start()
 
     def _on_generate(self):
         fake_btn = _CanvasButtonProxy(
