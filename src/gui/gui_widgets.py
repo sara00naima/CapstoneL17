@@ -5,6 +5,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
 
+from PIL import Image, ImageDraw, ImageTk
+
 
 from gui_backend import (
     BG_2,
@@ -25,6 +27,66 @@ from gui_backend import (
     run_demix_and_populate,
     populate_sources_from_stem_paths,
 )
+
+def _pil_rgb(hex_color: str) -> tuple[int, int, int]:
+    c = hex_color.lstrip("#")
+    return int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16)
+
+
+def _pil_dashed_line(draw, x1, y1, x2, y2, fill, width, dash):
+    length = math.hypot(x2 - x1, y2 - y1)
+    if length < 1:
+        return
+    dx, dy = (x2 - x1) / length, (y2 - y1) / length
+    on, budget, pos = True, dash[0], 0.0
+    while pos < length:
+        end = min(pos + budget, length)
+        if on:
+            draw.line(
+                [(x1 + dx * pos, y1 + dy * pos), (x1 + dx * end, y1 + dy * end)],
+                fill=fill, width=width,
+            )
+        budget -= end - pos
+        if budget <= 0:
+            on = not on
+            budget = dash[0] if on else dash[1]
+        pos = end
+
+
+def _pil_dashed_ellipse(draw, x1, y1, x2, y2, fill, width, dash):
+    cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+    rx, ry = (x2 - x1) / 2, (y2 - y1) / 2
+    if rx < 1 or ry < 1:
+        return
+    n = 120
+    pts = [
+        (cx + rx * math.cos(2 * math.pi * i / n),
+         cy + ry * math.sin(2 * math.pi * i / n))
+        for i in range(n + 1)
+    ]
+    on, budget = True, dash[0]
+    for i in range(n):
+        px1, py1 = pts[i]
+        px2, py2 = pts[i + 1]
+        seg = math.hypot(px2 - px1, py2 - py1)
+        if seg < 0.001:
+            continue
+        dx, dy = (px2 - px1) / seg, (py2 - py1) / seg
+        pos = 0.0
+        while pos < seg:
+            end = min(pos + budget, seg)
+            if on:
+                draw.line(
+                    [(px1 + dx * pos, py1 + dy * pos),
+                     (px1 + dx * end, py1 + dy * end)],
+                    fill=fill, width=width,
+                )
+            budget -= end - pos
+            if budget <= 0:
+                on = not on
+                budget = dash[0] if on else dash[1]
+            pos = end
+
 
 def make_button_3d(btn, base_bg, *, fg=TEXT, border=BORDER, active_bg=None, pressed_bg=None):
     active_bg = active_bg or base_bg
@@ -430,6 +492,9 @@ class SceneView(tk.Canvas):
         self._record_samples = []       # [(t_seconds, azimuth_deg, elevation_deg), ...]
         self._record_btn_ref = None     # external "Record Movement" tk.Button, for visual toggling
         self._live_player = None        # LivePlayer reference during playback
+        self._bg_pil = None             # cached PIL gradient image at 2× (rebuilt on resize only)
+        self._bg_size = (0, 0)
+        self._scene_photo = None        # PhotoImage ref kept to prevent GC
 
         self.bind("<Configure>", lambda _e: self.redraw())
         self.bind("<Button-1>", self._on_press)
@@ -565,56 +630,77 @@ class SceneView(tk.Canvas):
         if w < 2 or h < 2:
             return
 
-        cx, cy = self._center()
+        S = 4  # supersampling scale
+        sw, sh = w * S, h * S
+        cx, cy = w / 2, h / 2
         R = self._effective_radius()
 
-        steps = 90
-        for i in range(steps):
-            t = i / max(1, steps - 1)
-            r = int(36 + (58 - 36) * t)
-            g = int(27 + (44 - 27) * t)
-            b = int(21 + (34 - 21) * t)
-            col = f"#{r:02x}{g:02x}{b:02x}"
-            y1 = int(i * h / steps)
-            y2 = int((i + 1) * h / steps)
-            self.create_rectangle(0, y1, w, y2, outline="", fill=col)
+        # --- Background gradient (PIL image cached at 2×, rebuilt only on resize) ---
+        if self._bg_size != (sw, sh):
+            bg = Image.new("RGB", (sw, sh))
+            bg_draw = ImageDraw.Draw(bg)
+            for sy in range(sh):
+                t = sy / max(1, sh - 1)
+                rc = int(36 + (58 - 36) * t)
+                gc = int(27 + (44 - 27) * t)
+                bc = int(21 + (34 - 21) * t)
+                bg_draw.line([(0, sy), (sw - 1, sy)], fill=(rc, gc, bc))
+            self._bg_pil = bg
+            self._bg_size = (sw, sh)
 
+        img = self._bg_pil.copy()
+        draw = ImageDraw.Draw(img)
+
+        # helpers that work in canvas coords but draw at 2× into `img`
+        def sc(v):
+            return v * S
+
+        def _e(x1, y1, x2, y2, *, fill=None, outline=None, width=1):
+            kw = {"width": max(1, round(width * S))}
+            if fill:
+                kw["fill"] = _pil_rgb(fill)
+            if outline:
+                kw["outline"] = _pil_rgb(outline)
+            draw.ellipse([sc(x1), sc(y1), sc(x2), sc(y2)], **kw)
+
+        def _dl(x1, y1, x2, y2, *, fill, width=1, dash=None):
+            f = _pil_rgb(fill)
+            lw = max(1, round(width * S))
+            if dash is None:
+                draw.line([(sc(x1), sc(y1)), (sc(x2), sc(y2))], fill=f, width=lw)
+            else:
+                _pil_dashed_line(draw, sc(x1), sc(y1), sc(x2), sc(y2),
+                                 f, lw, (dash[0] * S, dash[1] * S))
+
+        # --- Concentric filled rings ---
         for rr, col in [
-            (R * 0.82, "#3B2B21"),
-            (R * 0.62, "#473327"),
-            (R * 0.44, "#534032"),
-            (R * 0.28, "#604B3C"),
+            (R * 0.82, "#3B2B21"), (R * 0.62, "#473327"),
+            (R * 0.44, "#534032"), (R * 0.28, "#604B3C"),
         ]:
-            self.create_oval(cx - rr, cy - rr, cx + rr, cy + rr, outline="", fill=col)
+            _e(cx - rr, cy - rr, cx + rr, cy + rr, fill=col)
 
-        self.create_rectangle(1, 1, w - 1, h - 1, outline=BORDER, width=1)
+        # --- Border ---
+        draw.rectangle([S, S, sw - S, sh - S], outline=_pil_rgb(BORDER), width=S)
 
-        for frac, col, width in [
-            (0.33, "#5A4A36", 1),
-            (0.66, "#6A5A45", 1),
-            (1.00, "#7B6A53", 1),
-        ]:
+        # --- Distance rings ---
+        for frac, col in [(0.33, "#5A4A36"), (0.66, "#6A5A45"), (1.00, "#7B6A53")]:
             rr = R * frac
-            self.create_oval(cx - rr, cy - rr, cx + rr, cy + rr, outline=col, width=width)
+            _e(cx - rr, cy - rr, cx + rr, cy + rr, outline=col)
 
-        self.create_line(cx - R - 10, cy, cx + R + 10, cy, fill="#74624D", width=1, dash=(4, 4))
-        self.create_line(cx, cy - R - 10, cx, cy + R + 10, fill="#74624D", width=1, dash=(4, 4))
+        # --- Crosshair ---
+        _dl(cx - R - 10, cy, cx + R + 10, cy, fill="#74624D", dash=(4, 4))
+        _dl(cx, cy - R - 10, cx, cy + R + 10, fill="#74624D", dash=(4, 4))
 
-        label_col = TEXT_DIM
-        self.create_text(cx, cy - R - 40, text="FRONT", fill=label_col, font=("Helvetica", 9, "bold"), anchor="s")
-        self.create_text(cx, cy + R + 40, text="BACK", fill=label_col, font=("Helvetica", 9, "bold"), anchor="n")
-        self.create_text(cx - R - 40, cy, text="LEFT", fill=label_col, font=("Helvetica", 9, "bold"), anchor="e")
-        self.create_text(cx + R + 40, cy, text="RIGHT", fill=label_col, font=("Helvetica", 9, "bold"), anchor="w")
+        # --- Listener marker ---
+        _e(cx - 15, cy - 15, cx + 15, cy + 15, fill="#2C2119", outline="#7A5C43")
+        _e(cx - 8,  cy - 8,  cx + 8,  cy + 8,  fill="#3A2A1F", outline=ACCENT, width=2)
 
-        self.create_oval(cx - 15, cy - 15, cx + 15, cy + 15, outline="#7A5C43", width=1, fill="#2C2119")
-        self.create_oval(cx - 8, cy - 8, cx + 8, cy + 8, fill="#3A2A1F", outline=ACCENT, width=2)
-        self.create_text(cx, cy, text="•", fill=ACCENT, font=("Helvetica", 14, "bold"))
-
-        for i, src in enumerate(self.state.sources):
+        # --- Sources ---
+        nr = self.NODE_R
+        for src in self.state.sources:
             if src.mute:
                 continue
 
-            # During live playback, sources with a recorded movement follow the trajectory
             live_pos = None
             if self._live_player is not None and src.recorded_movement:
                 live_pos = self._live_player.display_positions.get(src.name)
@@ -622,92 +708,88 @@ class SceneView(tk.Canvas):
             display_az = live_pos[0] if live_pos else src.azimuth
             display_el = live_pos[1] if live_pos else src.elevation
             x, y = self._source_to_xy_deg(display_az, display_el)
-
-            nr = self.NODE_R
             col = src.color
 
-            # Faint trajectory trail while the live player is animating this source
+            # Trajectory trail during live playback
             if live_pos is not None:
-                pts = [
+                trail_pts = [
                     self._source_to_xy_deg(azi_deg, ele_deg)
                     for _, azi_deg, ele_deg in src.recorded_movement
                 ]
-                for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
-                    self.create_line(x1, y1, x2, y2, fill=col, width=1, dash=(3, 5))
+                for (tx1, ty1), (tx2, ty2) in zip(trail_pts, trail_pts[1:]):
+                    _pil_dashed_line(draw, sc(tx1), sc(ty1), sc(tx2), sc(ty2),
+                                     _pil_rgb(col), S, (3 * S, 5 * S))
 
-            self.create_line(cx, cy, x, y, fill=col, width=1, dash=(3, 3))
-            self.create_oval(
-                x - (nr + 7), y - (nr + 7), x + (nr + 7), y + (nr + 7),
-                outline="", fill="#2B2119"
-            )
+            # Stem line from listener to node
+            _pil_dashed_line(draw, sc(cx), sc(cy), sc(x), sc(y),
+                             _pil_rgb(col), S, (3 * S, 3 * S))
 
+            # Shadow halo
+            _e(x - (nr + 7), y - (nr + 7), x + (nr + 7), y + (nr + 7), fill="#2B2119")
+
+            # Elevation ring
             el_r = nr + 5 + (display_el / 90) * 11
-            self.create_oval(x - el_r, y - el_r, x + el_r, y + el_r, outline=col, width=1, dash=(2, 3))
+            _pil_dashed_ellipse(draw,
+                                sc(x - el_r), sc(y - el_r), sc(x + el_r), sc(y + el_r),
+                                _pil_rgb(col), S, (2 * S, 3 * S))
 
-            self.create_oval(x - nr, y - nr, x + nr, y + nr, fill=col, outline=TEXT, width=1.5)
-            self.create_oval(x - nr + 3, y - nr + 3, x - nr + 6, y - nr + 6, outline="", fill="#fffaf2")
+            # Node circle with outline
+            _e(x - nr, y - nr, x + nr, y + nr, fill=col, outline=TEXT, width=1.5)
 
-            self.create_text(
-                x,
-                y - nr - 10,
-                text=src.name,
-                fill=TEXT,
-                font=("Helvetica", 8, "bold"),
-                anchor="s",
+            # Shine highlight
+            draw.ellipse(
+                [sc(x - nr + 3), sc(y - nr + 3), sc(x - nr + 6), sc(y - nr + 6)],
+                fill=(255, 250, 242),
             )
 
-            self.create_text(
-                x,
-                y + nr + 10,
-                text=f"{display_az:+.0f}°",
-                fill=TEXT_DIM,
-                font=("Courier", 8),
-                anchor="n",
-            )
-
-            if src.recorded_movement and src is not self._record_source:
-                # Small loop badge marking a saved recorded movement.
-                self.create_text(
-                    x + nr + 6,
-                    y - nr - 6,
-                    text="↻",
-                    fill=ACCENT,
-                    font=("Helvetica", 11, "bold"),
-                    anchor="center",
-                )
-
+        # --- Recording overlay (PIL part: trail + ring) ---
         if self._recording and self._record_source is not None:
-            self._draw_recording_overlay()
+            src = self._record_source
+            if len(self._record_samples) >= 2:
+                pts = [self._source_to_xy_deg(az, el) for _, az, el in self._record_samples]
+                for (rx1, ry1), (rx2, ry2) in zip(pts, pts[1:]):
+                    draw.line([(sc(rx1), sc(ry1)), (sc(rx2), sc(ry2))],
+                              fill=(255, 107, 107), width=max(2, round(2 * S)))
+            rx, ry = self._source_to_xy(src)
+            draw.ellipse(
+                [sc(rx - nr - 3), sc(ry - nr - 3), sc(rx + nr + 3), sc(ry + nr + 3)],
+                outline=(255, 107, 107), width=max(2, round(2 * S)),
+            )
 
-    def _draw_recording_overlay(self):
-        """Draws the live trail of the gesture being recorded, plus a REC badge."""
-        cx, cy = self._center()
-        src = self._record_source
+        # --- Downscale with LANCZOS → smooth anti-aliased result ---
+        img = img.resize((w, h), Image.LANCZOS)
+        self._scene_photo = ImageTk.PhotoImage(img)
+        self.create_image(0, 0, image=self._scene_photo, anchor="nw")
 
-        # Trail: connect the recorded samples in order so the user can see
-        # the shape of the gesture as they draw it.
-        if len(self._record_samples) >= 2:
-            pts = [
-                self._source_to_xy_deg(azi_deg, ele_deg)
-                for _, azi_deg, ele_deg in self._record_samples
-            ]
+        # --- Text labels (native Tkinter — crisp on all platforms) ---
+        label_col = TEXT_DIM
+        self.create_text(cx, cy - R - 40, text="FRONT", fill=label_col, font=("Helvetica", 9, "bold"), anchor="s")
+        self.create_text(cx, cy + R + 40, text="BACK",  fill=label_col, font=("Helvetica", 9, "bold"), anchor="n")
+        self.create_text(cx - R - 40, cy, text="LEFT",  fill=label_col, font=("Helvetica", 9, "bold"), anchor="e")
+        self.create_text(cx + R + 40, cy, text="RIGHT", fill=label_col, font=("Helvetica", 9, "bold"), anchor="w")
+        self.create_text(cx, cy, text="•", fill=ACCENT, font=("Helvetica", 14, "bold"))
 
-            for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
-                self.create_line(x1, y1, x2, y2, fill="#FF6B6B", width=2)
+        for src in self.state.sources:
+            if src.mute:
+                continue
+            live_pos = None
+            if self._live_player is not None and src.recorded_movement:
+                live_pos = self._live_player.display_positions.get(src.name)
+            display_az = live_pos[0] if live_pos else src.azimuth
+            display_el = live_pos[1] if live_pos else src.elevation
+            x, y = self._source_to_xy_deg(display_az, display_el)
+            self.create_text(x, y - nr - 10, text=src.name,
+                             fill=TEXT, font=("Helvetica", 8, "bold"), anchor="s")
+            self.create_text(x, y + nr + 10, text=f"{display_az:+.0f}°",
+                             fill=TEXT_DIM, font=("Courier", 8), anchor="n")
+            if src.recorded_movement and src is not self._record_source:
+                self.create_text(x + nr + 6, y - nr - 6, text="↻",
+                                 fill=ACCENT, font=("Helvetica", 11, "bold"), anchor="center")
 
-        x, y = self._source_to_xy(src)
-        self.create_oval(
-            x - self.NODE_R - 3, y - self.NODE_R - 3,
-            x + self.NODE_R + 3, y + self.NODE_R + 3,
-            outline="#FF6B6B", width=2,
-        )
-        self.create_text(
-            cx, 18,
-            text="● RECORDING — click the button again to stop",
-            fill="#FF6B6B",
-            font=("Helvetica", 10, "bold"),
-            anchor="n",
-        )
+        if self._recording:
+            self.create_text(cx, 18,
+                             text="● RECORDING — click the button again to stop",
+                             fill="#FF6B6B", font=("Helvetica", 10, "bold"), anchor="n")
 
     def _on_press(self, event):
         if self._recording:

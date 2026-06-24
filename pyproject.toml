@@ -11,7 +11,9 @@ dependencies = [
     "scipy",
     "soundfile",
     "sofar",
-    "matplotlib"
+    "matplotlib",
+    "sounddevice",
+    "Pillow",
 ]
 
 [tool.setuptools]
