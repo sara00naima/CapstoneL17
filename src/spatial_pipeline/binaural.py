@@ -63,7 +63,7 @@ def render_binaural(
     return np.stack([left, right], axis=1).astype(np.float32)
 
 
-def _nearest_hrtf_index(
+def nearest_hrtf_index(
     az: float,
     el: float,
     sofa_az: np.ndarray,
@@ -118,7 +118,7 @@ def render_ls17_binaural(
     right_fft = np.zeros(N_fft // 2 + 1, dtype=np.complex128)
 
     for i in range(len(speakers)):
-        idx        = _nearest_hrtf_index(az_rad[i], el_rad[i], sofa_az, sofa_el)
+        idx        = nearest_hrtf_index(az_rad[i], el_rad[i], sofa_az, sofa_el)
         feed_fft   = rfft(speaker_feeds[:, i], n=N_fft)
         left_fft  += feed_fft * rfft(hrirs[idx, 0, :], n=N_fft)
         right_fft += feed_fft * rfft(hrirs[idx, 1, :], n=N_fft)

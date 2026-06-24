@@ -8,8 +8,7 @@ import threading
 import tkinter as tk
 
 try:
-    import sounddevice as _sd
-    import soundfile as _sf
+    import sounddevice as _sd  # noqa: F401 — import check only
     _PLAYBACK_AVAILABLE = True
 except ImportError:
     _PLAYBACK_AVAILABLE = False
@@ -51,7 +50,7 @@ class SpatialAudioGUI(tk.Tk):
         self._title_item = None
         self._topbar_gradient = None
         self._play_item = None
-        self._playing = False
+        self._live_player = None
         self._build()
 
     def _panel_header(self, parent, text):
@@ -315,37 +314,44 @@ class SpatialAudioGUI(tk.Tk):
         scene_view.clear_recorded_movement(inspector_source)
 
     def _on_play_stop(self):
+        from tkinter import messagebox
+
         if not _PLAYBACK_AVAILABLE:
-            from tkinter import messagebox
             messagebox.showerror(
                 "Missing dependency",
                 "Install sounddevice to enable playback:\n  pip install sounddevice",
             )
             return
 
-        if self._playing:
-            _sd.stop()
-            self._playing = False
+        if self._live_player is not None:
+            self._live_player.stop()
+            self._live_player = None
             self._play_btn.config(text="▶  Play")
             return
 
-        path = self.state.last_output_path
-        if not path:
-            from tkinter import messagebox
-            messagebox.showinfo("No output", "Generate audio first, then press Play.")
-            return
+        # Load HRTF + stems in a background thread to avoid freezing the UI
+        self._play_btn.config(text="Loading…", state="disabled")
 
-        data, sr = _sf.read(path)
-        _sd.play(data, sr)
-        self._playing = True
-        self._play_btn.config(text="■  Stop")
+        def _start():
+            try:
+                from spatial_pipeline.live_player import LivePlayer
+                from spatial_pipeline.config import DEFAULT_HRTF_SOFA
 
-        def _monitor():
-            _sd.wait()
-            self._playing = False
-            self._play_btn.after(0, lambda: self._play_btn.config(text="▶  Play"))
+                sofa = str(self.state.hrtf_path) if self.state.hrtf_path else str(DEFAULT_HRTF_SOFA)
+                player = LivePlayer(self.state, sofa)
+                player.start()
+                self._live_player = player
+                self._play_btn.after(0, lambda: self._play_btn.config(
+                    text="■  Stop", state="normal"
+                ))
+            except Exception as e:
+                self._live_player = None
+                self._play_btn.after(0, lambda: self._play_btn.config(
+                    text="▶  Play", state="normal"
+                ))
+                self._play_btn.after(0, lambda: messagebox.showerror("Playback error", str(e)))
 
-        threading.Thread(target=_monitor, daemon=True).start()
+        threading.Thread(target=_start, daemon=True).start()
 
     def _on_generate(self):
         fake_btn = _CanvasButtonProxy(
