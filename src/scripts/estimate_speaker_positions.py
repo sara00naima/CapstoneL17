@@ -33,8 +33,8 @@ Pipeline
    Distance is COPIED from the reference CSV: the takes are not time-synchronised
    to the playback (the direct-path delays span seconds), so time-of-flight
    cannot recover absolute distance from these files.
-6. Output CSV identical in format to ``measurements_transcription_original.csv``
-   (azimuth in the room compass frame = transcription azimuth + 70 deg).
+6. Output CSV identical in format to ``measurements_transcription.csv``
+   (azimuth in the transcription compass frame, i.e. A3 ~ 0 deg).
 
 Usage
 -----
@@ -59,7 +59,7 @@ from scipy.signal.windows import hann
 C_SOUND = 343.0          # speed of sound [m/s]
 MIC_HEIGHT_M = 0.61      # Eigenmike height ABOVE the CSV reference point [m]
 A_RADIUS = 0.042         # EM32 rigid-sphere radius [m]
-AZ_TRANS_TO_ORIGINAL = 70.0   # original azimuth = transcription azimuth + 70 deg
+AZ_OFFSET_DEG = 0.0   # output azimuth = transcription azimuth + this offset (transcription frame)
 
 # DOA analysis settings (validated against measurements_transcription.csv).
 # The window is deliberately SHORT (~1 ms): the lowest ring (A15-A18) sits close
@@ -352,12 +352,12 @@ def main() -> int:
         dist_ref = ref[label]["distance"] if label in ref else 1.7
         r_mic = mic_distance_from_reference(dist_ref, doa_room)
         dist, az_trans, el = project_to_reference(doa_room, r_mic)
-        az_orig = (az_trans + AZ_TRANS_TO_ORIGINAL) % 360.0
-        rows.append((label, dist, az_orig, el, label in excluded))
+        az_out = (az_trans + AZ_OFFSET_DEG) % 360.0
+        rows.append((label, dist, az_out, el, label in excluded))
 
     write_csv(args.output_csv, rows)
 
-    print("\nEstimated positions (original compass frame):")
+    print("\nEstimated positions (transcription compass frame):")
     print(f"  {'Spk':<5}{'Dist':>8}{'Azim':>7}  {'Card':<4}{'Elev':>8}   note")
     for label, dist, az, el, exc in rows:
         note = "elevation uncertain (floor reflection)" if exc else ""
@@ -369,7 +369,7 @@ def main() -> int:
 
 
 def write_csv(path: Path, rows) -> None:
-    """Write CSV identical in format to measurements_transcription_original.csv."""
+    """Write CSV identical in format to measurements_transcription.csv."""
     lines = ["Loudspeaker;Distance;Azimuth;;Elevation;setup-height"]
     for i, (label, dist, az, el, _exc) in enumerate(rows):
         height = "0.736" if i == 0 else ""
