@@ -81,15 +81,10 @@ class AppState:
 
 
 def populate_sources_from_stem_paths(state: AppState, stems: dict[str, str]):
-    from spatial_pipeline.scene_defaults import DEFAULT_POSITIONS_DEG
-
     for src in state.sources:
         stem_file = stems.get(src.name)
         if stem_file:
             src.wav_path = stem_file
-
-            if src.name in DEFAULT_POSITIONS_DEG:
-                src.azimuth, src.elevation = DEFAULT_POSITIONS_DEG[src.name]
 
 
 def run_demix_and_populate(state, status, btn: tk.Button, on_done_callback):
