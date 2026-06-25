@@ -6,7 +6,7 @@ python src/gui/gui_app.py
 
 import threading
 import tkinter as tk
-from PIL import Image, ImageTk
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageTk
 
 try:
     import sounddevice as _sd  # noqa: F401 — import check only
@@ -26,6 +26,7 @@ from gui_backend import (
     TEXT_DIM,
     FONT_APP_TITLE,
     FONT_SMALL,
+    ICONS_DIR,
     run_generate,
 )
 from gui_widgets import (
@@ -35,6 +36,9 @@ from gui_widgets import (
     OutputPanel,
     StatusBar,
     make_button_3d,
+    _load_svg_icon,
+    _make_stop_icon,
+    _pil_rgb,
 )
 
 
@@ -47,6 +51,41 @@ class SpatialAudioGUI(tk.Tk):
         self.minsize(1160, 700)
 
         self.state = AppState()
+
+        # Separate this process from python.exe in the Windows taskbar
+        import ctypes, sys, tempfile, os
+        if sys.platform == "win32":
+            try:
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+                    "Sonara.SpatialAudio"
+                )
+            except Exception:
+                pass
+
+        # Build a multi-size .ico from the 256-px PNG and set it as the window icon.
+        # wm_iconbitmap(.ico) is the only reliable path to the Windows taskbar icon.
+        try:
+            _icon_src = Image.open("assets/mark-128.png").convert("RGBA")
+            _ico_path = os.path.join(tempfile.gettempdir(), "sonara_app.ico")
+            _ico_sizes = [16, 32, 48, 64, 128, 256]
+            _ico_imgs = []
+            for _s in _ico_sizes:
+                if _s <= _icon_src.width:
+                    # Downscale — LANCZOS is optimal
+                    _ico_imgs.append(_icon_src.resize((_s, _s), Image.LANCZOS))
+                else:
+                    # Upscale — BICUBIC avoids LANCZOS ringing, then mild unsharp mask
+                    _up = _icon_src.resize((_s, _s), Image.BICUBIC)
+                    _up = _up.filter(ImageFilter.UnsharpMask(radius=0.8, percent=60, threshold=2))
+                    _ico_imgs.append(_up)
+            _ico_imgs[0].save(
+                _ico_path, format="ICO", append_images=_ico_imgs[1:],
+                sizes=[(s, s) for s in _ico_sizes],
+            )
+            self.wm_iconbitmap(_ico_path)
+            self._app_icon_src = _icon_src  # prevent GC
+        except Exception:
+            pass
         self._generate_item = None
         self._title_item = None
         self._topbar_gradient = None
@@ -54,6 +93,55 @@ class SpatialAudioGUI(tk.Tk):
         self._live_player = None
         self._scene_view = None
         self._build()
+
+    def _make_generate_images(self):
+        W, H = 160, 52
+        ICON_SZ, GAP = 18, 8
+
+        try:
+            font = ImageFont.truetype("arialbd.ttf", 17)
+        except OSError:
+            font = ImageFont.load_default()
+
+        try:
+            icon = _load_svg_icon(str(ICONS_DIR / "generate.svg"), ICON_SZ, (255, 255, 255))
+        except Exception:
+            icon = None
+
+        results = []
+        for top_hex, bot_hex, pressed in [
+            ("#D96820", "#B85010", False),
+            ("#E87838", "#C85F28", False),
+            ("#A84010", "#943810", True),
+        ]:
+            img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(img)
+            r1, g1, b1 = _pil_rgb(top_hex)
+            r2, g2, b2 = _pil_rgb(bot_hex)
+            for y in range(H):
+                t = y / max(1, H - 1)
+                draw.line([(0, y), (W - 1, y)],
+                          fill=(int(r1+(r2-r1)*t), int(g1+(g2-g1)*t), int(b1+(b2-b1)*t), 255))
+            if not pressed:
+                draw.line([(1, 1), (W - 2, 1)],
+                          fill=(min(255, r1+55), min(255, g1+40), min(255, b1+25), 255))
+
+            label = "Generate"
+            bb = draw.textbbox((0, 0), label, font=font)
+            tw, th = bb[2] - bb[0], bb[3] - bb[1]
+            v = 1 if pressed else 0
+            if icon is not None:
+                total_w = ICON_SZ + GAP + tw
+                ix = (W - total_w) // 2
+                tx = ix + ICON_SZ + GAP - bb[0]
+                img.paste(icon, (ix, (H - ICON_SZ) // 2 + v), icon)
+            else:
+                tx = (W - tw) // 2 - bb[0]
+            ty = (H - th) // 2 - bb[1] + v
+            draw.text((tx, ty), label, fill=(255, 255, 255, 255), font=font)
+            results.append(ImageTk.PhotoImage(img))
+
+        return results
 
     def _panel_header(self, parent, text):
         wrap = tk.Frame(parent, bg=PANEL_BG)
@@ -123,6 +211,97 @@ class SpatialAudioGUI(tk.Tk):
     def _on_generate_press(self, _event=None):
         self._topbar.itemconfig(self._generate_item, image=self._gen_img_pressed)
 
+    def _render_play_images(self, text: str, disabled: bool = False):
+        W, H = 150, 52
+        ICON_SZ, GAP = 18, 8
+
+        try:
+            font = ImageFont.truetype("arialbd.ttf", 17)
+        except OSError:
+            font = ImageFont.load_default()
+
+        icon = None
+        if "Play" in text and not disabled:
+            try:
+                icon = _load_svg_icon(str(ICONS_DIR / "play.svg"), ICON_SZ, (255, 255, 255))
+            except Exception:
+                pass
+
+        if disabled:
+            states = [
+                ("_play_img_normal",  "#7A4010", "#5A3008", False),
+                ("_play_img_hover",   "#7A4010", "#5A3008", False),
+                ("_play_img_pressed", "#7A4010", "#5A3008", False),
+            ]
+        else:
+            states = [
+                ("_play_img_normal",  "#D96820", "#B85010", False),
+                ("_play_img_hover",   "#E87838", "#C85F28", False),
+                ("_play_img_pressed", "#A84010", "#943810", True),
+            ]
+
+        for attr, top_hex, bot_hex, pressed in states:
+            img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(img)
+            r1, g1, b1 = _pil_rgb(top_hex)
+            r2, g2, b2 = _pil_rgb(bot_hex)
+            for y in range(H):
+                t = y / max(1, H - 1)
+                draw.line([(0, y), (W - 1, y)],
+                          fill=(int(r1+(r2-r1)*t), int(g1+(g2-g1)*t), int(b1+(b2-b1)*t), 255))
+            if not pressed and not disabled:
+                draw.line([(1, 1), (W - 2, 1)],
+                          fill=(min(255, r1+55), min(255, g1+40), min(255, b1+25), 255))
+
+            bb = draw.textbbox((0, 0), text, font=font)
+            tw, th = bb[2] - bb[0], bb[3] - bb[1]
+            v = 1 if pressed else 0
+            t_fill = (180, 160, 140, 200) if disabled else (255, 255, 255, 255)
+
+            if icon is not None:
+                total_w = ICON_SZ + GAP + tw
+                ix = (W - total_w) // 2
+                tx = ix + ICON_SZ + GAP - bb[0]
+                img.paste(icon, (ix, (H - ICON_SZ) // 2 + v), icon)
+            else:
+                tx = (W - tw) // 2 - bb[0]
+            ty = (H - th) // 2 - bb[1] + v
+            draw.text((tx, ty), text, fill=t_fill, font=font)
+            setattr(self, attr, ImageTk.PhotoImage(img))
+
+        self._play_text = text
+        self._play_disabled = disabled
+
+    def _update_play_btn(self, text: str, disabled: bool = False):
+        self._render_play_images(text, disabled)
+        self._topbar.itemconfig(self._play_item, image=self._play_img_normal)
+
+    def _on_play_enter(self, _event=None):
+        if not self._play_disabled:
+            self._topbar.itemconfig(self._play_item, image=self._play_img_hover)
+
+    def _on_play_leave(self, _event=None):
+        self._topbar.itemconfig(self._play_item, image=self._play_img_normal)
+
+    def _on_play_press(self, _event=None):
+        if not self._play_disabled:
+            self._topbar.itemconfig(self._play_item, image=self._play_img_pressed)
+
+    def _on_play_release(self, event):
+        if self._play_disabled:
+            return
+        x = self._topbar.canvasx(event.x)
+        y = self._topbar.canvasy(event.y)
+        bbox = self._topbar.bbox(self._play_item)
+        if bbox is None:
+            return
+        x1, y1, x2, y2 = bbox
+        if x1 <= x <= x2 and y1 <= y <= y2:
+            self._topbar.itemconfig(self._play_item, image=self._play_img_normal)
+            self._on_play_stop()
+        else:
+            self._topbar.itemconfig(self._play_item, image=self._play_img_normal)
+
     def _on_generate_release(self, event):
         x = self._topbar.canvasx(event.x)
         y = self._topbar.canvasy(event.y)
@@ -151,9 +330,9 @@ class SpatialAudioGUI(tk.Tk):
         self._topbar.pack(fill="x", side="top")
         self._topbar.bind("<Configure>", self._redraw_topbar)
 
-        self._gen_img_normal = tk.PhotoImage(file="assets/generate_normal.png").subsample(2, 2)
-        self._gen_img_hover = tk.PhotoImage(file="assets/generate_hover.png").subsample(2, 2)
-        self._gen_img_pressed = tk.PhotoImage(file="assets/generate_pressed.png").subsample(2, 2)
+        (self._gen_img_normal,
+         self._gen_img_hover,
+         self._gen_img_pressed) = self._make_generate_images()
         _logo_pil = Image.open("assets/title_logo.png").convert("RGBA")
         _bbox = _logo_pil.getbbox()  # crop transparent padding around the artwork
         if _bbox:
@@ -171,24 +350,14 @@ class SpatialAudioGUI(tk.Tk):
         self._topbar.tag_bind(self._generate_item, "<ButtonPress-1>", self._on_generate_press)
         self._topbar.tag_bind(self._generate_item, "<ButtonRelease-1>", self._on_generate_release)
 
-        self._play_btn = tk.Button(
-            self._topbar,
-            text="▶  Play",
-            font=("Helvetica", 10, "bold"),
-            bg="#1C1916",
-            fg=TEXT,
-            activebackground="#2A2520",
-            activeforeground=TEXT,
-            relief="raised",
-            bd=1,
-            highlightthickness=1,
-            highlightbackground=BORDER,
-            padx=12,
-            pady=6,
-            cursor="hand2",
-            command=self._on_play_stop,
-        )
-        self._play_item = self._topbar.create_window(0, 0, window=self._play_btn, anchor="center")
+        self._play_text = "Play"
+        self._play_disabled = False
+        self._render_play_images("Play")
+        self._play_item = self._topbar.create_image(0, 0, image=self._play_img_normal, anchor="center")
+        self._topbar.tag_bind(self._play_item, "<Enter>", self._on_play_enter)
+        self._topbar.tag_bind(self._play_item, "<Leave>", self._on_play_leave)
+        self._topbar.tag_bind(self._play_item, "<ButtonPress-1>", self._on_play_press)
+        self._topbar.tag_bind(self._play_item, "<ButtonRelease-1>", self._on_play_release)
 
         self._status = StatusBar(self)
         self._status.pack(fill="x", side="bottom")
@@ -250,9 +419,8 @@ class SpatialAudioGUI(tk.Tk):
 
         record_btn = tk.Button(
             record_bar,
-            text="● Record Movement",
+            text="Record Movement",
             font=("Helvetica", 10, "bold"),
-            width=18,
             command=lambda: scene_view.toggle_recording(),
         )
         make_button_3d(
@@ -263,16 +431,33 @@ class SpatialAudioGUI(tk.Tk):
             active_bg="#5A9048",
             pressed_bg="#3A6030",
         )
+        try:
+            _rec_col = _pil_rgb(TEXT)
+            _rec_icon = _load_svg_icon(str(ICONS_DIR / "record.svg"), 13, _rec_col)
+            _rec_photo = ImageTk.PhotoImage(_rec_icon)
+            _stop_photo = ImageTk.PhotoImage(_make_stop_icon(13, _rec_col))
+            record_btn.config(image=_rec_photo, compound="left", padx=6)
+            record_btn._icon_ref = _rec_photo
+            record_btn._record_photo = _rec_photo
+            record_btn._stop_photo = _stop_photo
+        except Exception:
+            pass
         record_btn.pack(side="left")
 
         clear_btn = tk.Button(
             record_bar,
             text="Clear Movement",
             font=("Helvetica", 10, "bold"),
-            width=18,
             command=lambda: self._on_clear_movement(scene_view),
         )
         make_button_3d(clear_btn, PANEL_BG2, active_bg=ACCENT, pressed_bg="#A8892E")
+        try:
+            _clr_icon = _load_svg_icon(str(ICONS_DIR / "clear.svg"), 13, _pil_rgb(TEXT))
+            _clr_photo = ImageTk.PhotoImage(_clr_icon)
+            clear_btn.config(image=_clr_photo, compound="left", padx=6)
+            clear_btn._icon_ref = _clr_photo
+        except Exception:
+            pass
         clear_btn.pack(side="left", padx=(8, 0))
 
         tk.Label(
@@ -337,11 +522,11 @@ class SpatialAudioGUI(tk.Tk):
             self._live_player = None
             if self._scene_view is not None:
                 self._scene_view.set_live_player(None)
-            self._play_btn.config(text="▶  Play")
+            self._update_play_btn("Play")
             return
 
         # Load HRTF + stems in a background thread to avoid freezing the UI
-        self._play_btn.config(text="Loading…", state="disabled")
+        self._update_play_btn("Loading…", disabled=True)
 
         def _start():
             try:
@@ -352,17 +537,13 @@ class SpatialAudioGUI(tk.Tk):
                 player = LivePlayer(self.state, sofa)
                 player.start()
                 self._live_player = player
-                self._play_btn.after(0, lambda: self._play_btn.config(
-                    text="■  Stop", state="normal"
-                ))
+                self.after(0, lambda: self._update_play_btn("■  Stop"))
                 if self._scene_view is not None:
-                    self._play_btn.after(0, lambda p=player: self._scene_view.set_live_player(p))
+                    self.after(0, lambda p=player: self._scene_view.set_live_player(p))
             except Exception as e:
                 self._live_player = None
-                self._play_btn.after(0, lambda: self._play_btn.config(
-                    text="▶  Play", state="normal"
-                ))
-                self._play_btn.after(0, lambda: messagebox.showerror("Playback error", str(e)))
+                self.after(0, lambda: self._update_play_btn("Play"))
+                self.after(0, lambda: messagebox.showerror("Playback error", str(e)))
 
         threading.Thread(target=_start, daemon=True).start()
 

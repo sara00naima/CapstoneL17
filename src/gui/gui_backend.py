@@ -11,6 +11,8 @@ _SRC_DIR = _GUI_DIR.parent
 if str(_SRC_DIR) not in sys.path:
     sys.path.insert(0, str(_SRC_DIR))
 
+ICONS_DIR = _GUI_DIR.parent.parent / "assets" / "icons"
+
 from spatial_pipeline.config import PROJECT_ROOT, BSROFORMER_ROOT
 
 BG = "#0A0806"

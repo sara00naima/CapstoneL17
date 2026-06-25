@@ -25,6 +25,7 @@ from gui_backend import (
     FONT_LABEL,
     FONT_SMALL,
     FONT_MONO,
+    ICONS_DIR,
     run_demix_and_populate,
     populate_sources_from_stem_paths,
 )
@@ -88,6 +89,112 @@ def _pil_dashed_ellipse(draw, x1, y1, x2, y2, fill, width, dash):
                 on = not on
                 budget = dash[0] if on else dash[1]
             pos = end
+
+
+def _load_svg_icon(svg_path: str, size: int, color: tuple) -> Image.Image:
+    """Rasterize a simple SVG (M/L/H/V/Z paths + circles, currentColor) to PIL RGBA.
+    Renders at 4× and downscales with LANCZOS for smooth anti-aliased edges."""
+    import xml.etree.ElementTree as ET
+    import re
+
+    SS = 4  # supersampling factor
+    rs = size * SS  # render size
+
+    tree = ET.parse(svg_path)
+    root = tree.getroot()
+    ns_prefix = root.tag.split("}")[0] + "}" if "}" in root.tag else ""
+
+    scale = rs / 24.0
+    root_fill   = root.get("fill",         "none")
+    root_stroke = root.get("stroke",       "none")
+    root_sw     = float(root.get("stroke-width", "1.0"))
+
+    def _resolve(elem, attr, default):
+        v = elem.get(attr, default)
+        return color if v == "currentColor" else None
+
+    def _sw(elem):
+        return max(1, round(float(elem.get("stroke-width", root_sw)) * scale))
+
+    def _parse_path(d: str):
+        tokens = re.findall(r'[MLHVZmlhvz]|[-+]?\d*\.?\d+', d)
+        polylines, current = [], []
+        x, y, cmd = 0.0, 0.0, None
+        i = 0
+        while i < len(tokens):
+            t = tokens[i]
+            if t in "MLHVZmlhvz":
+                cmd = t
+                i += 1
+                if cmd in "Zz" and current:
+                    current.append(current[0])
+                    polylines.append(current)
+                    current = []
+            elif cmd == "M":
+                x, y = float(tokens[i]), float(tokens[i + 1])
+                if current:
+                    polylines.append(current)
+                current = [(x * scale, y * scale)]
+                i += 2
+            elif cmd == "L":
+                x, y = float(tokens[i]), float(tokens[i + 1])
+                current.append((x * scale, y * scale))
+                i += 2
+            elif cmd == "H":
+                x = float(tokens[i])
+                current.append((x * scale, y * scale))
+                i += 1
+            elif cmd == "V":
+                y = float(tokens[i])
+                current.append((x * scale, y * scale))
+                i += 1
+            else:
+                i += 1
+        if current:
+            polylines.append(current)
+        return polylines
+
+    img = Image.new("RGBA", (rs, rs), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    for elem in root.iter():
+        tag    = elem.tag.replace(ns_prefix, "")
+        fill   = _resolve(elem, "fill",   root_fill)
+        stroke = _resolve(elem, "stroke", root_stroke)
+        sw     = _sw(elem)
+
+        if tag == "circle":
+            cx = float(elem.get("cx", 0)) * scale
+            cy = float(elem.get("cy", 0)) * scale
+            r  = float(elem.get("r",  0)) * scale
+            bb = [cx - r, cy - r, cx + r, cy + r]
+            if fill:
+                draw.ellipse(bb, fill=fill)
+            if stroke:
+                draw.ellipse(bb, outline=stroke, width=sw)
+
+        elif tag == "path":
+            for pts in _parse_path(elem.get("d", "")):
+                if len(pts) < 2:
+                    continue
+                is_closed = pts[0] == pts[-1] and len(pts) >= 4
+                if fill and is_closed:
+                    draw.polygon(pts, fill=fill)
+                if stroke:
+                    draw.line(pts, fill=stroke, width=sw)
+
+    return img.resize((size, size), Image.LANCZOS)
+
+
+def _make_stop_icon(size: int, color: tuple) -> Image.Image:
+    """PIL-drawn filled square (stop symbol) at 4× SS, downscaled with LANCZOS."""
+    SS = 4
+    rs = size * SS
+    img = Image.new("RGBA", (rs, rs), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    m = round(rs * 0.22)
+    draw.rectangle([m, m, rs - m - 1, rs - m - 1], fill=color)
+    return img.resize((size, size), Image.LANCZOS)
 
 
 def make_button_3d(btn, base_bg, *, fg=TEXT, border=BORDER, active_bg=None, pressed_bg=None):
@@ -515,7 +622,9 @@ class SceneView(tk.Canvas):
         self._record_samples = [(0.0, source.azimuth, source.elevation)]
 
         if self._record_btn_ref is not None:
-            self._record_btn_ref.config(text="■ Stop Recording", bg="#B33A3A")
+            self._record_btn_ref.config(text="Stop Recording", bg="#B33A3A")
+            if hasattr(self._record_btn_ref, "_stop_photo"):
+                self._record_btn_ref.config(image=self._record_btn_ref._stop_photo)
 
         self.redraw()
 
@@ -540,7 +649,9 @@ class SceneView(tk.Canvas):
         self._record_samples = []
 
         if self._record_btn_ref is not None:
-            self._record_btn_ref.config(text="● Record Movement", bg=ACCENT2)
+            self._record_btn_ref.config(text="Record Movement", bg=ACCENT2)
+            if hasattr(self._record_btn_ref, "_record_photo"):
+                self._record_btn_ref.config(image=self._record_btn_ref._record_photo)
 
         if self._rows:
             for row in self._rows:
@@ -555,7 +666,7 @@ class SceneView(tk.Canvas):
         self.redraw()
 
     def _center(self):
-        return self.winfo_width() / 2, self.winfo_height() / 2
+        return self.winfo_width() / 2, self.winfo_height() / 2 + 14
 
     def _effective_radius(self):
         w = self.winfo_width()
@@ -590,7 +701,7 @@ class SceneView(tk.Canvas):
 
         S = 4  # supersampling scale
         sw, sh = w * S, h * S
-        cx, cy = w / 2, h / 2
+        cx, cy = self._center()
         R = self._effective_radius()
 
         # --- Background gradient (PIL image cached at 2×, rebuilt only on resize) ---
@@ -850,6 +961,16 @@ class OutputPanel(tk.Frame):
     def _build(self):
         s = self.state
 
+        def _add_icon(btn, icon_name, icon_size=13, icon_fg=TEXT):
+            try:
+                col = _pil_rgb(icon_fg)
+                icon = _load_svg_icon(str(ICONS_DIR / f"{icon_name}.svg"), icon_size, col)
+                photo = ImageTk.PhotoImage(icon)
+                btn.config(image=photo, compound="left", padx=6)
+                btn._icon_ref = photo
+            except Exception:
+                pass
+
         def card(title):
             tk.Label(
                 self, text=title,
@@ -892,31 +1013,34 @@ class OutputPanel(tk.Frame):
             song_row, text="Browse…",
             font=FONT_SMALL, command=self._pick_song,
         )
-        make_button_3d(browse_btn, PANEL_BG, active_bg=ACCENT2, pressed_bg="#5A7A4E")
+        make_button_3d(browse_btn, PANEL_BG, active_bg="#2E2820", pressed_bg="#1C1916")
+        _add_icon(browse_btn, "browse")
         browse_btn.pack(side="right", padx=(6, 0))
 
         # Two equal-width action buttons: Demix | Load Stems
         btn_grid = tk.Frame(inp, bg=PANEL_BG2)
         btn_grid.pack(fill="x")
-        btn_grid.grid_columnconfigure(0, weight=1)
-        btn_grid.grid_columnconfigure(1, weight=1)
+        btn_grid.grid_columnconfigure(0, weight=1, uniform="action_btns")
+        btn_grid.grid_columnconfigure(1, weight=1, uniform="action_btns")
 
         self._demix_btn = tk.Button(
-            btn_grid, text="🎵  Demix",
+            btn_grid, text="Demix",
             font=("Helvetica", 10, "bold"),
             command=self._on_demix,
         )
         make_button_3d(self._demix_btn, ACCENT2, fg="#241B15",
                        border=BORDER, active_bg="#96B87A", pressed_bg="#6E8E59")
+        _add_icon(self._demix_btn, "demix", icon_fg="#241B15")
         self._demix_btn.grid(row=0, column=0, sticky="ew", padx=(0, 4))
 
         load_stems_btn = tk.Button(
-            btn_grid, text="📂  Load Stems",
+            btn_grid, text="Load Stems",
             font=("Helvetica", 10, "bold"),
             command=self._pick_stems_folder,
         )
         make_button_3d(load_stems_btn, ACCENT2, fg="#241B15",
                        border=BORDER, active_bg="#96B87A", pressed_bg="#6E8E59")
+        _add_icon(load_stems_btn, "load-stems", icon_fg="#241B15")
         load_stems_btn.grid(row=0, column=1, sticky="ew", padx=(4, 0))
 
         # ── RENDERING ──────────────────────────────────────────────────────
@@ -936,7 +1060,7 @@ class OutputPanel(tk.Frame):
             command=lambda sel: self._set_renderer_from_menu(renderer_choices[sel]),
         )
         renderer_menu.config(
-            bg=PANEL_BG, fg=TEXT, activebackground=ACCENT2, activeforeground=TEXT,
+            bg=PANEL_BG, fg=TEXT, activebackground="#2E2820", activeforeground=TEXT,
             relief="flat", bd=0, highlightthickness=1, highlightbackground=BORDER,
             font=FONT_SMALL, anchor="w", padx=8, pady=4,
         )
@@ -962,7 +1086,8 @@ class OutputPanel(tk.Frame):
             layout_row, text="Load…",
             font=FONT_SMALL, command=self._pick_layout,
         )
-        make_button_3d(load_csv_btn, PANEL_BG, active_bg=ACCENT2, pressed_bg="#5A7A4E")
+        make_button_3d(load_csv_btn, PANEL_BG, active_bg="#2E2820", pressed_bg="#1C1916")
+        _add_icon(load_csv_btn, "load")
         load_csv_btn.pack(side="right", padx=(6, 0))
 
         # HRTF: label + inline Load button
@@ -979,7 +1104,8 @@ class OutputPanel(tk.Frame):
             hrtf_row, text="Load…",
             font=FONT_SMALL, command=self._pick_hrtf,
         )
-        make_button_3d(load_sofa_btn, PANEL_BG, active_bg=ACCENT2, pressed_bg="#5A7A4E")
+        make_button_3d(load_sofa_btn, PANEL_BG, active_bg="#2E2820", pressed_bg="#1C1916")
+        _add_icon(load_sofa_btn, "load")
         load_sofa_btn.pack(side="right", padx=(6, 0))
 
         divider(rnd)
@@ -1033,7 +1159,8 @@ class OutputPanel(tk.Frame):
             dir_row, text="Change…",
             font=FONT_SMALL, command=self._pick_outdir,
         )
-        make_button_3d(change_btn, PANEL_BG, active_bg=ACCENT2, pressed_bg="#5A7A4E")
+        make_button_3d(change_btn, PANEL_BG, active_bg="#2E2820", pressed_bg="#1C1916")
+        _add_icon(change_btn, "browse")
         change_btn.pack(side="right", padx=(6, 0))
 
         # Filename entry
