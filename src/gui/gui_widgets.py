@@ -14,6 +14,7 @@ from gui_backend import (
     SourceState,
     PANEL_BG,
     PANEL_BG2,
+    ROW_SELECTED,
     ACCENT,
     ACCENT2,
     BORDER,
@@ -27,6 +28,7 @@ from gui_backend import (
     run_demix_and_populate,
     populate_sources_from_stem_paths,
 )
+
 
 def _pil_rgb(hex_color: str) -> tuple[int, int, int]:
     c = hex_color.lstrip("#")
@@ -140,13 +142,15 @@ class SourceRow(tk.Frame):
         s = self.source
         col = s.color
 
-        tk.Frame(self, bg=col, width=4).pack(side="left", fill="y", padx=(0, 8))
+        self._dot = tk.Canvas(self, width=10, height=10, bg=PANEL_BG, highlightthickness=0)
+        self._dot.pack(side="left", padx=(10, 8))
+        self._dot.create_oval(1, 1, 9, 9, fill=col, outline="")
 
         self._name = tk.Label(
             self,
-            text=s.name.upper(),
+            text=s.name.capitalize(),
             bg=PANEL_BG,
-            fg=col,
+            fg=TEXT,
             font=("Helvetica", 10, "bold"),
             anchor="w",
         )
@@ -201,8 +205,11 @@ class SourceRow(tk.Frame):
         )
         self._az_lbl.pack(side="right", padx=(6, 2))
 
-        for widget in (self, self._name, self._az_lbl):
+        for widget in (self, self._name, self._az_lbl, self._dot):
             widget.bind("<Button-1>", self._select)
+
+        self._bg_widgets = [self, self._name, self._az_lbl, self._dot,
+                            self._solo_btn, self._mute_btn]
 
     def _select(self, _event=None):
         if self.on_select:
@@ -223,6 +230,13 @@ class SourceRow(tk.Frame):
     def refresh_all(self):
         self.refresh_az()
 
+    def set_selected(self, selected: bool):
+        bg = ROW_SELECTED if selected else PANEL_BG
+        for w in self._bg_widgets:
+            w.configure(bg=bg)
+        self._solo_btn.configure(activebackground=bg)
+        self._mute_btn.configure(activebackground=bg)
+
 
 class SourceInspector(tk.Frame):
     def __init__(self, parent, state: AppState, scene_view, rows=None, **kwargs):
@@ -234,24 +248,30 @@ class SourceInspector(tk.Frame):
         self._build()
 
     def _build(self):
-        tk.Frame(self, bg=BORDER, height=1).pack(fill="x", pady=(4, 8))
+        tk.Frame(self, bg=BORDER, height=1).pack(fill="x", pady=(4, 0))
 
+        hdr = tk.Frame(self, bg=PANEL_BG)
+        hdr.pack(fill="x", pady=(0, 6))
+        tk.Frame(hdr, bg=ACCENT, width=3).pack(side="left", fill="y")
         tk.Label(
-            self,
+            hdr,
             text="SELECTED SOURCE",
             bg=PANEL_BG,
-            fg=ACCENT,
-            font=FONT_SECTION,
-        ).pack(anchor="w", padx=12, pady=(0, 6))
+            fg=TEXT,
+            font=("Helvetica", 10, "bold"),
+            anchor="w",
+            padx=10,
+            pady=5,
+        ).pack(side="left")
 
         self._title = tk.Label(
             self,
-            text="None",
+            text="—",
             bg=PANEL_BG,
-            fg=TEXT,
-            font=("Helvetica", 11, "bold"),
+            fg=TEXT_DIM,
+            font=("Helvetica", 12, "bold"),
         )
-        self._title.pack(anchor="w", padx=12)
+        self._title.pack(anchor="w", padx=14)
 
         gain_block = tk.Frame(self, bg=PANEL_BG)
         gain_block.pack(fill="x", padx=12, pady=(8, 4))
@@ -368,21 +388,11 @@ class SourceInspector(tk.Frame):
         )
         self._file_lbl.pack(anchor="w", pady=(3, 6))
 
-        btn_row = tk.Frame(file_block, bg=PANEL_BG)
-        btn_row.pack(anchor="w", pady=(0, 2))
-
-        load_stems_btn = tk.Button(
-            btn_row,
-            text="Load stems folder…",
-            font=FONT_SMALL,
-            command=self._pick_stems_folder,
-        )
-        make_button_3d(load_stems_btn, ACCENT2, active_bg=ACCENT, pressed_bg="#123457")
-        load_stems_btn.pack(side="left", padx=(8, 0))
-
     def set_source(self, source: SourceState):
+        for row in self.rows:
+            row.set_selected(row.source is source)
         self.source = source
-        self._title.config(text=source.name.upper(), fg=source.color)
+        self._title.config(text=source.name.capitalize(), fg=source.color)
         self._gain_var.set(source.gain_db)
         self._gain_lbl.config(text=f"{source.gain_db:+.1f} dB")
         self._az_lbl.config(text=f"{source.azimuth:+.0f}°")
@@ -421,58 +431,6 @@ class SourceInspector(tk.Frame):
         self._el_lbl.config(text=f"{v:+.0f}°")
         self.scene_view.redraw()
 
-    def _pick_stems_folder(self):
-        folder = filedialog.askdirectory(title="Select stems folder")
-        if not folder:
-            return
-
-        folder_path = Path(folder)
-        folder_name = folder_path.name
-        song_name = folder_name.removesuffix("-stems")
-        self.state.song_path = str(folder_path / f"{song_name}.wav")
-
-        wav_files = list(folder_path.glob("*.wav"))
-
-        if not wav_files:
-            messagebox.showwarning("No WAV files", "The selected folder contains no .wav files.")
-            return
-
-        valid_source_names = {src.name for src in self.state.sources}
-        stems = {}
-
-        for wav in wav_files:
-            name = wav.stem.lower()
-
-            for source_name in valid_source_names:
-                if (
-                    name == source_name
-                    or name.endswith(f"_{source_name}")
-                    or name.endswith(f"-{source_name}")
-                    or name.startswith(f"{source_name}_")
-                    or name.startswith(f"{source_name}-")
-                ):
-                    stems[source_name] = str(wav)
-                    break
-
-        if not stems:
-            messagebox.showwarning(
-                "No stems recognized",
-                "No recognized stems found.\nExpected names like vocals, drums, bass, guitar, piano, other.",
-            )
-            return
-
-        populate_sources_from_stem_paths(self.state, stems)
-
-        if self.source is not None:
-            self.set_source(self.source)
-
-        for row in self.rows:
-            row.refresh_all()
-
-        self.scene_view.redraw()
-
-        loaded_names = ", ".join(sorted(stems.keys()))
-        messagebox.showinfo("Stems loaded", f"Loaded stems: {loaded_names}")
 
 
 class SceneView(tk.Canvas):
@@ -892,195 +850,204 @@ class OutputPanel(tk.Frame):
     def _build(self):
         s = self.state
 
-        def section(text):
+        def card(title):
             tk.Label(
-                self,
-                text=text,
-                bg=PANEL_BG,
-                fg=ACCENT,
-                font=("Helvetica", 11, "bold"),
+                self, text=title,
+                bg=PANEL_BG, fg=TEXT_DIM,
+                font=("Helvetica", 8),
                 anchor="w",
-            ).pack(fill="x", padx=12, pady=(6, 2))
+            ).pack(fill="x", padx=16, pady=(14, 4))
+            frame = tk.Frame(self, bg=PANEL_BG2, highlightthickness=1, highlightbackground=BORDER)
+            frame.pack(fill="x", padx=10, pady=(0, 8))
+            inner = tk.Frame(frame, bg=PANEL_BG2)
+            inner.pack(fill="x", padx=12, pady=10)
+            return inner
 
-        def small_value(text=""):
-            return tk.Label(
-                self,
-                text=text,
-                bg=PANEL_BG,
-                fg=TEXT_DIM,
-                font=FONT_SMALL,
+        def field_label(parent, text):
+            tk.Label(
+                parent, text=text,
+                bg=PANEL_BG2, fg=TEXT_DIM,
+                font=("Helvetica", 8),
                 anchor="w",
-                justify="left",
-                wraplength=250,
-            )
+            ).pack(anchor="w", pady=(0, 2))
 
-        section("SONG & DEMIX")
+        def divider(parent):
+            tk.Frame(parent, bg="#3A2B1E", height=1).pack(fill="x", pady=8)
 
-        song_row = tk.Frame(self, bg=PANEL_BG)
-        song_row.pack(fill="x", padx=12, pady=(0, 4))
+        # ── INPUT ──────────────────────────────────────────────────────────
+        inp = card("INPUT")
+
+        # Song file row: truncated name + Browse button on the right
+        song_row = tk.Frame(inp, bg=PANEL_BG2)
+        song_row.pack(fill="x", pady=(0, 8))
         self._song_lbl = tk.Label(
             song_row,
             text="no song selected",
-            bg=PANEL_BG,
-            fg=TEXT_DIM,
+            bg=PANEL_BG2, fg=TEXT_DIM,
             font=FONT_SMALL,
-            anchor="w",
-            justify="left",
-            wraplength=170,
+            anchor="w", justify="left", wraplength=210,
         )
         self._song_lbl.pack(side="left", fill="x", expand=True)
         browse_btn = tk.Button(
-            song_row,
-            text="Browse…",
-            font=FONT_SMALL,
-            command=self._pick_song,
+            song_row, text="Browse…",
+            font=FONT_SMALL, command=self._pick_song,
         )
-        make_button_3d(browse_btn, ACCENT2, active_bg=ACCENT, pressed_bg="#123457")
-        browse_btn.pack(side="right")
+        make_button_3d(browse_btn, PANEL_BG, active_bg=ACCENT2, pressed_bg="#5A7A4E")
+        browse_btn.pack(side="right", padx=(6, 0))
 
+        # Two equal-width action buttons: Demix | Load Stems
+        btn_grid = tk.Frame(inp, bg=PANEL_BG2)
+        btn_grid.pack(fill="x")
+        btn_grid.grid_columnconfigure(0, weight=1)
+        btn_grid.grid_columnconfigure(1, weight=1)
 
         self._demix_btn = tk.Button(
-            self,
-            text="🎵 Demix Song",
+            btn_grid, text="🎵  Demix",
             font=("Helvetica", 10, "bold"),
             command=self._on_demix,
         )
-        make_button_3d(
-            self._demix_btn,
-            ACCENT2,
-            fg="#241B15",
-            border=BORDER,
-            active_bg="#96B87A",
-            pressed_bg="#6E8E59",
+        make_button_3d(self._demix_btn, ACCENT2, fg="#241B15",
+                       border=BORDER, active_bg="#96B87A", pressed_bg="#6E8E59")
+        self._demix_btn.grid(row=0, column=0, sticky="ew", padx=(0, 4))
+
+        load_stems_btn = tk.Button(
+            btn_grid, text="📂  Load Stems",
+            font=("Helvetica", 10, "bold"),
+            command=self._pick_stems_folder,
         )
-        self._demix_btn.pack(anchor="w", padx=8, pady=(4, 2))
+        make_button_3d(load_stems_btn, ACCENT2, fg="#241B15",
+                       border=BORDER, active_bg="#96B87A", pressed_bg="#6E8E59")
+        load_stems_btn.grid(row=0, column=1, sticky="ew", padx=(4, 0))
 
-        section("RENDERER")
+        # ── RENDERING ──────────────────────────────────────────────────────
+        rnd = card("RENDERING")
 
-        renderer_choices = {
-            "Binaural": "binaural",
-            "Layout Speaker": "layout_speaker",
-        }
-
+        # Mode dropdown
+        field_label(rnd, "Mode")
+        renderer_choices = {"Binaural": "binaural", "Layout Speaker": "layout_speaker"}
         current_label = next(
-            (label for label, value in renderer_choices.items() if value == s.renderer),
-            "Binaural (HOA → HRTF)",
+            (lbl for lbl, val in renderer_choices.items() if val == s.renderer),
+            "Binaural",
         )
-
         self._renderer_menu_var = tk.StringVar(value=current_label)
         self._renderer_var = tk.StringVar(value=renderer_choices[self._renderer_menu_var.get()])
-
         renderer_menu = tk.OptionMenu(
-            self,
-            self._renderer_menu_var,
-            *renderer_choices.keys(),
-            command=lambda selected: self._set_renderer_from_menu(renderer_choices[selected]),
+            rnd, self._renderer_menu_var, *renderer_choices.keys(),
+            command=lambda sel: self._set_renderer_from_menu(renderer_choices[sel]),
         )
-
         renderer_menu.config(
-            bg=PANEL_BG2,
-            fg=TEXT,
-            activebackground=ACCENT2,
-            activeforeground=TEXT,
-            relief="flat",
-            bd=0,
-            highlightthickness=1,
-            highlightbackground=BORDER,
-            font=FONT_SMALL,
-            anchor="w",
-            padx=8,
-            pady=4,
+            bg=PANEL_BG, fg=TEXT, activebackground=ACCENT2, activeforeground=TEXT,
+            relief="flat", bd=0, highlightthickness=1, highlightbackground=BORDER,
+            font=FONT_SMALL, anchor="w", padx=8, pady=4,
         )
-
         renderer_menu["menu"].config(
-            bg=PANEL_BG2,
-            fg=TEXT,
-            activebackground=ACCENT,
-            activeforeground="white",
-            font=FONT_SMALL,
-            bd=0,
+            bg=PANEL_BG2, fg=TEXT, activebackground=ACCENT,
+            activeforeground="white", font=FONT_SMALL, bd=0,
         )
+        renderer_menu.pack(fill="x", pady=(0, 0))
 
-        renderer_menu.pack(fill="x", padx=12, pady=(0, 4))
+        divider(rnd)
 
-        section("SPEAKER LAYOUT")
-        self._layout_lbl = small_value("default (museum 17ch)")
-        self._layout_lbl.pack(anchor="w", padx=12)
+        # Speaker layout: label + inline Load button
+        field_label(rnd, "Speaker layout")
+        layout_row = tk.Frame(rnd, bg=PANEL_BG2)
+        layout_row.pack(fill="x", pady=(0, 6))
+        self._layout_lbl = tk.Label(
+            layout_row, text="default (museum 17ch)",
+            bg=PANEL_BG2, fg=TEXT,
+            font=FONT_SMALL, anchor="w", justify="left", wraplength=200,
+        )
+        self._layout_lbl.pack(side="left", fill="x", expand=True)
         load_csv_btn = tk.Button(
-            self,
-            text="Load .json/.csv",
-            font=FONT_SMALL,
-            command=self._pick_layout,
+            layout_row, text="Load…",
+            font=FONT_SMALL, command=self._pick_layout,
         )
-        make_button_3d(load_csv_btn, ACCENT2, active_bg=ACCENT, pressed_bg="#123457")
-        load_csv_btn.pack(anchor="w", padx=12, pady=(6, 0))
+        make_button_3d(load_csv_btn, PANEL_BG, active_bg=ACCENT2, pressed_bg="#5A7A4E")
+        load_csv_btn.pack(side="right", padx=(6, 0))
 
-        section("HRTF")
-        self._hrtf_lbl = small_value("default HRTF")
-        self._hrtf_lbl.pack(anchor="w", padx=12)
+        # HRTF: label + inline Load button
+        field_label(rnd, "HRTF")
+        hrtf_row = tk.Frame(rnd, bg=PANEL_BG2)
+        hrtf_row.pack(fill="x", pady=(0, 6))
+        self._hrtf_lbl = tk.Label(
+            hrtf_row, text="default HRTF",
+            bg=PANEL_BG2, fg=TEXT,
+            font=FONT_SMALL, anchor="w", justify="left", wraplength=200,
+        )
+        self._hrtf_lbl.pack(side="left", fill="x", expand=True)
         load_sofa_btn = tk.Button(
-            self,
-            text="Load SOFA…",
-            font=FONT_SMALL,
-            command=self._pick_hrtf,
+            hrtf_row, text="Load…",
+            font=FONT_SMALL, command=self._pick_hrtf,
         )
-        make_button_3d(load_sofa_btn, ACCENT2, active_bg=ACCENT, pressed_bg="#123457")
-        load_sofa_btn.pack(anchor="w", padx=12, pady=(6, 0))
+        make_button_3d(load_sofa_btn, PANEL_BG, active_bg=ACCENT2, pressed_bg="#5A7A4E")
+        load_sofa_btn.pack(side="right", padx=(6, 0))
 
-        section("HOA ORDER")
-        order_row = tk.Frame(self, bg=PANEL_BG)
-        order_row.pack(fill="x", padx=12)
+        divider(rnd)
+
+        # HOA Order — spinbox (1–7; orders 1–3 most common)
+        order_row = tk.Frame(rnd, bg=PANEL_BG2)
+        order_row.pack(fill="x")
         tk.Label(
-            order_row,
-            text="Order:",
-            bg=PANEL_BG,
-            fg=TEXT,
-            font=FONT_LABEL,
+            order_row, text="HOA order",
+            bg=PANEL_BG2, fg=TEXT_DIM,
+            font=("Helvetica", 8), anchor="w",
         ).pack(side="left")
-
-        self._order_var = tk.IntVar(value=s.hoa_order)
-        for o in (1, 2, 3):
-            tk.Radiobutton(
-                order_row,
-                text=str(o),
-                variable=self._order_var,
-                value=o,
-                bg=PANEL_BG,
-                fg=TEXT,
-                selectcolor=ACCENT2,
-                activebackground=PANEL_BG,
-                font=FONT_SMALL,
-                command=lambda: setattr(s, "hoa_order", self._order_var.get()),
-            ).pack(side="left", padx=6)
-
-        section("OUTPUT DIRECTORY")
-        self._outdir_lbl = small_value(str(s.out_dir))
-        self._outdir_lbl.pack(anchor="w", padx=12)
-        change_outdir_btn = tk.Button(
-            self,
-            text="Change…",
-            font=FONT_SMALL,
-            command=self._pick_outdir,
-        )
-        make_button_3d(change_outdir_btn, ACCENT2, active_bg=ACCENT, pressed_bg="#123457")
-        change_outdir_btn.pack(anchor="w", padx=12, pady=(6, 0))
-
-        section("OUTPUT FILE NAME")
-
-        self._output_name_var = tk.StringVar(value=getattr(s, "output_name", ""))
-
-        output_name_entry = tk.Entry(
-            self,
-            textvariable=self._output_name_var,
-            bg=PANEL_BG2,
-            fg=TEXT,
+        tk.Label(
+            order_row, text="(1–3 most common)",
+            bg=PANEL_BG2, fg="#6A5A4A",
+            font=("Helvetica", 7), anchor="w",
+        ).pack(side="left", padx=(6, 0))
+        self._order_var = tk.StringVar(value=str(s.hoa_order))
+        order_spin = tk.Spinbox(
+            order_row,
+            from_=1, to=7, increment=1,
+            textvariable=self._order_var,
+            width=3,
+            bg=PANEL_BG, fg=TEXT,
             insertbackground=TEXT,
-            relief="flat",
-            bd=0,
+            buttonbackground=PANEL_BG2,
+            relief="flat", bd=0,
+            highlightthickness=1, highlightbackground=BORDER,
+            highlightcolor=ACCENT,
             font=FONT_SMALL,
+            justify="center",
+            command=self._on_order_change,
         )
-        output_name_entry.pack(fill="x", padx=12, pady=(0, 4), ipady=6)
-        output_name_entry.bind("<KeyRelease>", self._on_output_name_change)
+        order_spin.pack(side="right")
+        order_spin.bind("<KeyRelease>", lambda _e: self._on_order_change())
+
+        # ── OUTPUT ─────────────────────────────────────────────────────────
+        out = card("OUTPUT")
+
+        # Output directory
+        field_label(out, "Directory")
+        dir_row = tk.Frame(out, bg=PANEL_BG2)
+        dir_row.pack(fill="x", pady=(0, 8))
+        self._outdir_lbl = tk.Label(
+            dir_row, text=str(s.out_dir),
+            bg=PANEL_BG2, fg=TEXT,
+            font=FONT_SMALL, anchor="w", justify="left", wraplength=220,
+        )
+        self._outdir_lbl.pack(side="left", fill="x", expand=True)
+        change_btn = tk.Button(
+            dir_row, text="Change…",
+            font=FONT_SMALL, command=self._pick_outdir,
+        )
+        make_button_3d(change_btn, PANEL_BG, active_bg=ACCENT2, pressed_bg="#5A7A4E")
+        change_btn.pack(side="right", padx=(6, 0))
+
+        # Filename entry
+        field_label(out, "Filename")
+        self._output_name_var = tk.StringVar(value=getattr(s, "output_name", ""))
+        name_entry = tk.Entry(
+            out, textvariable=self._output_name_var,
+            bg=PANEL_BG, fg=TEXT, insertbackground=TEXT,
+            relief="flat", bd=0, font=FONT_SMALL,
+            highlightthickness=1, highlightbackground=BORDER,
+            highlightcolor=ACCENT,
+        )
+        name_entry.pack(fill="x", ipady=5)
+        name_entry.bind("<KeyRelease>", self._on_output_name_change)
 
     def _pick_song(self):
         p = filedialog.askopenfilename(
@@ -1091,6 +1058,57 @@ class OutputPanel(tk.Frame):
             self.state.song_path = p
             self._song_lbl.config(text=Path(p).name)
 
+    def _pick_stems_folder(self):
+        folder = filedialog.askdirectory(title="Select stems folder")
+        if not folder:
+            return
+
+        folder_path = Path(folder)
+        folder_name = folder_path.name
+        song_name = folder_name.removesuffix("-stems")
+        self.state.song_path = str(folder_path / f"{song_name}.wav")
+        self._song_lbl.config(text=f"{folder_name} (stems)")
+
+        wav_files = list(folder_path.glob("*.wav"))
+        if not wav_files:
+            messagebox.showwarning("No WAV files", "The selected folder contains no .wav files.")
+            return
+
+        valid_source_names = {src.name for src in self.state.sources}
+        stems = {}
+        for wav in wav_files:
+            name = wav.stem.lower()
+            for source_name in valid_source_names:
+                if (
+                    name == source_name
+                    or name.endswith(f"_{source_name}")
+                    or name.endswith(f"-{source_name}")
+                    or name.startswith(f"{source_name}_")
+                    or name.startswith(f"{source_name}-")
+                ):
+                    stems[source_name] = str(wav)
+                    break
+
+        if not stems:
+            messagebox.showwarning(
+                "No stems recognized",
+                "No recognized stems found.\nExpected names like vocals, drums, bass, guitar, piano, other.",
+            )
+            return
+
+        populate_sources_from_stem_paths(self.state, stems)
+
+        if self._inspector_ref is not None and self._inspector_ref.source is not None:
+            self._inspector_ref.set_source(self._inspector_ref.source)
+
+        for row in self._rows_ref:
+            row.refresh_all()
+
+        if self._scene_ref is not None:
+            self._scene_ref.redraw()
+
+        loaded_names = ", ".join(sorted(stems.keys()))
+        messagebox.showinfo("Stems loaded", f"Loaded stems: {loaded_names}")
 
     def _on_demix(self):
         t = threading.Thread(
@@ -1109,6 +1127,14 @@ class OutputPanel(tk.Frame):
 
         if self._scene_ref is not None:
             self._scene_ref.redraw()
+
+    def _on_order_change(self):
+        try:
+            v = int(self._order_var.get())
+            if 1 <= v <= 7:
+                self.state.hoa_order = v
+        except ValueError:
+            pass
 
     def _on_renderer(self):
         self.state.renderer = self._renderer_var.get()

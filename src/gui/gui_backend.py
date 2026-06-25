@@ -13,19 +13,20 @@ if str(_SRC_DIR) not in sys.path:
 
 from spatial_pipeline.config import PROJECT_ROOT, BSROFORMER_ROOT
 
-BG = "#C8A97E"        
-BG_2 = "#2E241C"      
-PANEL_BG = "#433126"  
-PANEL_BG2 = "#5E7D4B" 
+BG = "#0A0806"
+BG_2 = "#050403"
+PANEL_BG = "#141210"       # main panel surface
+PANEL_BG2 = "#1C1916"      # elevated card surface
+ROW_SELECTED = "#201808"   # source row selection highlight
 
-ACCENT = "#D6B347"    
-ACCENT2 = "#7FA36B"   
-BORDER = "#6F5642"
-TEXT = "#F7F1E8"
-TEXT_DIM = "#D2C3AF"
+ACCENT = "#C8A820"
+ACCENT2 = "#4A7838"
+BORDER = "#2A2218"
+TEXT = "#F0EAE0"
+TEXT_DIM = "#686058"
 
 CANVAS_BG = "#241B15"
-GRID_COL = "#5A4A36"
+GRID_COL = "#3A2E1E"
 
 FONT_APP_TITLE = ("Helvetica", 20, "bold")
 FONT_SECTION = ("Helvetica", 13, "bold")

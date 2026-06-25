@@ -6,6 +6,7 @@ python src/gui/gui_app.py
 
 import threading
 import tkinter as tk
+from PIL import Image, ImageTk
 
 try:
     import sounddevice as _sd  # noqa: F401 — import check only
@@ -40,10 +41,10 @@ from gui_widgets import (
 class SpatialAudioGUI(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("3D Audio Generator")
+        self.title("Sonara - Ambisonic Render Engine")
         self.configure(bg=BG)
-        self.geometry("1280x800")
-        self.minsize(1080, 700)
+        self.geometry("1360x800")
+        self.minsize(1160, 700)
 
         self.state = AppState()
         self._generate_item = None
@@ -55,24 +56,21 @@ class SpatialAudioGUI(tk.Tk):
         self._build()
 
     def _panel_header(self, parent, text):
-        wrap = tk.Frame(
-            parent,
-            bg=PANEL_BG2,
-            highlightthickness=1,
-            highlightbackground=BORDER,
-        )
-        wrap.pack(fill="x", padx=8, pady=(8, 6))
+        wrap = tk.Frame(parent, bg=PANEL_BG)
+        wrap.pack(fill="x", padx=8, pady=(10, 4))
 
+        tk.Frame(wrap, bg=ACCENT, width=3).pack(side="left", fill="y")
         tk.Label(
             wrap,
             text=text,
-            bg=PANEL_BG2,
+            bg=PANEL_BG,
             fg=TEXT,
-            font=("Helvetica", 12, "bold"),
-            anchor="center",
-            padx=12,
-            pady=8,
-        ).pack(side="left", fill="x", expand=True)
+            font=("Helvetica", 11, "bold"),
+            anchor="w",
+            padx=10,
+            pady=6,
+        ).pack(side="left")
+        tk.Frame(wrap, bg=BORDER, height=1).pack(side="bottom", fill="x")
 
         return wrap
 
@@ -104,8 +102,8 @@ class SpatialAudioGUI(tk.Tk):
         self._topbar_gradient = self._make_vertical_gradient(
             w,
             h,
-            "#b88d5c",
-            "#d8b58b",
+            "#0A0907",
+            "#141210",
         )
 
         canvas.delete("gradient")
@@ -145,7 +143,7 @@ class SpatialAudioGUI(tk.Tk):
 
         self._topbar = tk.Canvas(
             self,
-            bg=BG,
+            bg="#0A0907",
             height=100,
             highlightthickness=0,
             bd=0,
@@ -156,7 +154,14 @@ class SpatialAudioGUI(tk.Tk):
         self._gen_img_normal = tk.PhotoImage(file="assets/generate_normal.png").subsample(2, 2)
         self._gen_img_hover = tk.PhotoImage(file="assets/generate_hover.png").subsample(2, 2)
         self._gen_img_pressed = tk.PhotoImage(file="assets/generate_pressed.png").subsample(2, 2)
-        self._title_img = tk.PhotoImage(file="assets/title_logo.png").zoom(2, 2).subsample(3, 3)
+        _logo_pil = Image.open("assets/title_logo.png").convert("RGBA")
+        _bbox = _logo_pil.getbbox()  # crop transparent padding around the artwork
+        if _bbox:
+            _logo_pil = _logo_pil.crop(_bbox)
+        _target_h = 57  # height of visible artwork in px — adjust to taste
+        _target_w = round(_logo_pil.width * _target_h / _logo_pil.height)
+        _logo_pil = _logo_pil.resize((_target_w, _target_h), Image.LANCZOS)
+        self._title_img = ImageTk.PhotoImage(_logo_pil)
 
         self._title_item = self._topbar.create_image(0, 0, image=self._title_img, anchor="center")
         self._generate_item = self._topbar.create_image(0, 0, image=self._gen_img_normal, anchor="center")
@@ -170,10 +175,10 @@ class SpatialAudioGUI(tk.Tk):
             self._topbar,
             text="▶  Play",
             font=("Helvetica", 10, "bold"),
-            bg=ACCENT2,
-            fg="#241B15",
-            activebackground="#96B87A",
-            activeforeground="#241B15",
+            bg="#1C1916",
+            fg=TEXT,
+            activebackground="#2A2520",
+            activeforeground=TEXT,
             relief="raised",
             bd=1,
             highlightthickness=1,
@@ -194,7 +199,7 @@ class SpatialAudioGUI(tk.Tk):
         body.grid_rowconfigure(0, weight=1)
         body.grid_columnconfigure(0, weight=0, minsize=360)
         body.grid_columnconfigure(1, weight=1, minsize=480)
-        body.grid_columnconfigure(2, weight=0, minsize=300)
+        body.grid_columnconfigure(2, weight=0, minsize=380)
 
         left = tk.Frame(
             body,
@@ -247,25 +252,27 @@ class SpatialAudioGUI(tk.Tk):
             record_bar,
             text="● Record Movement",
             font=("Helvetica", 10, "bold"),
+            width=18,
             command=lambda: scene_view.toggle_recording(),
         )
         make_button_3d(
             record_btn,
             ACCENT2,
-            fg="#241B15",
+            fg=TEXT,
             border=BORDER,
-            active_bg="#96B87A",
-            pressed_bg="#6E8E59",
+            active_bg="#5A9048",
+            pressed_bg="#3A6030",
         )
         record_btn.pack(side="left")
 
         clear_btn = tk.Button(
             record_bar,
             text="Clear Movement",
-            font=FONT_SMALL,
+            font=("Helvetica", 10, "bold"),
+            width=18,
             command=lambda: self._on_clear_movement(scene_view),
         )
-        make_button_3d(clear_btn, PANEL_BG2, active_bg=ACCENT, pressed_bg="#123457")
+        make_button_3d(clear_btn, PANEL_BG2, active_bg=ACCENT, pressed_bg="#A8892E")
         clear_btn.pack(side="left", padx=(8, 0))
 
         tk.Label(
