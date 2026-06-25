@@ -6,8 +6,8 @@ Evaluate the spatial-audio pipeline by SIMULATE-AND-COMPARE: for each decoder
 test case, beamform the REAL Eigenmike EM32 recording and an ideal ANECHOIC
 SIMULATION of the same played speaker feeds with the *same* beamformer, then
 compare their spatial responses.  Because both go through identical processing,
-any array/beamformer bias cancels and the difference isolates room reverberation
-and reproduction error.
+any array/beamformer bias cancels and the difference isolates the reproduction
+and geometry error (mic placement / parallax; the museum room is acoustically treated).
 
 Why not a single recovered DOA?
 -------------------------------
@@ -19,7 +19,7 @@ A naive "recovered DOA vs panned DOA" does not work here, and we proved it:
     at the centre reconstructs a *field* (a superposition of ~17 near-equidistant
     speakers), not a single arrival.  Even the ideal anechoic simulation gives
     only a weak, broad beamformer peak (peak/mean ~1.5 vs ~6.6 for one speaker).
-    The real recording is flatter still and dominated by reverberation, so a
+    The real recording is flatter still (off-centre mic + intrinsic field spread), so a
     single argmax DOA is meaningless.
 So we compare the whole spatial response (peak + map correlation + directivity),
 real vs anechoic-ideal, which is the rigorous way to use these recordings.
