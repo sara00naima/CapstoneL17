@@ -177,13 +177,17 @@ class Beamformer:
             self.rn.append(np.sum(np.abs(V) ** 2, axis=1) + 1e-12)
         self.win = hann(win_len)
 
-    def doa(self, snapshot: np.ndarray) -> np.ndarray:
-        """32-ch direct-sound snapshot -> mic-frame DOA unit vector."""
+    def score(self, snapshot: np.ndarray) -> np.ndarray:
+        """32-ch snapshot -> Bartlett PWD power over the search grid (len = #dirs)."""
         P = np.fft.rfft(snapshot * self.win[:, None], axis=0)
         score = np.zeros(len(self.dirs))
         for j, b in enumerate(self.band_idx):
             score += (np.abs(self.V[j].conj() @ P[b]) ** 2) / self.rn[j]
-        return self.dirs[int(np.argmax(score))]
+        return score
+
+    def doa(self, snapshot: np.ndarray) -> np.ndarray:
+        """32-ch direct-sound snapshot -> mic-frame DOA unit vector."""
+        return self.dirs[int(np.argmax(self.score(snapshot)))]
 
 
 # --------------------------------------------------------------------------- #

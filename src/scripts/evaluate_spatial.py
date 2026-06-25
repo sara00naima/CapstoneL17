@@ -11,16 +11,21 @@ Provides:
 Usage (from project root):
     python src/scripts/evaluate_spatial.py
 
-Input folder: outputs/rendered/ (written by the GUI's "GENERATE" step)
-  Both binaural and layout-decoded files live in this same folder.
-  A file is treated as binaural if its name ends in "_binaural.wav"
-  (this suffix is always enforced by gui_backend.py); everything else
-  is treated as a layout-decoded, multichannel file for the polar plot.
+Input:
+  * outputs/rendered/ (written by the GUI's "GENERATE" step) — both binaural and
+    layout-decoded files live flat in this folder.
+  * outputs/test/ (the decoder test cases) — only the ls17/ (17-ch feeds) and
+    ls17_binaural/ subfolders are scanned; hoa/ is skipped because those are
+    16-channel ambisonic scenes, not speaker layouts.
+  A file is treated as binaural if its name ends in "_binaural.wav" (this suffix
+  is always enforced by gui_backend.py); everything else is a layout-decoded,
+  multichannel file for the polar plot.
 
-Output folder: outputs/evaluation/
-  ├── polar/      ← one PNG per test case (speaker energy polar plot)
-  └── itd_ild/    ← one PNG per test case (ITD and ILD bar charts)
-      itd_ild_summary.csv
+Output folder: outputs/eval/
+  - polar/         one PNG per case (speaker energy polar plot)
+  - itd_ild/       one PNG per case (ITD and ILD bar charts) + itd_ild_summary.csv
+  - pipeline_doa/  re-plots of pipeline_doa_eval.csv if evaluate_pipeline_doa.py
+                   has been run (reproduction fidelity + angular errors)
 """
 
 import sys
@@ -43,14 +48,27 @@ if str(SRC_DIR) not in sys.path:
 
 from spatial_pipeline.config import (
     DEFAULT_RENDERED_DIR,
+    DEFAULT_TEST_DIR,
+    DEFAULT_EVAL_DIR,
+    DEFAULT_POLAR_DIR,
+    DEFAULT_ITD_ILD_DIR,
+    DEFAULT_PIPELINE_DOA_DIR,
+    DEFAULT_PIPELINE_DOA_CSV,
     MEASUREMENTS_CSV,
 )
 from spatial_pipeline.ambisonics.layout.speaker_layout import load_speaker_layout
 
-#Output dirs
-EVAL_DIR         = PROJECT_ROOT / "outputs" / "evaluation"
-POLAR_DIR        = EVAL_DIR / "polar"
-ITD_ILD_DIR      = EVAL_DIR / "itd_ild"
+#Output dirs (single eval root, shared with evaluate_pipeline_doa.py)
+EVAL_DIR         = DEFAULT_EVAL_DIR
+POLAR_DIR        = DEFAULT_POLAR_DIR
+ITD_ILD_DIR      = DEFAULT_ITD_ILD_DIR
+PIPELINE_DOA_DIR = DEFAULT_PIPELINE_DOA_DIR
+
+# Test-case tree subfolders evaluate_spatial understands. hoa/ is intentionally
+# absent: those are 16-channel ambisonic scenes, not per-speaker layouts, so the
+# polar plot does not apply to them.
+TEST_LAYOUT_SUBDIR   = "ls17"            # 17-ch decoded feeds -> polar plot
+TEST_BINAURAL_SUBDIR = "ls17_binaural"   # through-decoder binaural -> ITD/ILD
 
 # Marker that identifies a rendered file as binaural. The GUI backend
 # (gui_backend.py) always appends this suffix to binaural output filenames,
@@ -67,6 +85,113 @@ EXPECTED_DOA = {
     "all_right": (-90.0, 0.0),
     "all_back":  (180.0, 0.0),
 }
+
+
+def _match_test(stem: str) -> str | None:
+    """Return the EXPECTED_DOA key contained in a filename stem, or None.
+
+    Substring (not endswith) so it matches both GUI renders ("..._all_front")
+    and test-case files that carry a layout suffix ("..._all_front_17ch").
+    """
+    return next((k for k in EXPECTED_DOA if k in stem), None)
+
+
+def _split(wavs):
+    """Split WAVs into (layout, binaural): binaural iff stem ends in
+    BINAURAL_SUFFIX, otherwise a layout-decoded multichannel file."""
+    layout, binaural = [], []
+    for w in wavs:
+        (binaural if w.stem.lower().endswith(BINAURAL_SUFFIX) else layout).append(w)
+    return layout, binaural
+
+
+def _collect_sources(rendered_dir: Path, test_dir: Path, include_tests: bool,
+                     polar_out: Path, itd_ild_out: Path):
+    """Group the WAVs to evaluate by origin so each origin writes to its own
+    output folder (GUI renders flat, test cases under a test/ subfolder).
+
+    Returns a list of (label, layout_files, binaural_files, polar_dir, itd_dir).
+    """
+    sources = []
+
+    if rendered_dir.exists():
+        layout, binaural = _split(sorted(rendered_dir.glob("*.wav")))
+        sources.append(("rendered", layout, binaural, polar_out, itd_ild_out))
+    else:
+        print(f"[evaluate_spatial] Rendered folder not found: {rendered_dir}")
+
+    if include_tests and test_dir.exists():
+        layout, binaural = [], []
+        for sub in (TEST_LAYOUT_SUBDIR, TEST_BINAURAL_SUBDIR):
+            d = test_dir / sub
+            if d.exists():
+                l, b = _split(sorted(d.glob("*.wav")))
+                layout += l
+                binaural += b
+        sources.append(("test", layout, binaural, polar_out / "test", itd_ild_out / "test"))
+
+    return sources
+
+
+def _run_polar_plots(layout_files, speakers, out_dir: Path, label: str) -> None:
+    """Polar energy plot for each layout-decoded file, written to out_dir."""
+    if not layout_files:
+        print(f"[polar/{label}] no layout-decoded WAV files")
+        return
+    out_dir.mkdir(parents=True, exist_ok=True)
+    print(f"\n[polar/{label}] {len(layout_files)} layout-decoded files")
+    for wav in layout_files:
+        stem = wav.stem
+        expected = EXPECTED_DOA.get(_match_test(stem))
+        out = out_dir / f"{stem}_polar.png"
+        print(f"  {wav.name} -> {out.name}")
+        plot_speaker_energy_polar(wav, speakers, title=f"Speaker energy — {stem}",
+                                  out_path=out, expected_doa=expected)
+
+
+def _run_itd_ild(binaural_files, out_dir: Path, label: str) -> list:
+    """ITD/ILD plot per binaural file + an itd_ild_summary.csv in out_dir.
+    Returns the summary rows written."""
+    if not binaural_files:
+        print(f"[itd/ild/{label}] no binaural WAV files")
+        return []
+    out_dir.mkdir(parents=True, exist_ok=True)
+    print(f"\n[itd/ild/{label}] {len(binaural_files)} binaural files")
+    summary_rows = []
+    for wav in binaural_files:
+        stem = wav.stem[: -len(BINAURAL_SUFFIX)]  # strip "_binaural"
+        test_name = _match_test(stem)
+        expected = EXPECTED_DOA.get(test_name)
+        print(f"  {wav.name}")
+        try:
+            res = compute_itd_ild(wav)
+        except Exception as e:
+            print(f"    ERROR: {e}")
+            continue
+        out = out_dir / f"{wav.stem}_itd_ild.png"
+        plot_itd_ild(res, title=f"ITD / ILD — {wav.stem}", expected_doa=expected, out_path=out)
+
+        row = {
+            "file":        wav.name,
+            "test_case":   test_name or "unknown",
+            "expected_az": expected[0] if expected else "",
+            "expected_el": expected[1] if expected else "",
+            "itd_ms":      f"{res['itd_ms']:+.4f}",
+            "ild_db":      f"{res['ild_db']:+.4f}",
+        }
+        for fc, val in res["ild_db_bands"].items():
+            row[f"ild_{fc}hz"] = f"{val:+.4f}"
+        summary_rows.append(row)
+        print(f"    ITD={res['itd_ms']:+.3f} ms   ILD={res['ild_db']:+.2f} dB")
+
+    if summary_rows:
+        csv_path = out_dir / "itd_ild_summary.csv"
+        with open(csv_path, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=list(summary_rows[0].keys()))
+            writer.writeheader()
+            writer.writerows(summary_rows)
+        print(f"  summary -> {csv_path}")
+    return summary_rows
 
 # 1. POLAR PLOT — per-speaker energy from LS17 decoded file
 
@@ -305,15 +430,97 @@ def plot_itd_ild(
         plt.show()
 
 
-# 3. BATCH EVALUATION
+# 3. PIPELINE DOA — re-plot evaluate_pipeline_doa.py's CSV
+
+def plot_pipeline_doa_csv(csv_path: Path, out_dir: Path) -> None:
+    """Visualise pipeline_doa_eval.csv (from evaluate_pipeline_doa.py).
+
+    Two summary figures:
+      * map correlation per test, grouped by song  — reproduction fidelity
+        (REAL recording vs anechoic-ideal SIM; +1 = faithful, ~0 = room-dominated).
+      * angular error for the static tests: sim-vs-pan (the spread already present
+        in the ideal decode) beside real-vs-sim (the extra error the room adds).
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    if not rows:
+        print(f"[pipeline-doa] {csv_path} is empty — nothing to plot.")
+        return
+
+    def numn(v):
+        """Parse to float, mapping blanks/garbage to NaN (so empty cells gap)."""
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return np.nan
+
+    songs = sorted({r["song"] for r in rows})
+    tests = list(dict.fromkeys(r["test"] for r in rows))  # preserve CSV order
+    lut = {(r["song"], r["test"]): r for r in rows}
+
+    # Figure 1 — map correlation (all tests)
+    x = np.arange(len(tests))
+    width = 0.8 / max(len(songs), 1)
+    fig, ax = plt.subplots(figsize=(max(8, 1.4 * len(tests)), 4.5))
+    for i, song in enumerate(songs):
+        vals = [numn((lut.get((song, t)) or {}).get("map_corr")) for t in tests]
+        ax.bar(x + i * width, vals, width, label=song)
+    ax.axhline(0, color="black", lw=0.8)
+    ax.set_xticks(x + width * (len(songs) - 1) / 2)
+    ax.set_xticklabels(tests, rotation=20, ha="right")
+    ax.set_ylabel("map correlation (REAL vs anechoic-ideal SIM)")
+    ax.set_ylim(-1, 1)
+    ax.set_title("Pipeline reproduction fidelity — REAL vs SIM map correlation")
+    ax.legend(fontsize=8)
+    ax.grid(axis="y", alpha=0.3)
+    fig.tight_layout()
+    f1 = out_dir / "pipeline_doa_map_correlation.png"
+    fig.savefig(f1, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    written = [f1.name]
+
+    # Figure 2 — angular errors, static tests only
+    static = [r for r in rows if r["kind"] == "static"]
+    if static:
+        labels      = [f"{r['song']}\n{r['test']}" for r in static]
+        sim_vs_pan  = [numn(r["sim_vs_pan_deg"]) for r in static]
+        real_vs_sim = [numn(r["real_vs_sim_deg"]) for r in static]
+        xs, w = np.arange(len(static)), 0.4
+        fig, ax = plt.subplots(figsize=(max(8, 1.1 * len(static)), 4.5))
+        ax.bar(xs - w / 2, sim_vs_pan,  w, label="sim-vs-pan (decoder spread)",        color="steelblue")
+        ax.bar(xs + w / 2, real_vs_sim, w, label="real-vs-sim (room / reproduction)", color="coral")
+        ax.set_xticks(xs)
+        ax.set_xticklabels(labels, fontsize=7)
+        ax.set_ylabel("angular error (deg)")
+        ax.set_title("Static tests — decoder spread vs room/reproduction error")
+        ax.legend(fontsize=8)
+        ax.grid(axis="y", alpha=0.3)
+        fig.tight_layout()
+        f2 = out_dir / "pipeline_doa_angular_error.png"
+        fig.savefig(f2, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        written.append(f2.name)
+
+    print(f"\n[pipeline-doa] plots -> {out_dir}")
+    for name in written:
+        print(f"  {name}")
+
+
+# 4. BATCH EVALUATION
 
 def run_evaluation(
-    rendered_dir:  Path = DEFAULT_RENDERED_DIR,
-    polar_out:     Path = POLAR_DIR,
-    itd_ild_out:   Path = ITD_ILD_DIR,
+    rendered_dir:     Path = DEFAULT_RENDERED_DIR,
+    test_dir:         Path = DEFAULT_TEST_DIR,
+    include_tests:    bool = True,
+    polar_out:        Path = POLAR_DIR,
+    itd_ild_out:      Path = ITD_ILD_DIR,
+    pipeline_doa_csv: Path = DEFAULT_PIPELINE_DOA_CSV,
+    pipeline_doa_out: Path = PIPELINE_DOA_DIR,
 ) -> None:
     """
-    Scans rendered_dir for rendered WAV files and runs the full evaluation.
+    Runs the full evaluation over the GUI rendered folder and (optionally) the
+    decoder test tree, then re-plots the pipeline DOA CSV if present.
 
     Files ending in "_binaural.wav" are treated as binaural stereo renders
     (ITD/ILD analysis). All other WAV files are treated as layout-decoded,
@@ -321,92 +528,28 @@ def run_evaluation(
 
     Saves all figures and a CSV summary.
     """
-    polar_out.mkdir(parents=True, exist_ok=True)
-    itd_ild_out.mkdir(parents=True, exist_ok=True)
-
     speakers = load_speaker_layout(MEASUREMENTS_CSV)
 
-    summary_rows = []
+    # GUI renders write flat into polar/ and itd_ild/; test cases into the
+    # test/ subfolders, so test plots never overwrite same-named GUI renders.
+    sources = _collect_sources(rendered_dir, test_dir, include_tests,
+                               polar_out, itd_ild_out)
+    for label, layout_files, binaural_files, p_dir, i_dir in sources:
+        _run_polar_plots(layout_files, speakers, p_dir, label)
+        _run_itd_ild(binaural_files, i_dir, label)
 
-    if not rendered_dir.exists():
-        print(f"[evaluate_spatial] Rendered folder not found: {rendered_dir}")
-        print("Run the GUI's GENERATE step first, or pass a different --rendered-dir.")
-        return
-
-    all_wavs = sorted(rendered_dir.glob("*.wav"))
-    layout_files   = [w for w in all_wavs if not w.stem.lower().endswith(BINAURAL_SUFFIX)]
-    binaural_files = [w for w in all_wavs if w.stem.lower().endswith(BINAURAL_SUFFIX)]
-
-    #Polar plots from layout-decoded files
-    if not layout_files:
-        print(f"[polar] No layout-decoded WAV files found in {rendered_dir}")
+    #Pipeline DOA — re-plot the simulate-and-compare CSV if it exists
+    if pipeline_doa_csv.exists():
+        plot_pipeline_doa_csv(pipeline_doa_csv, pipeline_doa_out)
     else:
-        print(f"\n[polar] Found {len(layout_files)} layout-decoded files")
-
-    for wav in layout_files:
-        stem = wav.stem
-        test_name = next(
-            (k for k in EXPECTED_DOA if stem.endswith(k)),
-            None,
-        )
-        expected = EXPECTED_DOA.get(test_name)
-        title = f"Speaker energy — {stem}"
-        out   = polar_out / f"{stem}_polar.png"
-        print(f"  {wav.name} → {out.name}")
-        plot_speaker_energy_polar(wav, speakers, title=title,
-                                  out_path=out, expected_doa=expected)
-
-    #ITD / ILD from binaural files
-    if not binaural_files:
-        print(f"[itd/ild] No binaural WAV files found in {rendered_dir}")
-    else:
-        print(f"\n[itd/ild] Found {len(binaural_files)} binaural files")
-
-    for wav in binaural_files:
-        stem = wav.stem[: -len(BINAURAL_SUFFIX)]  # strip "_binaural"
-        test_name = next(
-            (k for k in EXPECTED_DOA if stem.endswith(k)),
-            None,
-        )
-        expected = EXPECTED_DOA.get(test_name)
-
-        print(f"  {wav.name}")
-        try:
-            res = compute_itd_ild(wav)
-        except Exception as e:
-            print(f"    ERROR: {e}")
-            continue
-
-        title = f"ITD / ILD — {wav.stem}"
-        out   = itd_ild_out / f"{wav.stem}_itd_ild.png"
-        plot_itd_ild(res, title=title, expected_doa=expected, out_path=out)
-
-        row = {
-            "file":        wav.name,
-            "test_case":   test_name or "unknown",
-            "expected_az": expected[0] if expected else "",
-            "expected_el": expected[1] if expected else "",
-            "itd_ms":      f"{res['itd_ms']:+.4f}",
-            "ild_db":      f"{res['ild_db']:+.4f}",
-        }
-        for fc, val in res["ild_db_bands"].items():
-            row[f"ild_{fc}hz"] = f"{val:+.4f}"
-        summary_rows.append(row)
-        print(f"    ITD={res['itd_ms']:+.3f} ms   ILD={res['ild_db']:+.2f} dB")
-
-    #CSV summary
-    if summary_rows:
-        csv_path = itd_ild_out / "itd_ild_summary.csv"
-        fieldnames = list(summary_rows[0].keys())
-        with open(csv_path, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(summary_rows)
-        print(f"\nSummary saved to {csv_path}")
+        print(f"\n[pipeline-doa] {pipeline_doa_csv} not found — run "
+              f"evaluate_pipeline_doa.py first to get DOA plots.")
 
     print("\nEvaluation complete.")
-    print(f"  Polar plots : {polar_out}")
-    print(f"  ITD/ILD     : {itd_ild_out}")
+    print(f"  Polar plots  : {polar_out}")
+    print(f"  ITD/ILD      : {itd_ild_out}")
+    if pipeline_doa_csv.exists():
+        print(f"  Pipeline DOA : {pipeline_doa_out}")
 
 
 if __name__ == "__main__":
@@ -417,8 +560,32 @@ if __name__ == "__main__":
         "--rendered-dir",
         type=Path,
         default=DEFAULT_RENDERED_DIR,
-        help="Folder containing rendered WAV files (default: outputs/rendered/)",
+        help="Folder containing GUI rendered WAV files (default: outputs/rendered/)",
+    )
+    parser.add_argument(
+        "--test-dir",
+        type=Path,
+        default=DEFAULT_TEST_DIR,
+        help="Decoder test tree to also evaluate; ls17/ + ls17_binaural/ are "
+             "scanned, hoa/ is skipped (default: outputs/test/)",
+    )
+    parser.add_argument(
+        "--no-test",
+        action="store_true",
+        help="Skip the test tree and evaluate only the rendered folder",
+    )
+    parser.add_argument(
+        "--pipeline-doa-csv",
+        type=Path,
+        default=DEFAULT_PIPELINE_DOA_CSV,
+        help="If present, re-plot this evaluate_pipeline_doa.py CSV "
+             "(default: outputs/eval/pipeline_doa/pipeline_doa_eval.csv)",
     )
     args = parser.parse_args()
 
-    run_evaluation(rendered_dir=args.rendered_dir)
+    run_evaluation(
+        rendered_dir=args.rendered_dir,
+        test_dir=args.test_dir,
+        include_tests=not args.no_test,
+        pipeline_doa_csv=args.pipeline_doa_csv,
+    )

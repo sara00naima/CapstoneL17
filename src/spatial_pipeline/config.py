@@ -24,12 +24,23 @@ DEFAULT_GUI_DIR = DEFAULT_OUTPUT_DIR / "gui"
 # (binaural files always end in "_binaural.wav", enforced by the GUI backend).
 DEFAULT_RENDERED_DIR = DEFAULT_OUTPUT_DIR / "rendered"
 
-# Test file output directories (used by generate_decoder_test_files.py)
+# Test file output directories (used by generate_decoder_test_files.py).
+# These are also the playback feeds referenced by the Reaper project
+# Cremona_Test_Cases_test_audio.rpp, so the location must stay stable.
 DEFAULT_TEST_DIR            = DEFAULT_OUTPUT_DIR / "test"
 DEFAULT_TEST_HOA_DIR        = DEFAULT_TEST_DIR / "hoa"
 DEFAULT_TEST_LS17_DIR       = DEFAULT_TEST_DIR / "ls17"
 DEFAULT_TEST_BINAURAL_DIR   = DEFAULT_TEST_DIR / "binaural"
 DEFAULT_TEST_LS17_BINAURAL_DIR = DEFAULT_TEST_DIR / "ls17_binaural"
+
+# Evaluation outputs. Single root so every evaluation artifact lives together:
+#   evaluate_spatial.py      -> polar/ and itd_ild/ (and re-plots the DOA CSV)
+#   evaluate_pipeline_doa.py -> pipeline_doa/pipeline_doa_eval.csv
+DEFAULT_EVAL_DIR           = DEFAULT_OUTPUT_DIR / "eval"
+DEFAULT_POLAR_DIR          = DEFAULT_EVAL_DIR / "polar"
+DEFAULT_ITD_ILD_DIR        = DEFAULT_EVAL_DIR / "itd_ild"
+DEFAULT_PIPELINE_DOA_DIR   = DEFAULT_EVAL_DIR / "pipeline_doa"
+DEFAULT_PIPELINE_DOA_CSV   = DEFAULT_PIPELINE_DOA_DIR / "pipeline_doa_eval.csv"
 
 # Path to the default SOFA HRTF file used for binaural rendering
 DEFAULT_HRTF_SOFA = PROJECT_ROOT / "hrtf" / "D1_44K_16bit_0.3s_FIR_SOFA.sofa"
