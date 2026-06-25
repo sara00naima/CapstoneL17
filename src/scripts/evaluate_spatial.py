@@ -24,8 +24,9 @@ Input:
 Output folder: outputs/eval/
   - polar/         one PNG per case (speaker energy polar plot)
   - itd_ild/       one PNG per case (ITD and ILD bar charts) + itd_ild_summary.csv
-  - pipeline_doa/  re-plots of pipeline_doa_eval.csv if evaluate_pipeline_doa.py
-                   has been run (reproduction fidelity + angular errors)
+  - pipeline_reproduction/  re-plots of pipeline_reproduction_eval.csv if
+                   evaluate_pipeline_reproduction.py has been run (reproduction
+                   fidelity + angular errors)
 """
 
 import sys
@@ -52,17 +53,17 @@ from spatial_pipeline.config import (
     DEFAULT_EVAL_DIR,
     DEFAULT_POLAR_DIR,
     DEFAULT_ITD_ILD_DIR,
-    DEFAULT_PIPELINE_DOA_DIR,
-    DEFAULT_PIPELINE_DOA_CSV,
+    DEFAULT_PIPELINE_REPRODUCTION_DIR,
+    DEFAULT_PIPELINE_REPRODUCTION_CSV,
     MEASUREMENTS_CSV,
 )
 from spatial_pipeline.ambisonics.layout.speaker_layout import load_speaker_layout
 
-#Output dirs (single eval root, shared with evaluate_pipeline_doa.py)
-EVAL_DIR         = DEFAULT_EVAL_DIR
-POLAR_DIR        = DEFAULT_POLAR_DIR
-ITD_ILD_DIR      = DEFAULT_ITD_ILD_DIR
-PIPELINE_DOA_DIR = DEFAULT_PIPELINE_DOA_DIR
+#Output dirs (single eval root, shared with evaluate_pipeline_reproduction.py)
+EVAL_DIR                  = DEFAULT_EVAL_DIR
+POLAR_DIR                 = DEFAULT_POLAR_DIR
+ITD_ILD_DIR               = DEFAULT_ITD_ILD_DIR
+PIPELINE_REPRODUCTION_DIR = DEFAULT_PIPELINE_REPRODUCTION_DIR
 
 # Test-case tree subfolders evaluate_spatial understands. hoa/ is intentionally
 # absent: those are 16-channel ambisonic scenes, not per-speaker layouts, so the
@@ -430,10 +431,10 @@ def plot_itd_ild(
         plt.show()
 
 
-# 3. PIPELINE DOA — re-plot evaluate_pipeline_doa.py's CSV
+# 3. PIPELINE REPRODUCTION — re-plot evaluate_pipeline_reproduction.py's CSV
 
-def plot_pipeline_doa_csv(csv_path: Path, out_dir: Path) -> None:
-    """Visualise pipeline_doa_eval.csv (from evaluate_pipeline_doa.py).
+def plot_pipeline_reproduction_csv(csv_path: Path, out_dir: Path) -> None:
+    """Visualise pipeline_reproduction_eval.csv (from evaluate_pipeline_reproduction.py).
 
     Two summary figures:
       * map correlation per test, grouped by song  — reproduction fidelity
@@ -445,7 +446,7 @@ def plot_pipeline_doa_csv(csv_path: Path, out_dir: Path) -> None:
     with open(csv_path, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     if not rows:
-        print(f"[pipeline-doa] {csv_path} is empty — nothing to plot.")
+        print(f"[pipeline-reproduction] {csv_path} is empty — nothing to plot.")
         return
 
     def numn(v):
@@ -475,7 +476,7 @@ def plot_pipeline_doa_csv(csv_path: Path, out_dir: Path) -> None:
     ax.legend(fontsize=8)
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout()
-    f1 = out_dir / "pipeline_doa_map_correlation.png"
+    f1 = out_dir / "pipeline_reproduction_map_correlation.png"
     fig.savefig(f1, dpi=150, bbox_inches="tight")
     plt.close(fig)
     written = [f1.name]
@@ -497,12 +498,12 @@ def plot_pipeline_doa_csv(csv_path: Path, out_dir: Path) -> None:
         ax.legend(fontsize=8)
         ax.grid(axis="y", alpha=0.3)
         fig.tight_layout()
-        f2 = out_dir / "pipeline_doa_angular_error.png"
+        f2 = out_dir / "pipeline_reproduction_angular_error.png"
         fig.savefig(f2, dpi=150, bbox_inches="tight")
         plt.close(fig)
         written.append(f2.name)
 
-    print(f"\n[pipeline-doa] plots -> {out_dir}")
+    print(f"\n[pipeline-reproduction] plots -> {out_dir}")
     for name in written:
         print(f"  {name}")
 
@@ -515,12 +516,12 @@ def run_evaluation(
     include_tests:    bool = True,
     polar_out:        Path = POLAR_DIR,
     itd_ild_out:      Path = ITD_ILD_DIR,
-    pipeline_doa_csv: Path = DEFAULT_PIPELINE_DOA_CSV,
-    pipeline_doa_out: Path = PIPELINE_DOA_DIR,
+    pipeline_reproduction_csv: Path = DEFAULT_PIPELINE_REPRODUCTION_CSV,
+    pipeline_reproduction_out: Path = PIPELINE_REPRODUCTION_DIR,
 ) -> None:
     """
     Runs the full evaluation over the GUI rendered folder and (optionally) the
-    decoder test tree, then re-plots the pipeline DOA CSV if present.
+    decoder test tree, then re-plots the pipeline reproduction CSV if present.
 
     Files ending in "_binaural.wav" are treated as binaural stereo renders
     (ITD/ILD analysis). All other WAV files are treated as layout-decoded,
@@ -538,18 +539,18 @@ def run_evaluation(
         _run_polar_plots(layout_files, speakers, p_dir, label)
         _run_itd_ild(binaural_files, i_dir, label)
 
-    #Pipeline DOA — re-plot the simulate-and-compare CSV if it exists
-    if pipeline_doa_csv.exists():
-        plot_pipeline_doa_csv(pipeline_doa_csv, pipeline_doa_out)
+    #Pipeline reproduction — re-plot the simulate-and-compare CSV if it exists
+    if pipeline_reproduction_csv.exists():
+        plot_pipeline_reproduction_csv(pipeline_reproduction_csv, pipeline_reproduction_out)
     else:
-        print(f"\n[pipeline-doa] {pipeline_doa_csv} not found — run "
-              f"evaluate_pipeline_doa.py first to get DOA plots.")
+        print(f"\n[pipeline-reproduction] {pipeline_reproduction_csv} not found — run "
+              f"evaluate_pipeline_reproduction.py first to get reproduction plots.")
 
     print("\nEvaluation complete.")
     print(f"  Polar plots  : {polar_out}")
     print(f"  ITD/ILD      : {itd_ild_out}")
-    if pipeline_doa_csv.exists():
-        print(f"  Pipeline DOA : {pipeline_doa_out}")
+    if pipeline_reproduction_csv.exists():
+        print(f"  Pipeline repro : {pipeline_reproduction_out}")
 
 
 if __name__ == "__main__":
@@ -575,11 +576,11 @@ if __name__ == "__main__":
         help="Skip the test tree and evaluate only the rendered folder",
     )
     parser.add_argument(
-        "--pipeline-doa-csv",
+        "--pipeline-reproduction-csv",
         type=Path,
-        default=DEFAULT_PIPELINE_DOA_CSV,
-        help="If present, re-plot this evaluate_pipeline_doa.py CSV "
-             "(default: outputs/eval/pipeline_doa/pipeline_doa_eval.csv)",
+        default=DEFAULT_PIPELINE_REPRODUCTION_CSV,
+        help="If present, re-plot this evaluate_pipeline_reproduction.py CSV "
+             "(default: outputs/eval/pipeline_reproduction/pipeline_reproduction_eval.csv)",
     )
     args = parser.parse_args()
 
@@ -587,5 +588,5 @@ if __name__ == "__main__":
         rendered_dir=args.rendered_dir,
         test_dir=args.test_dir,
         include_tests=not args.no_test,
-        pipeline_doa_csv=args.pipeline_doa_csv,
+        pipeline_reproduction_csv=args.pipeline_reproduction_csv,
     )

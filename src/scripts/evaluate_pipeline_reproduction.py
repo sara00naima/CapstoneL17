@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-evaluate_pipeline_doa.py
-========================
+evaluate_pipeline_reproduction.py
+=================================
 Evaluate the spatial-audio pipeline by SIMULATE-AND-COMPARE: for each decoder
 test case, beamform the REAL Eigenmike EM32 recording and an ideal ANECHOIC
 SIMULATION of the same played speaker feeds with the *same* beamformer, then
@@ -46,8 +46,8 @@ Method
 
 Usage
 -----
-    python src/scripts/evaluate_pipeline_doa.py
-    python src/scripts/evaluate_pipeline_doa.py --rotation-cache .doa_R.npy
+    python src/scripts/evaluate_pipeline_reproduction.py
+    python src/scripts/evaluate_pipeline_reproduction.py --rotation-cache .doa_R.npy
 """
 from __future__ import annotations
 
@@ -69,7 +69,7 @@ import estimate_speaker_positions as esp  # noqa: E402
 SRC_DIR = SCRIPTS_DIR.parent
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
-from spatial_pipeline.config import DEFAULT_PIPELINE_DOA_CSV  # noqa: E402
+from spatial_pipeline.config import DEFAULT_PIPELINE_REPRODUCTION_CSV  # noqa: E402
 
 PROJECT_ROOT = SCRIPTS_DIR.parents[1]
 DEFAULT_RECS_DIR = PROJECT_ROOT / "recs"
@@ -258,7 +258,7 @@ def main() -> int:
     ap.add_argument("--reg", type=float, default=1e-4)
     ap.add_argument("--rotation-cache", type=Path, default=None)
     ap.add_argument("--recompute", action="store_true")
-    ap.add_argument("--output-csv", type=Path, default=DEFAULT_PIPELINE_DOA_CSV)
+    ap.add_argument("--output-csv", type=Path, default=DEFAULT_PIPELINE_REPRODUCTION_CSV)
     args = ap.parse_args()
 
     print("Step 1: mic->room rotation R from the sweep recordings")

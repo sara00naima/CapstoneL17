@@ -73,7 +73,7 @@ own, always from the project root.
 | 3a. Decoding (museum) | `run_decode.py` | HOA scene in `outputs/hoa/` | 17-channel output in `outputs/ls17/` |
 | 3b. Binaural | `run_binaural.py` | HOA scene in `outputs/hoa/` | binaural stereo in `outputs/binaural/` |
 | Evaluation | `evaluate_spatial.py` | renders in `outputs/rendered/` + test cases in `outputs/test/` | plots and CSV files in `outputs/eval/` |
-| DOA evaluation | `evaluate_pipeline_doa.py` | EM32 room recordings in `recs/` vs played feeds | `outputs/eval/pipeline_doa/pipeline_doa_eval.csv` |
+| Reproduction evaluation | `evaluate_pipeline_reproduction.py` | EM32 room recordings in `recs/` vs played feeds | `outputs/eval/pipeline_reproduction/pipeline_reproduction_eval.csv` |
 
 Example, from the project root:
 ```
@@ -128,12 +128,12 @@ produces, all under `outputs/eval/`:
   in `outputs/eval/polar/`;
 - an **ITD/ILD plot** for each binaural file, plus an `itd_ild_summary.csv` summary,
   in `outputs/eval/itd_ild/`;
-- if `evaluate_pipeline_doa.py` has been run, **re-plots** of its
-  `pipeline_doa_eval.csv` (reproduction fidelity and angular error), in
-  `outputs/eval/pipeline_doa/`.
+- if `evaluate_pipeline_reproduction.py` has been run, **re-plots** of its
+  `pipeline_reproduction_eval.csv` (reproduction fidelity and angular error), in
+  `outputs/eval/pipeline_reproduction/`.
 
 You can pass a different folder with `--rendered-dir`, skip the test cases with
-`--no-test`, or point at another DOA CSV with `--pipeline-doa-csv`:
+`--no-test`, or point at another reproduction CSV with `--pipeline-reproduction-csv`:
 ```
 python src/scripts/evaluate_spatial.py --rendered-dir path\to\another\folder
 python src/scripts/evaluate_spatial.py --no-test
