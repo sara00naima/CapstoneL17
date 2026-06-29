@@ -101,6 +101,10 @@ project (source: https://github.com/openmirlab/bs-roformer-infer).
 ```
 python src/gui/gui_app.py
 ```
+The interface provides three main functionalities. First, it enables interactive scene mapping, allowing users to position separated instrument stems within the three-dimensional sound field. A coordinate mapping utility converts two-dimensional user interactions into the corresponding azimuth and elevation parameters for the selected audio source. Second, the system supports dynamic trajectory recording, where user-defined spatial movements are sampled by the encoding engine and replayed throughout the rendered audio timeline to create continuous motion effects. Finally, the system provides binaural playback and immediate auditory feedback through an asynchronous playback mechanism that buffers and streams the processed audio. Changes made through the GUI are
+immediately reflected in the spatial encoding parameters, providing immediate perceptual evaluation through headphones using the integrated binaural rendering module.
+
+To sum up:
 
 From the GUI you can: load a song and separate it into stems ("Demix Song" button); move
 each stem in space (azimuth/elevation/gain, mute/solo); choose the renderer
