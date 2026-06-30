@@ -995,7 +995,7 @@ class OutputPanel(tk.Frame):
         def divider(parent):
             tk.Frame(parent, bg="#3A2B1E", height=1).pack(fill="x", pady=8)
 
-        # ── INPUT ──────────────────────────────────────────────────────────
+        # INPUT
         inp = card("INPUT")
 
         # Song file row: truncated name + Browse button on the right
@@ -1043,7 +1043,7 @@ class OutputPanel(tk.Frame):
         _add_icon(load_stems_btn, "load-stems", icon_fg="#241B15")
         load_stems_btn.grid(row=0, column=1, sticky="ew", padx=(4, 0))
 
-        # ── RENDERING ──────────────────────────────────────────────────────
+        # RENDERING
         rnd = card("RENDERING")
 
         # Mode dropdown
@@ -1142,7 +1142,7 @@ class OutputPanel(tk.Frame):
         order_spin.pack(side="right")
         order_spin.bind("<KeyRelease>", lambda _e: self._on_order_change())
 
-        # ── OUTPUT ─────────────────────────────────────────────────────────
+        # OUTPUT
         out = card("OUTPUT")
 
         # Output directory

@@ -53,9 +53,7 @@ import soundfile as sf
 from scipy.special import spherical_jn, spherical_yn, eval_legendre
 from scipy.signal.windows import hann
 
-# --------------------------------------------------------------------------- #
 # Constants
-# --------------------------------------------------------------------------- #
 C_SOUND = 343.0          # speed of sound [m/s]
 MIC_HEIGHT_M = 0.61      # Eigenmike height ABOVE the CSV reference point [m]
 A_RADIUS = 0.042         # EM32 rigid-sphere radius [m]
@@ -98,9 +96,7 @@ DEFAULT_TRANS_CSV = PROJECT_ROOT / "measurements_transcription.csv"
 DEFAULT_OUT_CSV = PROJECT_ROOT / "estimated_positions.csv"
 
 
-# --------------------------------------------------------------------------- #
 # Geometry helpers
-# --------------------------------------------------------------------------- #
 def capsule_unit_vectors() -> np.ndarray:
     """(32, 3) capsule directions in the mic frame: x=front, y=left, z=up."""
     az = np.deg2rad(EM32_AZ_DEG)
@@ -147,9 +143,7 @@ def kabsch(P: np.ndarray, Q: np.ndarray) -> np.ndarray:
     return Vt.T @ np.diag([1.0, 1.0, d]) @ U.T
 
 
-# --------------------------------------------------------------------------- #
 # Rigid-sphere modal beamformer
-# --------------------------------------------------------------------------- #
 def _bn(n: int, ka: np.ndarray) -> np.ndarray:
     """Rigid-sphere modal coefficient b_n(ka) (global constant omitted)."""
     jn = spherical_jn(n, ka); jnp = spherical_jn(n, ka, derivative=True)
@@ -190,9 +184,7 @@ class Beamformer:
         return self.dirs[int(np.argmax(self.score(snapshot)))]
 
 
-# --------------------------------------------------------------------------- #
 # Signal processing
-# --------------------------------------------------------------------------- #
 def inverse_filter(sweep: np.ndarray, n_fft: int, reg: float) -> np.ndarray:
     S = np.fft.rfft(sweep, n=n_fft)
     mag2 = np.abs(S) ** 2
@@ -208,9 +200,7 @@ def direct_snapshot(rec: np.ndarray, inv: np.ndarray, n_fft: int):
     return rir[idx], p0, float(env[p0])
 
 
-# --------------------------------------------------------------------------- #
 # Reference CSV
-# --------------------------------------------------------------------------- #
 def load_reference(csv_path: Path) -> dict[str, dict]:
     ref: dict[str, dict] = {}
     with csv_path.open(encoding="utf-8") as f:
@@ -236,9 +226,7 @@ def sort_key(label: str) -> int:
     return int(label[1:])
 
 
-# --------------------------------------------------------------------------- #
 # Reference-point re-projection (mic is MIC_HEIGHT_M above the CSV reference)
-# --------------------------------------------------------------------------- #
 def mic_pos() -> np.ndarray:
     return np.array([0.0, 0.0, MIC_HEIGHT_M])
 
@@ -266,9 +254,7 @@ def project_to_reference(doa_room: np.ndarray, r_mic: float):
     return dist, az, el
 
 
-# --------------------------------------------------------------------------- #
 # Calibration
-# --------------------------------------------------------------------------- #
 def calibrate(doa_mic: np.ndarray, ref_dirs: np.ndarray):
     """Rigid mic->room rotation with iterative rejection of floor-corrupted speakers."""
     mask = np.ones(len(doa_mic), bool)
@@ -283,9 +269,7 @@ def calibrate(doa_mic: np.ndarray, ref_dirs: np.ndarray):
     return R, res, mask
 
 
-# --------------------------------------------------------------------------- #
 # Main
-# --------------------------------------------------------------------------- #
 def main() -> int:
     ap = argparse.ArgumentParser(
         description="Estimate museum loudspeaker positions from EM32 sweep recordings.",
@@ -333,7 +317,7 @@ def main() -> int:
         doa_mic = bf.doa(snap)
         results.append({"label": label, "doa_mic": doa_mic, "p0": p0, "peak": peak})
 
-    # ---- calibrate mic -> room (against mic-view reference directions) ----
+    # calibrate mic -> room (against mic-view reference directions)
     common = [r for r in results if r["label"] in ref]
     D = np.array([r["doa_mic"] for r in common])
     Qmic = np.array([reference_dir_from_mic(ref[r["label"]]) for r in common])
@@ -347,7 +331,7 @@ def main() -> int:
     if excluded:
         print(f"  excluded from fit (floor-reflection-biased elevation): {excluded}")
 
-    # ---- assemble positions in the original compass frame & write CSV ----
+    # assemble positions in the original compass frame & write CSV
     rows = []
     for r in sorted(results, key=lambda r: sort_key(r["label"])):
         label = r["label"]

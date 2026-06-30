@@ -43,9 +43,7 @@ SONGS = ["garage", "message", "test"]
 STATIC = ["front", "back", "left", "right"]
 
 
-# --------------------------------------------------------------------------- #
 # Beamformers (mic-frame analysis grid + room-frame plotting grid)
-# --------------------------------------------------------------------------- #
 def dome_bf(fs: int, band: tuple[float, float]) -> "esp.Beamformer":
     """Dome search grid (el >= EL_FLOOR) in the MIC frame, custom band."""
     dirs = esp.grid_directions(repro.GRID_STEP_DEG)
@@ -70,9 +68,7 @@ def room_grid_bf(fs: int, band: tuple[float, float], R: np.ndarray,
     return esp.Beamformer(dir_mic, esp.SH_ORDER, band, repro.WIN_LEN, fs), azs, els
 
 
-# --------------------------------------------------------------------------- #
 # DOA readouts from a power map
-# --------------------------------------------------------------------------- #
 def map_argmax(M: np.ndarray, bf, R: np.ndarray):
     az, el = repro.vec_to_amb(R @ bf.dirs[int(np.argmax(M))])
     return az, el
@@ -93,9 +89,7 @@ def az_err(pred_az: float, pan_az: float) -> float:
     return abs((pred_az - pan_az + 180.0) % 360.0 - 180.0)
 
 
-# --------------------------------------------------------------------------- #
 # Per-case evaluation
-# --------------------------------------------------------------------------- #
 def rec_path(recs_dir: Path, song: str, test: str) -> Path | None:
     hits = list((recs_dir / f"{song}_recs").glob(f"*_{test}.wav"))
     return hits[0] if hits else None
@@ -152,9 +146,7 @@ def print_diag(rows, band):
                   f"   corr {np.mean([r['corr'] for r in sub]):+.2f}")
 
 
-# --------------------------------------------------------------------------- #
 # LaTeX table
-# --------------------------------------------------------------------------- #
 def write_latex(rows, path: Path):
     L = [
         r"\begin{table}[t]",
@@ -196,9 +188,7 @@ def write_latex(rows, path: Path):
     print(f"\nLaTeX table -> {path}")
 
 
-# --------------------------------------------------------------------------- #
 # Pseudospectrum figure (REAL vs SIM, room frame)
-# --------------------------------------------------------------------------- #
 def make_figure(recs_dir, media_dir, R, fs, band, A_unused, prop_unused,
                 song, test, out_path: Path, layout_csv):
     import matplotlib
@@ -240,7 +230,6 @@ def make_figure(recs_dir, media_dir, R, fs, band, A_unused, prop_unused,
     print(f"\nPseudospectrum figure -> {out_path}")
 
 
-# --------------------------------------------------------------------------- #
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)

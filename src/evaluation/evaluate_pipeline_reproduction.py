@@ -101,9 +101,7 @@ TEST_SPECS = {
 TEST_ORDER = ["front", "back", "left", "right", "bounce", "orbit", "song"]
 
 
-# --------------------------------------------------------------------------- #
 # Geometry helpers (room frame == ambisonic frame: x=front, y=left, z=up)
-# --------------------------------------------------------------------------- #
 def amb_vec(az_deg: float, el_deg: float) -> np.ndarray:
     a, e = np.deg2rad(az_deg), np.deg2rad(el_deg)
     return np.array([np.cos(e) * np.cos(a), np.cos(e) * np.sin(a), np.sin(e)])
@@ -122,9 +120,7 @@ def ang_between(u: np.ndarray, v: np.ndarray) -> float:
     return float(np.rad2deg(np.arccos(np.clip(u @ v, -1.0, 1.0))))
 
 
-# --------------------------------------------------------------------------- #
 # Step 1: mic -> room rotation from the sweeps
-# --------------------------------------------------------------------------- #
 def compute_mic_to_room(reg: float):
     sweep, fs = sf.read(esp.DEFAULT_SWEEP, dtype="float64")
     if sweep.ndim > 1:
@@ -153,9 +149,7 @@ def compute_mic_to_room(reg: float):
     return R, fs
 
 
-# --------------------------------------------------------------------------- #
 # Beamformer scoring + anechoic loudspeaker simulation
-# --------------------------------------------------------------------------- #
 def dome_beamformer(fs: int) -> "esp.Beamformer":
     dirs = esp.grid_directions(GRID_STEP_DEG)
     dirs = dirs[dirs[:, 2] >= np.sin(np.deg2rad(EL_FLOOR_DEG))]
@@ -241,9 +235,7 @@ def az_coverage(peak_idx: np.ndarray, bf: "esp.Beamformer", R: np.ndarray):
     return len(np.unique(bins)) / 12.0 * 100.0, float(az.min()), float(az.max())
 
 
-# --------------------------------------------------------------------------- #
 # Main
-# --------------------------------------------------------------------------- #
 def find_media(media_dir: Path, song: str, suffix: str):
     hits = glob.glob(str(media_dir / f"{SONG_PREFIX[song]}*{suffix}.wav"))
     return hits[0] if hits else None
