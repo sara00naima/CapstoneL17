@@ -98,6 +98,7 @@ The required dependencies are listed in the `requirements.txt` file of the BS-Ro
 project (source: https://github.com/openmirlab/bs-roformer-infer).
 
 ## Graphical interface
+<img width="1913" height="991" alt="gui_default" src="https://github.com/user-attachments/assets/e65c310f-dd59-4f86-84df-6ea2081c353d" />
 
 ```
 python src/gui/gui_app.py
@@ -105,7 +106,11 @@ python src/gui/gui_app.py
 The interface provides three main functionalities. First, it enables interactive scene mapping, allowing users to position separated instrument stems within the three-dimensional sound field. A coordinate mapping utility converts two-dimensional user interactions into the corresponding azimuth and elevation parameters for the selected audio source. Second, the system supports dynamic trajectory recording, where user-defined spatial movements are sampled by the encoding engine and replayed throughout the rendered audio timeline to create continuous motion effects. Finally, the system provides binaural playback and immediate auditory feedback through an asynchronous playback mechanism that buffers and streams the processed audio. Changes made through the GUI are
 immediately reflected in the spatial encoding parameters, providing immediate perceptual evaluation through headphones using the integrated binaural rendering module.
 
-To sum up:
+
+<img width="875" height="739" alt="gui_rec" src="https://github.com/user-attachments/assets/7d525ea7-1af4-42cd-8815-7377a640aa3f" />
+
+
+**To sum up:**
 
 From the GUI you can: load a song and separate it into stems ("Demix Song" button); move
 each stem in space (azimuth/elevation/gain, mute/solo); choose the renderer
