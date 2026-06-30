@@ -275,8 +275,8 @@ def plot_speaker_energy_polar(
             arrowprops=dict(arrowstyle="->", color="red", lw=2),
         )
         ax.text(
-            exp_theta, 1.05, "expected",
-            ha="center", va="center", color="red", fontsize=8, fontweight="bold",
+            exp_theta - 0.12, 0.5, "expected",
+            ha="center", va="top", color="red", fontsize=8, fontweight="bold",
         )
 
     plt.colorbar(sc, ax=ax, label="Energy (dB, relative)", pad=0.1, shrink=0.7)
@@ -386,7 +386,7 @@ def plot_itd_ild(
     color = "steelblue" if itd_ms >= 0 else "coral"
     ax1.bar(["ITD"], [itd_ms], color=color, width=0.4)
     ax1.axhline(0, color="black", lw=0.8)
-    ax1.set_ylabel("ms  (+ = left ear first)")
+    ax1.set_ylabel("ms")
     ax1.set_ylim(-1.0, 1.0)
     ax1.set_title("Interaural Time Difference")
     ax1.text(0, itd_ms + 0.05 * np.sign(itd_ms + 1e-9),
@@ -402,7 +402,7 @@ def plot_itd_ild(
     ax2.axhline(0, color="black", lw=0.8)
     ax2.set_xticks(x)
     ax2.set_xticklabels([f"{b} Hz" for b in bands], rotation=30, ha="right")
-    ax2.set_ylabel("dB  (+ = left louder)")
+    ax2.set_ylabel("dB")
     ax2.set_title(f"ILD per octave band  (broadband: {ild_db:+.2f} dB)")
     for bar, val in zip(bars, vals):
         ax2.text(
@@ -418,7 +418,7 @@ def plot_itd_ild(
         fig.text(
             0.5, 0.97,
             f"Expected: az={exp_az:+.0f}° ({side})  →  ITD>0 & ILD>0 if left, <0 if right, ≈0 if front/back",
-            ha="center", va="top", fontsize=8, color="darkred",
+            ha="center", va="top", fontsize=11, fontweight="bold", color="black",
         )
 
     fig.suptitle(title, fontsize=11, y=1.02)
