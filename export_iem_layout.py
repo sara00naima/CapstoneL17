@@ -68,7 +68,7 @@ def load_speakers_from_csv(csv_path: Path, default_radius: float = 1.0) -> list[
             # Compass CSV (90=Right) -> IEM ambisonics (+90=Left): negate. See
             # module docstring; without this the whole layout is mirrored L<->R.
             azimuth_deg = wrap_azimuth(-parse_float(fields[2]))
-            # fields[3] = cardinal (N/S/E/W ecc.) — non serve per IEM
+            # fields[3] = cardinal (N/S/E/W ecc.)
             elevation_deg = parse_float(fields[4])
 
             speakers.append({
@@ -78,7 +78,7 @@ def load_speakers_from_csv(csv_path: Path, default_radius: float = 1.0) -> list[
                 "radius_m":      radius_m,
             })
 
-    # Ordina per numero di speaker (A1, A2, ... A17)
+    #sort by speaker number (A1, A2, ... A17)
     speakers.sort(key=lambda s: int(s["label"][1:]))
     return speakers
 
@@ -93,12 +93,12 @@ def build_iem_json(speakers: list[dict], layout_name: str = "Museum_17ch") -> di
         "Name": "...",
         "Loudspeakers": [
           {
-            "Azimuth":     float,   // gradi, +90 = sinistra
-            "Elevation":   float,   // gradi, 0 = orizzonte
-            "Radius":      float,   // metri (rilevante solo per speaker immaginari)
-            "IsImaginary": bool,    // false = speaker reale
-            "Channel":     int,     // 1-indexed, corrisponde al canale audio
-            "Gain":        float    // 1.0 per speaker reali
+            "Azimuth":     float,   // degrees, +90 = sinistra
+            "Elevation":   float,   // degrees, 0 = orizzonte
+            "Radius":      float,   // meters (relevant only for imaginary speakers)
+            "IsImaginary": bool,    // false = real speaker
+            "Channel":     int,     // 1-indexed, corresponds to the audio channel
+            "Gain":        float    // 1.0 for real speakers
           },
           ...
         ]
