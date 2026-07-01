@@ -1,9 +1,17 @@
-# CapstoneL17
+# Sonara — Ambisonic Render Engine
 
-Spatial audio pipeline: it separates a stereo track into its stems (vocals, drums,
-bass, etc.), places them in 3D space by encoding them into Ambisonics (FOA/HOA), and
-finally renders them either binaurally (headphones) or decodes them to a real
-loudspeaker layout (e.g. the 17-channel museum setup).
+**Sonara** is a Python-based spatial audio pipeline that transforms a stereo music track into an immersive three-dimensional listening experience. It automates the full processing chain, starting from source separation to Ambisonic encoding and binaural rendering through an interactive graphical interface.
+
+The pipeline separates a mixed audio track into individual stems (vocals, drums, bass, guitar, piano, other) using a BS-RoFormer deep learning model, places each stem at a user-defined position in a spherical coordinate space, and encodes the result into High-Order Ambisonics (HOA) up to 7th order following the AmbiX convention (ACN channel ordering, SN3D normalisation). The final scene can be rendered either binaurally via a user-supplied HRTF or decoded to a custom loudspeaker layout.
+
+## Features
+
+- **Interactive scene view** — drag sources around a top-down azimuth map, adjust elevation and gain per stem;
+- **Movement recording** — capture a freehand gesture on the scene view and loop it for the full render;
+- **Live preview** — audition the spatial mix in real time before committing to a render;
+- **Configurable output** — binaural headphone render or multi-channel speaker layout decode;
+- **Dark-themed GUI** built with Tkinter and PIL-rendered custom controls.
+
 
 ## Project structure
 
@@ -109,6 +117,52 @@ immediately reflected in the spatial encoding parameters, providing immediate pe
 
 <img width="875" height="739" alt="gui_rec" src="https://github.com/user-attachments/assets/7d525ea7-1af4-42cd-8815-7377a640aa3f" />
 
+## Measurement Setup
+
+The system was measured and evaluated in the **Musical Acoustics Laboratory of the Violin Museum, Cremona**, on a hemispherical array of **17 Genelec 8020-series loudspeakers**.
+
+### Coordinate system
+
+A left-handed spherical coordinate system was adopted, centered on the listening ("sweet spot") position:
+
+- **Azimuth (φ)**: 0°–360°, measured clockwise from the front
+- **Elevation (θ)**: −90°–90°, measured upward from the horizontal plane
+- **Reference height**: 0.736 m
+
+### Procedure
+
+1. The sweet spot was located with a laser distance meter and marked with a tripod, providing a stable reference point for the session.
+2. Each loudspeaker's distance, azimuth, and elevation relative to the sweet spot were measured with the tripod-mounted laser distance meter.
+3. The acoustic response of each loudspeaker was captured using **exponential sine sweep** excitation, chosen for its favorable SNR and its ability to cleanly separate the linear impulse response from harmonic distortion introduced by the transducers (which resolve at distinct time offsets after deconvolution).
+4. Recordings were made at the sweet spot with an **em32 Eigenmike®** (32-capsule rigid spherical microphone array), providing the impulse response set used later for Direction-of-Arrival (DOA) validation.
+
+### Loudspeaker layout
+
+| Loudspeaker | Distance (m) | Azimuth (°) | Elevation (°) |
+|---|---|---|---|
+| A3  | 1.532 | 0   | 21.70 |
+| A4  | 1.966 | 299 | 18.08 |
+| A5  | 1.530 | 255 | 23.76 |
+| A6  | 2.000 | 208 | 16.90 |
+| A7  | 1.555 | 165 | 23.51 |
+| A8  | 2.015 | 133 | 17.31 |
+| A9  | 1.540 | 93  | 23.80 |
+| A10 | 1.995 | 46  | 17.65 |
+| A11 | 1.878 | 2   | 53.70 |
+| A12 | 1.873 | 270 | 53.42 |
+| A13 | 1.900 | 181 | 53.36 |
+| A14 | 1.894 | 91  | 52.60 |
+| A15 | 1.230 | 357 | 8.11  |
+| A16 | 1.182 | 268 | 8.89  |
+| A17 | 1.212 | 176 | 8.60  |
+| A18 | 1.174 | 88  | 8.37  |
+| A19 | 1.720 | 357 | 80.00 |
+
+*(Loudspeaker IDs follow the lab's internal numbering; A19 is the near-zenith speaker)*
+
+<img width="966" height="990" alt="Measured loudspeaker positions in the Musical Acoustics Laboratory, Violin Museum, Cremona" src="https://github.com/user-attachments/assets/5ab1e7d4-5409-483f-ad55-931854869d2b" />
+
+*Spatial arrangement of the 17-loudspeaker hemispherical array, plotted from the measured azimuth/elevation/distance values above.*
 
 **To sum up:**
 
