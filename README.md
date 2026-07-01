@@ -173,7 +173,7 @@ A left-handed spherical coordinate system was adopted, centered on the listening
 
 *Spatial arrangement of the 17-loudspeaker hemispherical array, plotted from the measured azimuth/elevation/distance values above.*
 
-<img width="850" alt="image" src="https://github.com/user-attachments/assets/ab517074-6909-440f-b6cb-88a565e129a5" />
+<img width="850" height="478" alt="image" src="https://github.com/user-attachments/assets/ab517074-6909-440f-b6cb-88a565e129a5" />
 
 *A 17-loudspeaker array, Musical Acoustics laboratory, Violin Museum, Cremona*
 
