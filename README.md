@@ -117,6 +117,15 @@ immediately reflected in the spatial encoding parameters, providing immediate pe
 
 <img width="875" height="739" alt="gui_rec" src="https://github.com/user-attachments/assets/7d525ea7-1af4-42cd-8815-7377a640aa3f" />
 
+**To sum up:**
+
+From the GUI you can: load a song and separate it into stems ("Demix Song" button); move each stem in space (azimuth/elevation/gain, mute/solo); choose the renderer
+(**Binaural**, or **Layout Speaker** to decode to a loudspeaker layout); load a custom layout (`.csv`/`.json`) or an HRTF file (`.sofa`) different from the default one; and set
+the output folder and output filename. By pressing **GENERATE**, the GUI encodes the stems into HOA and writes the final result to `outputs/rendered/`.
+
+If you choose the **Binaural** renderer, the file is always saved with the suffix `_binaural` in its name (e.g. `my_mix_binaural.wav`), even if you customize the name —
+this is necessary because `evaluate_spatial.py` recognizes a file as binaural only based on that suffix.
+
 ## Measurement Setup
 
 The system was measured and evaluated in the **Musical Acoustics Laboratory of the Violin Museum, Cremona**, on a hemispherical array of **17 Genelec 8020-series loudspeakers**.
@@ -164,19 +173,10 @@ A left-handed spherical coordinate system was adopted, centered on the listening
 
 *Spatial arrangement of the 17-loudspeaker hemispherical array, plotted from the measured azimuth/elevation/distance values above.*
 
-**To sum up:**
+<img width="1000" alt="image" src="https://github.com/user-attachments/assets/ab517074-6909-440f-b6cb-88a565e129a5" />
 
-From the GUI you can: load a song and separate it into stems ("Demix Song" button); move
-each stem in space (azimuth/elevation/gain, mute/solo); choose the renderer
-(**Binaural**, or **Layout Speaker** to decode to a loudspeaker layout); load a custom
-layout (`.csv`/`.json`) or an HRTF file (`.sofa`) different from the default one; and set
-the output folder and output filename. By pressing **GENERATE**, the GUI encodes the
-stems into HOA and writes the final result to `outputs/rendered/`.
+*A 17-loudspeaker array, Musical Acoustics laboratory, Violin Museum, Cremona*
 
-If you choose the **Binaural** renderer, the file is always saved with the suffix
-`_binaural` in its name (e.g. `my_mix_binaural.wav`), even if you customize the name —
-this is necessary because `evaluate_spatial.py` recognizes a file as binaural only
-based on that suffix.
 
 ## Evaluation
 
