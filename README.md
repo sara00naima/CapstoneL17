@@ -160,7 +160,7 @@ A left-handed spherical coordinate system was adopted, centered on the listening
 
 *(Loudspeaker IDs follow the lab's internal numbering; A19 is the near-zenith speaker)*
 
-<img width="966" height="990" alt="Measured loudspeaker positions in the Musical Acoustics Laboratory, Violin Museum, Cremona" src="https://github.com/user-attachments/assets/5ab1e7d4-5409-483f-ad55-931854869d2b" />
+<img width="500" alt="Measured loudspeaker positions in the Musical Acoustics Laboratory, Violin Museum, Cremona" src="https://github.com/user-attachments/assets/5ab1e7d4-5409-483f-ad55-931854869d2b" />
 
 *Spatial arrangement of the 17-loudspeaker hemispherical array, plotted from the measured azimuth/elevation/distance values above.*
 
