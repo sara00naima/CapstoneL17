@@ -9,7 +9,7 @@ Provides:
   3. run_evaluation             — batch evaluation across all rendered files
 
 Usage (from project root):
-    python src/scripts/evaluate_spatial.py
+    python src/evaluation/evaluate_spatial.py
 
 Input:
   * outputs/rendered/ (written by the GUI's "GENERATE" step) — both binaural and

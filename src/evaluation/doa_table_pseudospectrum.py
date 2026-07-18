@@ -15,8 +15,8 @@ Reuses the simulate-and-compare machinery in evaluate_pipeline_reproduction.py.
 
 Usage
 -----
-    python src/scripts/doa_table_pseudospectrum.py            # diagnostic only
-    python src/scripts/doa_table_pseudospectrum.py --latex --figure
+    python src/evaluation/doa_table_pseudospectrum.py            # diagnostic only
+    python src/evaluation/doa_table_pseudospectrum.py --latex --figure
 """
 from __future__ import annotations
 
@@ -237,7 +237,11 @@ def main() -> int:
     ap.add_argument("--media-dir", type=Path, default=repro.DEFAULT_MEDIA_DIR)
     ap.add_argument("--layout-csv", type=Path, default=repro.DEFAULT_LAYOUT_CSV)
     ap.add_argument("--reg", type=float, default=1e-4)
-    ap.add_argument("--band", type=float, nargs=2, default=[400.0, 5000.0])
+    # Default = the spatially-resolved band used for the committed report table:
+    # below ~1.3 kHz the EM32 has ka<1 (a=4.2 cm) so the maps are non-directional,
+    # above ~5 kHz order-4 spatial aliasing sets in.  In 1.5-4.5 kHz the maps are
+    # directional (pk/mean SIM 3.6-5.7) so the SIM argmax DOA is reliable.
+    ap.add_argument("--band", type=float, nargs=2, default=[1500.0, 4500.0])
     ap.add_argument("--keep-pct", type=float, default=10.0)
     ap.add_argument("--rotation-cache", type=Path, default=SCRIPTS_DIR / ".doa_R.npy")
     ap.add_argument("--recompute", action="store_true")

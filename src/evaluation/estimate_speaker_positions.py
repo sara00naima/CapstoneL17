@@ -38,7 +38,7 @@ Pipeline
 
 Usage
 -----
-    python src/scripts/estimate_speaker_positions.py
+    python src/evaluation/estimate_speaker_positions.py
 """
 from __future__ import annotations
 

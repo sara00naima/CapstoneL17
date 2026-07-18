@@ -46,8 +46,8 @@ Method
 
 Usage
 -----
-    python src/scripts/evaluate_pipeline_reproduction.py
-    python src/scripts/evaluate_pipeline_reproduction.py --rotation-cache .doa_R.npy
+    python src/evaluation/evaluate_pipeline_reproduction.py
+    python src/evaluation/evaluate_pipeline_reproduction.py --rotation-cache .doa_R.npy
 """
 from __future__ import annotations
 
