@@ -331,7 +331,12 @@ def compute_itd_ild(
     mask  = np.abs(lags) <= max_lag_samples
     peak  = np.argmax(np.abs(xcorr[mask]))
     itd_samples = lags[mask][peak]
-    itd_ms = itd_samples / sr * 1000.0
+    # correlate(left, right) peaks at a NEGATIVE lag when the source is on the LEFT
+    # (the right channel is then the delayed copy). Verified synthetically: delaying
+    # the right channel by 0.5 ms gives a raw lag of -0.5 ms. The raw lag is therefore
+    # negated so that positive = LEFT, matching both this function's documented
+    # convention and ild_db; without it ITD and ILD carry opposite signs.
+    itd_ms = -itd_samples / sr * 1000.0
 
     #ILD broadband
     rms_left  = np.sqrt(np.mean(left  ** 2))
